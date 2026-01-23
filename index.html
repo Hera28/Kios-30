@@ -5,162 +5,88 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Kios Bersama</title>
 
-<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
 <style>
 body{
-  margin:0;
-  font-family:system-ui,-apple-system,Segoe UI,Roboto;
-  background:linear-gradient(135deg,#fefce8,#dcfce7);
-  color:#1f2937;
+  margin:0;font-family:system-ui;background:#f1f5f9;color:#1f2937
 }
 header{
-  padding:28px;
-  text-align:center;
-  background:linear-gradient(135deg,#16a34a,#22c55e);
-  color:white;
-  user-select:none;
+  background:#16a34a;color:white;text-align:center;padding:20px
 }
-.container{
-  max-width:900px;
-  margin:auto;
-  padding:20px;
-}
+.container{max-width:900px;margin:auto;padding:20px}
 .card{
-  background:white;
-  border-radius:16px;
-  padding:20px;
-  margin-bottom:20px;
-  box-shadow:0 10px 25px rgba(0,0,0,.08);
-}
-.center{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:12px;
+  background:white;border-radius:12px;padding:20px;margin-bottom:16px
 }
 button{
-  width:100%;
-  max-width:280px;
-  padding:14px;
-  border:none;
-  border-radius:12px;
-  background:#22c55e;
-  color:white;
-  font-size:1rem;
+  padding:12px;border:none;border-radius:10px;
+  background:#22c55e;color:white;font-size:1rem;width:100%;margin-top:8px
 }
-button.secondary{background:#64748b}
-button.danger{background:#ef4444}
+.secondary{background:#64748b}
+.danger{background:#ef4444}
 input,select{
-  width:100%;
-  padding:10px;
-  border-radius:8px;
-  border:1px solid #d1d5db;
-  margin:6px 0 12px;
+  width:100%;padding:10px;margin:6px 0 10px;
+  border-radius:8px;border:1px solid #cbd5f5
 }
-.range-wrap{
-  display:flex;
-  gap:10px;
-  align-items:center;
+.item{
+  border:1px solid #e5e7eb;border-radius:10px;padding:12px;margin-bottom:10px
 }
 .hidden{display:none}
-.item{
-  border:1px solid #e5e7eb;
-  border-radius:12px;
-  padding:14px;
-  margin-bottom:12px;
-}
-footer{
-  text-align:center;
-  padding:20px;
-  color:#6b7280;
-}
 </style>
 </head>
 
 <body>
 
-<header id="judul">
-  <h1>🧺 Kios Bersama</h1>
-  <p>Stok Harian • Toko Keluarga</p>
+<header>
+<h1>🧺 Kios Bersama</h1>
+<p>Kelola Stok Harian</p>
 </header>
 
 <div class="container">
 
 <!-- LANDING -->
-<div id="landing" class="card center">
-  <button onclick="bukaPembeli()">🛒 Saya Pembeli</button>
-  <button class="secondary" onclick="bukaLogin()">🔐 Admin Toko</button>
+<div id="landing" class="card">
+<button onclick="bukaPembeli()">🛒 Lihat Barang</button>
+<button class="secondary" onclick="bukaLogin()">🔐 Admin Toko</button>
 </div>
 
 <!-- LOGIN -->
 <div id="login" class="card hidden">
-  <h3>Login Admin</h3>
-  <input id="password" type="password" placeholder="Password admin">
-  <button onclick="loginAdmin()">Masuk</button>
-  <button class="secondary" onclick="kembali()">Batal</button>
+<h3>Login Admin</h3>
+<input id="password" type="password">
+<button onclick="loginAdmin()">Masuk</button>
 </div>
 
 <!-- ADMIN -->
 <div id="admin" class="card hidden">
-  <h3>📦 Input Stok Barang</h3>
+<h3>📦 Kelola Barang</h3>
 
-  <label>Nama Barang</label>
-  <input id="nama">
+<input id="nama" placeholder="Nama barang">
+<input id="harga" type="number" placeholder="Harga">
+<input id="jumlah" type="number" placeholder="Jumlah">
+<select id="satuan">
+<option>kg</option><option>dus</option><option>lusin</option><option>pcs</option>
+</select>
 
-  <label>Harga</label>
-  <input id="harga" type="number">
+<button onclick="simpanBarang()">💾 Simpan / Update</button>
+<button class="secondary" onclick="resetStok()">📅 Reset Stok Hari Ini</button>
 
-  <label>Jumlah Barang</label>
-  <div class="range-wrap">
-    <input type="range" id="jumlahRange" min="1" max="5000000" value="1">
-    <input type="number" id="jumlahInput" min="1" max="5000000" style="max-width:120px">
-  </div>
+<h4>Daftar Barang</h4>
+<div id="adminList"></div>
 
-  <label>Satuan</label>
-  <select id="satuan">
-    <option>kg</option>
-    <option>gram</option>
-    <option>dus</option>
-    <option>lusin</option>
-    <option>karung</option>
-    <option>pcs</option>
-  </select>
-
-  <label>Kategori</label>
-  <select id="kategori">
-    <option>Sembako</option>
-    <option>Beras</option>
-    <option>Minyak</option>
-    <option>Garam</option>
-    <option>Lainnya</option>
-  </select>
-
-  <button onclick="tambahBarang()">➕ Simpan Barang</button>
-
-  <h4>Daftar Barang</h4>
-  <select id="daftarAdmin" size="6"></select>
-
-  <button class="danger" onclick="hapusBarang()">🗑 Hapus</button>
-  <br><br>
-  <button class="secondary" onclick="kembali()">Keluar</button>
+<button class="secondary" onclick="kembali()">Keluar</button>
 </div>
 
 <!-- PEMBELI -->
 <div id="pembeli" class="card hidden">
-  <h3>🛍 Barang Tersedia</h3>
-  <div id="listBarang"></div>
-  <br>
-  <a id="waLink" target="_blank">📱 Pesan via WhatsApp</a>
-  <br><br>
-  <button class="secondary" onclick="kembali()">Kembali</button>
+<h3>🛍 Barang Tersedia</h3>
+<div id="pembeliList"></div>
+<a id="waLink" target="_blank">📱 Pesan via WhatsApp</a>
+<button class="secondary" onclick="kembali()">Kembali</button>
 </div>
 
 </div>
-
-<footer>❤️ Data otomatis tersimpan walau internet putus ❤️</footer>
 
 <script>
 // FIREBASE
@@ -172,117 +98,108 @@ firebase.initializeApp({
 const db = firebase.firestore();
 db.enablePersistence().catch(()=>{});
 
-// CONFIG
 const ADMIN_PASSWORD="11229911";
 const NO_WA="62811897005";
 
-// STATE
-const landing=document.getElementById("landing");
-const login=document.getElementById("login");
-const admin=document.getElementById("admin");
-const pembeli=document.getElementById("pembeli");
-let data=[];
+let editId=null;
 
 // NAV
-function hideAll(){
-  landing.classList.add("hidden");
-  login.classList.add("hidden");
-  admin.classList.add("hidden");
-  pembeli.classList.add("hidden");
+function show(id){
+  ["landing","login","admin","pembeli"].forEach(x=>document.getElementById(x).classList.add("hidden"));
+  document.getElementById(id).classList.remove("hidden");
 }
-function kembali(){
-  hideAll();
-  landing.classList.remove("hidden");
-}
-
-// LOAD
-async function loadData(){
-  const snap = await db.collection("barang").orderBy("created","desc").get();
-  data = snap.docs.map(d=>({id:d.id,...d.data()}));
-}
-
-// BACKDOOR
-let tap=0;
-judul.onclick=()=>{
-  tap++;
-  if(tap>=5){
-    tap=0;
-    bukaLogin();
-  }
-};
+function kembali(){show("landing")}
+function bukaLogin(){show("login")}
+function bukaPembeli(){show("pembeli")}
 
 // LOGIN
-function bukaLogin(){
-  hideAll();
-  login.classList.remove("hidden");
-}
-async function loginAdmin(){
+function loginAdmin(){
   if(password.value!==ADMIN_PASSWORD) return alert("Password salah");
-  await loadData();
-  renderAdmin();
-  hideAll();
-  admin.classList.remove("hidden");
+  show("admin");
 }
 
-// SYNC RANGE & INPUT
-jumlahRange.oninput=()=>jumlahInput.value=jumlahRange.value;
-jumlahInput.oninput=()=>jumlahRange.value=jumlahInput.value;
+// REALTIME LISTENER (INI KUNCI BUG FIX)
+db.collection("barang").orderBy("created","desc")
+.onSnapshot(snap=>{
+  const data=snap.docs.map(d=>({id:d.id,...d.data()}));
+  renderAdmin(data);
+  renderPembeli(data);
+});
 
-// CRUD
-async function tambahBarang(){
-  if(!nama.value||!harga.value||!jumlahInput.value){
-    alert("Lengkapi semua data");
-    return;
+// SIMPAN / UPDATE
+function simpanBarang(){
+  if(!nama.value||!harga.value||!jumlah.value){
+    alert("Lengkapi data"); return;
   }
-  await db.collection("barang").add({
+  const payload={
     n:nama.value,
-    h:Number(harga.value),
-    s:`${jumlahInput.value} ${satuan.value}`,
-    k:kategori.value,
+    h:harga.value,
+    s:`${jumlah.value} ${satuan.value}`,
+    updated:new Date(),
     created:new Date()
-  });
-  nama.value=harga.value=jumlahInput.value="";
-  jumlahRange.value=1;
-  await loadData();
-  renderAdmin();
+  };
+  if(editId){
+    db.collection("barang").doc(editId).update(payload);
+  }else{
+    db.collection("barang").add(payload);
+  }
+  editId=null;
+  nama.value=harga.value=jumlah.value="";
 }
 
-// DELETE
-async function hapusBarang(){
-  const id=daftarAdmin.value;
-  if(!id) return;
-  await db.collection("barang").doc(id).delete();
-  await loadData();
-  renderAdmin();
-}
-
-// RENDER
-function renderAdmin(){
-  daftarAdmin.innerHTML="";
-  data.forEach(b=>{
-    const o=document.createElement("option");
-    o.value=b.id;
-    o.text=`${b.n} | ${b.s} | Rp${b.h}`;
-    daftarAdmin.appendChild(o);
-  });
-}
-
-async function bukaPembeli(){
-  await loadData();
-  listBarang.innerHTML="";
+// RENDER ADMIN
+function renderAdmin(data){
+  adminList.innerHTML="";
   data.forEach(b=>{
     const d=document.createElement("div");
     d.className="item";
     d.innerHTML=`
-      <strong>${b.n}</strong><br>
-      Stok: ${b.s}<br>
-      Harga: Rp ${b.h}
+      <b>${b.n}</b><br>${b.s}<br>Rp ${b.h}
+      <button onclick="editBarang('${b.id}','${b.n}','${b.h}','${b.s}')">✏ Edit</button>
+      <button class="danger" onclick="hapusBarang('${b.id}')">🗑 Hapus</button>
     `;
-    listBarang.appendChild(d);
+    adminList.appendChild(d);
+  });
+}
+
+// EDIT
+function editBarang(id,n,h,s){
+  editId=id;
+  nama.value=n;
+  harga.value=h;
+  jumlah.value=parseInt(s);
+}
+
+// HAPUS
+function hapusBarang(id){
+  if(confirm("Hapus barang?"))
+    db.collection("barang").doc(id).delete();
+}
+
+// RESET STOK
+function resetStok(){
+  if(!confirm("Reset stok hari ini?")) return;
+  db.collection("barang").get().then(snap=>{
+    snap.forEach(d=>{
+      db.collection("riwayat").add({
+        barang:d.data(),
+        tanggal:new Date()
+      });
+      db.collection("barang").doc(d.id).update({s:"0"});
+    });
+  });
+}
+
+// PEMBELI
+function renderPembeli(data){
+  pembeliList.innerHTML="";
+  data.forEach(b=>{
+    const d=document.createElement("div");
+    d.className="item";
+    d.innerHTML=`<b>${b.n}</b><br>${b.s}<br>Rp ${b.h}`;
+    pembeliList.appendChild(d);
   });
   waLink.href=`https://wa.me/${NO_WA}`;
-  hideAll();
-  pembeli.classList.remove("hidden");
 }
 </script>
 
