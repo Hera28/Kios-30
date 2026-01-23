@@ -4,52 +4,77 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Kios 30</title>
+
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
   <style>
     body{
-      margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
+      margin:0;
+      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
       background:linear-gradient(135deg,#fefce8,#dcfce7);
       color:#1f2937;
     }
     header{
-      padding:32px 20px;text-align:center;
+      padding:32px 20px;
+      text-align:center;
       background:linear-gradient(135deg,#22c55e,#16a34a);
       color:white;
     }
-    header h1{margin:0;font-size:2rem}
-    header p{margin-top:8px;font-size:1rem;opacity:.95}
     .container{max-width:900px;margin:auto;padding:20px}
     .card{
-      background:white;border-radius:16px;padding:20px;margin-bottom:20px;
+      background:white;
+      border-radius:16px;
+      padding:20px;
+      margin-bottom:20px;
       box-shadow:0 10px 25px rgba(0,0,0,.08)
     }
     button{
-      padding:12px 16px;border:none;border-radius:10px;
-      background:#22c55e;color:white;font-size:1rem;cursor:pointer
+      padding:12px 16px;
+      border:none;
+      border-radius:10px;
+      background:#22c55e;
+      color:white;
+      font-size:1rem;
+      cursor:pointer
     }
     button.secondary{background:#64748b}
     button.danger{background:#ef4444}
     input,select{
-      width:100%;padding:10px;border-radius:8px;border:1px solid #d1d5db;
-      margin-top:6px;margin-bottom:12px;font-size:1rem
+      width:100%;
+      padding:10px;
+      border-radius:8px;
+      border:1px solid #d1d5db;
+      margin-top:6px;
+      margin-bottom:12px;
+      font-size:1rem
     }
-    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
-    .item{border:1px solid #e5e7eb;border-radius:12px;padding:14px}
-    .item h4{margin:0 0 6px 0}
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+      gap:16px
+    }
+    .item{
+      border:1px solid #e5e7eb;
+      border-radius:12px;
+      padding:14px
+    }
     .hidden{display:none}
-    footer{text-align:center;padding:20px;color:#6b7280;font-size:.9rem}
+    footer{text-align:center;padding:20px;color:#6b7280}
   </style>
 </head>
+
 <body>
 
 <header>
-  <h1>🧺 Toko serbaguna</h1>
+  <h1>🧺 Toko Serbaguna</h1>
   <p>Harga hari ini • Mudah dilihat • Mudah dipesan</p>
 </header>
 
 <div class="container">
 
+  <!-- LANDING -->
   <div id="landing" class="card">
     <h2>Selamat Datang 👋</h2>
     <div class="grid">
@@ -58,6 +83,7 @@
     </div>
   </div>
 
+  <!-- LOGIN -->
   <div id="login" class="card hidden">
     <h3>Login Penjual</h3>
     <input type="password" id="password" placeholder="Masukkan password" />
@@ -65,14 +91,15 @@
     <button class="secondary" onclick="kembali()">Kembali</button>
   </div>
 
+  <!-- ADMIN -->
   <div id="admin" class="card hidden">
-    <h3>📦 tempat pengolaan Barang</h3>
+    <h3>📦 Kelola Barang</h3>
 
     <label>Nama Barang</label>
-    <input id="nama" placeholder="Contoh: Beras Ramos" />
+    <input id="nama" />
 
-    <label>Harga (Rp)</label>
-    <input id="harga" type="number" placeholder="12000" />
+    <label>Harga</label>
+    <input id="harga" type="number" />
 
     <label>Kategori</label>
     <select id="kategori">
@@ -82,131 +109,138 @@
       <option>Lainnya</option>
     </select>
 
-    <button onclick="tambahBarang()">Tambah / Update Barang</button>
+    <button onclick="tambahBarang()">Tambah Barang</button>
 
     <h4>Daftar Barang</h4>
     <select id="daftarAdmin" size="6"></select>
-    <button class="danger" onclick="hapusBarang()">🗑 Hapus Barang</button>
+
+    <button class="danger" onclick="hapusBarang()">🗑 Hapus</button>
     <br><br>
     <button class="secondary" onclick="kembali()">Keluar</button>
   </div>
 
+  <!-- PEMBELI -->
   <div id="pembeli" class="card hidden">
-    <h3>🛍 Daftar Barang Hari Ini</h3>
+    <h3>🛍 Daftar Barang</h3>
     <div id="listBarang" class="grid"></div>
     <br>
-    <p><strong>Pemesanan:</strong><br>
-      <a id="waLink" href="#" target="_blank" style="color:#16a34a;font-weight:600;text-decoration:none;">Chat via WhatsApp</a>
-    </p>
+    <a id="waLink" target="_blank">Chat via WhatsApp</a>
+    <br><br>
     <button class="secondary" onclick="kembali()">Kembali</button>
   </div>
 
 </div>
 
-<footer>
-  ❤️Terimakasih telah belanja di toko kami❤️
-</footer>
+<footer>❤️ Terima kasih telah belanja ❤️</footer>
 
 <script>
+  // 🔥 FIREBASE CONFIG
   const firebaseConfig = {
     apiKey: "AIzaSyBCpRbMAIyfJzpzi5iC4xljFt_gyXaJ5Yw",
     authDomain: "kios-30.firebaseapp.com",
     projectId: "kios-30",
     storageBucket: "kios-30.firebasestorage.app",
     messagingSenderId: "253251437301",
-    appId: "1:253251437301:web:310e2495d742aa2dd63bbc",
-    measurementId: "G-SNTYKV1Q5J"
+    appId: "1:253251437301:web:310e2495d742aa2dd63bbc"
   };
+
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
 
-  const ADMIN_PASSWORD = "11229911"; //password adminya ini 
-  const NO_WA = "62811897005"; // nomor papa
+  const ADMIN_PASSWORD = "11229911";
+  const NO_WA = "62811897005";
 
-  const landing = document.getElementById('landing');
-  const login = document.getElementById('login');
-  const admin = document.getElementById('admin');
-  const pembeli = document.getElementById('pembeli');
-  const waLink = document.getElementById('waLink');
+  const landing = document.getElementById("landing");
+  const login = document.getElementById("login");
+  const admin = document.getElementById("admin");
+  const pembeli = document.getElementById("pembeli");
 
   let data = [];
 
-  async function loadData() {
-    try {
-      const snapshot = await db.collection('barang').get();
-      data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    } catch (error) {
-      console.error('Error loading data:', error);
-      alert('Error loading data');
-    }
+  function hideAll(){
+    landing.classList.add("hidden");
+    login.classList.add("hidden");
+    admin.classList.add("hidden");
+    pembeli.classList.add("hidden");
   }
 
-  function bukaLogin(){hideAll();login.classList.remove('hidden')}
-  async function bukaPembeli(){await loadData(); renderPembeli(); hideAll(); pembeli.classList.remove('hidden')}
-  function kembali(){hideAll();landing.classList.remove('hidden')}
+  function kembali(){
+    hideAll();
+    landing.classList.remove("hidden");
+  }
 
-  function hideAll(){
-    landing.classList.add('hidden');
-    login.classList.add('hidden');
-    admin.classList.add('hidden');
-    pembeli.classList.add('hidden');
+  async function loadData(){
+    const snap = await db.collection("barang").get();
+    data = snap.docs.map(d => ({id:d.id, ...d.data()}));
+  }
+
+  async function bukaPembeli(){
+    await loadData();
+    renderPembeli();
+    hideAll();
+    pembeli.classList.remove("hidden");
+  }
+
+  function bukaLogin(){
+    hideAll();
+    login.classList.remove("hidden");
   }
 
   async function loginAdmin(){
-    if(password.value===ADMIN_PASSWORD){
-      await loadData();
-      hideAll();admin.classList.remove('hidden');renderAdmin();
-    }else alert('Password salah');
+    if(password.value !== ADMIN_PASSWORD) return alert("Password salah");
+    await loadData();
+    renderAdmin();
+    hideAll();
+    admin.classList.remove("hidden");
   }
 
   async function tambahBarang(){
-    const n=nama.value,h=harga.value,k=kategori.value;
-    if(!n||!h) return alert('Isi nama dan harga');
-    try {
-      await db.collection('barang').add({n,h,k});
-      await loadData();
-      renderAdmin();nama.value='';harga.value='';
-    } catch (error) {
-      console.error('Error adding item:', error);
-      alert('Error adding item');
-    }
+    if(!nama.value || !harga.value) return alert("Lengkapi data");
+    await db.collection("barang").add({
+      n: nama.value,
+      h: harga.value,
+      k: kategori.value,
+      secret: ADMIN_PASSWORD
+    });
+    nama.value = harga.value = "";
+    await loadData();
+    renderAdmin();
   }
 
   async function hapusBarang(){
-    const i=daftarAdmin.selectedIndex;
-    if(i>=0){
-      const id = data[i].id;
-      try {
-        await db.collection('barang').doc(id).delete();
-        await loadData();
-        renderAdmin();
-      } catch (error) {
-        console.error('Error deleting item:', error);
-        alert('Error deleting item');
-      }
-    }
+    const i = daftarAdmin.selectedIndex;
+    if(i < 0) return;
+    const id = data[i].id;
+    await db.collection("barang").doc(id).update({secret:ADMIN_PASSWORD});
+    await db.collection("barang").doc(id).delete();
+    await loadData();
+    renderAdmin();
   }
 
   function renderAdmin(){
-    daftarAdmin.innerHTML='';
+    daftarAdmin.innerHTML = "";
     data.forEach(b=>{
-      const o=document.createElement('option');
-      o.text=`${b.n} - Rp${b.h}`;
+      const o = document.createElement("option");
+      o.text = `${b.n} - Rp${b.h}`;
       daftarAdmin.appendChild(o);
     });
   }
 
   function renderPembeli(){
-    listBarang.innerHTML='';
+    listBarang.innerHTML = "";
     data.forEach(b=>{
-      const d=document.createElement('div');
-      d.className='item';
-      d.innerHTML=`<h4>${b.n}</h4><p>Kategori: ${b.k}</p><strong>Rp ${b.h}</strong>`;
+      const d = document.createElement("div");
+      d.className = "item";
+      d.innerHTML = `<h4>${b.n}</h4><p>${b.k}</p><strong>Rp ${b.h}</strong>`;
       listBarang.appendChild(d);
     });
     waLink.href = `https://wa.me/${NO_WA}`;
   }
 </script>
+
+</body>
+</html>
+
 
 </body>
 </html>
