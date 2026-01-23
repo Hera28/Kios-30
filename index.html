@@ -9,29 +9,15 @@
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
 <style>
-body{
-  margin:0;font-family:system-ui;background:#f1f5f9;color:#1f2937
-}
-header{
-  background:#16a34a;color:white;text-align:center;padding:20px
-}
+body{margin:0;font-family:system-ui;background:#f1f5f9}
+header{background:#16a34a;color:#fff;padding:20px;text-align:center}
 .container{max-width:900px;margin:auto;padding:20px}
-.card{
-  background:white;border-radius:12px;padding:20px;margin-bottom:16px
-}
-button{
-  padding:12px;border:none;border-radius:10px;
-  background:#22c55e;color:white;font-size:1rem;width:100%;margin-top:8px
-}
+.card{background:#fff;border-radius:14px;padding:20px;margin-bottom:16px}
+button{width:100%;padding:14px;border:none;border-radius:12px;background:#22c55e;color:#fff;font-size:1rem;margin-top:8px}
 .secondary{background:#64748b}
 .danger{background:#ef4444}
-input,select{
-  width:100%;padding:10px;margin:6px 0 10px;
-  border-radius:8px;border:1px solid #cbd5f5
-}
-.item{
-  border:1px solid #e5e7eb;border-radius:10px;padding:12px;margin-bottom:10px
-}
+input,select{width:100%;padding:10px;margin:6px 0;border-radius:8px;border:1px solid #cbd5f5}
+.item{border:1px solid #e5e7eb;border-radius:10px;padding:12px;margin-bottom:10px}
 .hidden{display:none}
 </style>
 </head>
@@ -40,7 +26,7 @@ input,select{
 
 <header>
 <h1>🧺 Kios Bersama</h1>
-<p>Kelola Stok Harian</p>
+<p>Stok Harian Toko Keluarga</p>
 </header>
 
 <div class="container">
@@ -48,29 +34,29 @@ input,select{
 <!-- LANDING -->
 <div id="landing" class="card">
 <button onclick="bukaPembeli()">🛒 Lihat Barang</button>
-<button class="secondary" onclick="bukaLogin()">🔐 Admin Toko</button>
+<button class="secondary" onclick="bukaAdmin()">🔐 Admin</button>
 </div>
 
 <!-- LOGIN -->
 <div id="login" class="card hidden">
-<h3>Login Admin</h3>
-<input id="password" type="password">
-<button onclick="loginAdmin()">Masuk</button>
+<input id="password" type="password" placeholder="Password admin">
+<button onclick="login()">Masuk</button>
+<button class="secondary" onclick="kembali()">Batal</button>
 </div>
 
 <!-- ADMIN -->
 <div id="admin" class="card hidden">
-<h3>📦 Kelola Barang</h3>
+<h3>📦 Input / Edit Barang</h3>
 
 <input id="nama" placeholder="Nama barang">
 <input id="harga" type="number" placeholder="Harga">
 <input id="jumlah" type="number" placeholder="Jumlah">
 <select id="satuan">
-<option>kg</option><option>dus</option><option>lusin</option><option>pcs</option>
+<option>kg</option><option>gram</option><option>dus</option>
+<option>lusin</option><option>karung</option><option>pcs</option>
 </select>
 
-<button onclick="simpanBarang()">💾 Simpan / Update</button>
-<button class="secondary" onclick="resetStok()">📅 Reset Stok Hari Ini</button>
+<button onclick="simpan()">💾 Simpan Barang</button>
 
 <h4>Daftar Barang</h4>
 <div id="adminList"></div>
@@ -80,7 +66,7 @@ input,select{
 
 <!-- PEMBELI -->
 <div id="pembeli" class="card hidden">
-<h3>🛍 Barang Tersedia</h3>
+<h3>🛍 Daftar Barang</h3>
 <div id="pembeliList"></div>
 <a id="waLink" target="_blank">📱 Pesan via WhatsApp</a>
 <button class="secondary" onclick="kembali()">Kembali</button>
@@ -96,8 +82,8 @@ firebase.initializeApp({
   projectId:"kios-30"
 });
 const db = firebase.firestore();
-db.enablePersistence().catch(()=>{});
 
+// CONFIG
 const ADMIN_PASSWORD="11229911";
 const NO_WA="62811897005";
 
@@ -109,95 +95,76 @@ function show(id){
   document.getElementById(id).classList.remove("hidden");
 }
 function kembali(){show("landing")}
-function bukaLogin(){show("login")}
-function bukaPembeli(){show("pembeli")}
+function bukaAdmin(){show("login")}
 
 // LOGIN
-function loginAdmin(){
+function login(){
   if(password.value!==ADMIN_PASSWORD) return alert("Password salah");
+  loadAdmin();
   show("admin");
 }
 
-// REALTIME LISTENER (INI KUNCI BUG FIX)
-db.collection("barang").orderBy("created","desc")
-.onSnapshot(snap=>{
-  const data=snap.docs.map(d=>({id:d.id,...d.data()}));
-  renderAdmin(data);
-  renderPembeli(data);
-});
-
-// SIMPAN / UPDATE
-function simpanBarang(){
+// CRUD
+async function simpan(){
   if(!nama.value||!harga.value||!jumlah.value){
     alert("Lengkapi data"); return;
   }
-  const payload={
+  const data={
     n:nama.value,
-    h:harga.value,
+    h:Number(harga.value),
     s:`${jumlah.value} ${satuan.value}`,
-    updated:new Date(),
     created:new Date()
   };
   if(editId){
-    db.collection("barang").doc(editId).update(payload);
+    await db.collection("barang").doc(editId).update(data);
   }else{
-    db.collection("barang").add(payload);
+    await db.collection("barang").add(data);
   }
   editId=null;
   nama.value=harga.value=jumlah.value="";
+  loadAdmin();
 }
 
-// RENDER ADMIN
-function renderAdmin(data){
+// LOAD ADMIN
+async function loadAdmin(){
+  const snap=await db.collection("barang").orderBy("created","desc").get();
   adminList.innerHTML="";
-  data.forEach(b=>{
-    const d=document.createElement("div");
-    d.className="item";
-    d.innerHTML=`
+  snap.forEach(d=>{
+    const b=d.data();
+    const div=document.createElement("div");
+    div.className="item";
+    div.innerHTML=`
       <b>${b.n}</b><br>${b.s}<br>Rp ${b.h}
-      <button onclick="editBarang('${b.id}','${b.n}','${b.h}','${b.s}')">✏ Edit</button>
-      <button class="danger" onclick="hapusBarang('${b.id}')">🗑 Hapus</button>
+      <button onclick="edit('${d.id}','${b.n}','${b.h}','${b.s}')">✏ Edit</button>
+      <button class="danger" onclick="hapus('${d.id}')">🗑 Hapus</button>
     `;
-    adminList.appendChild(d);
+    adminList.appendChild(div);
   });
 }
 
-// EDIT
-function editBarang(id,n,h,s){
+// EDIT / DELETE
+function edit(id,n,h,s){
   editId=id;
   nama.value=n;
   harga.value=h;
   jumlah.value=parseInt(s);
 }
-
-// HAPUS
-function hapusBarang(id){
-  if(confirm("Hapus barang?"))
-    db.collection("barang").doc(id).delete();
+async function hapus(id){
+  await db.collection("barang").doc(id).delete();
+  loadAdmin();
 }
 
-// RESET STOK
-function resetStok(){
-  if(!confirm("Reset stok hari ini?")) return;
-  db.collection("barang").get().then(snap=>{
-    snap.forEach(d=>{
-      db.collection("riwayat").add({
-        barang:d.data(),
-        tanggal:new Date()
-      });
-      db.collection("barang").doc(d.id).update({s:"0"});
-    });
-  });
-}
-
-// PEMBELI
-function renderPembeli(data){
+// PEMBELI (INI YANG FIX TOTAL)
+async function bukaPembeli(){
+  show("pembeli");
+  const snap=await db.collection("barang").orderBy("created","desc").get();
   pembeliList.innerHTML="";
-  data.forEach(b=>{
-    const d=document.createElement("div");
-    d.className="item";
-    d.innerHTML=`<b>${b.n}</b><br>${b.s}<br>Rp ${b.h}`;
-    pembeliList.appendChild(d);
+  snap.forEach(d=>{
+    const b=d.data();
+    const div=document.createElement("div");
+    div.className="item";
+    div.innerHTML=`<b>${b.n}</b><br>${b.s}<br>Rp ${b.h}`;
+    pembeliList.appendChild(div);
   });
   waLink.href=`https://wa.me/${NO_WA}`;
 }
