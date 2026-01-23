@@ -6,206 +6,235 @@
 <title>Kios 30</title>
 
 <!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
 <style>
-:root{
-  --bg:#f9fafb;
-  --card:#fff;
-  --text:#111;
-}
-[data-theme="dark"]{
-  --bg:#0f172a;
-  --card:#1e293b;
-  --text:#f8fafc;
-}
 body{
   margin:0;
-  font-family:system-ui;
-  background:var(--bg);
-  color:var(--text);
+  font-family:system-ui,Segoe UI,Roboto;
+  background:#f8fafc;
+  color:#111827;
 }
 header{
+  padding:20px;
   text-align:center;
-  padding:16px;
-  font-size:22px;
-  font-weight:700;
-  user-select:none;
+  background:#16a34a;
+  color:white;
 }
-button,input,select{
-  padding:10px;
-  border-radius:10px;
-  border:1px solid #ccc;
+.container{
+  max-width:900px;
+  margin:auto;
+  padding:20px;
 }
 .card{
-  background:var(--card);
-  padding:14px;
-  margin:12px auto;
-  max-width:480px;
-  border-radius:14px;
+  background:white;
+  padding:20px;
+  border-radius:12px;
+  margin-bottom:20px;
+  box-shadow:0 6px 18px rgba(0,0,0,.08);
+}
+button{
+  padding:12px;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+  background:#22c55e;
+  color:white;
+  font-size:1rem;
+}
+button.secondary{background:#64748b}
+button.danger{background:#ef4444}
+input,select{
+  width:100%;
+  padding:10px;
+  margin:6px 0 12px;
+  border-radius:6px;
+  border:1px solid #d1d5db;
+}
+.grid{
+  display:grid;
+  gap:12px;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
 }
 .hidden{display:none}
-.flex{display:flex;gap:8px}
-.right-top{
-  position:fixed;
-  top:10px;
-  right:10px;
+.item{
+  border:1px solid #e5e7eb;
+  padding:12px;
+  border-radius:10px;
+}
+footer{
+  text-align:center;
+  padding:20px;
+  color:#6b7280;
 }
 </style>
 </head>
 
 <body>
 
-<header id="title">🛒 Kios 30</header>
+<header>
+  <h1 id="judul">🧺 Kios 30</h1>
+  <p>Toko Harian Keluarga</p>
+</header>
 
-<div class="right-top">
-  <button onclick="toggleTheme()">🌙</button>
+<div class="container">
+
+<div id="landing" class="card">
+  <div class="grid">
+    <button onclick="bukaPembeli()">🛒 Pembeli</button>
+    <button class="secondary" onclick="bukaAdmin()">🔐 Admin</button>
+  </div>
 </div>
 
-<!-- ADMIN ORANG TUA -->
-<div class="card">
-  <button onclick="openAdmin()">🔑 Admin</button>
-</div>
+<div id="admin" class="card hidden">
+  <h3>Kelola Barang</h3>
 
-<!-- FORM BARANG -->
-<div id="adminPanel" class="card hidden">
-  <h3>Tambah / Edit Barang</h3>
-  <input id="nama" placeholder="Nama barang">
-  <input id="harga" type="number" placeholder="Harga">
-  <input id="stok" type="number" placeholder="Stok">
+  <label>Nama Barang</label>
+  <input id="nama">
+
+  <label>Harga</label>
+  <input id="harga" type="number">
+
+  <label>Stok</label>
+  <input id="stok" type="number">
+
+  <label>Satuan</label>
   <select id="satuan">
     <option>kg</option>
     <option>pcs</option>
     <option>lusin</option>
     <option>dos</option>
-    <option>satuan</option>
   </select>
-  <button onclick="simpanBarang()">💾 Simpan</button>
+
+  <label>Kategori</label>
+  <select id="kategori">
+    <option>Sembako</option>
+    <option>Sayur</option>
+    <option>Buah</option>
+    <option>Lainnya</option>
+  </select>
+
+  <button onclick="tambahBarang()">➕ Tambah Barang</button>
+
+  <hr>
+
+  <h4>Daftar Barang</h4>
+  <div id="adminList"></div>
+
+  <br>
+  <button class="secondary" onclick="kembali()">⬅ Kembali</button>
 </div>
 
-<!-- DAFTAR BARANG -->
-<div id="list"></div>
-
-<!-- SUPER ADMIN -->
-<div id="superAdmin" class="card hidden">
-  <h3>🧠 System Tools</h3>
-  <button onclick="forceSync()">🔄 Force Sync</button>
-  <button onclick="fixData()">🧹 Fix Undefined</button>
-  <button onclick="resetStok()">📅 Reset Stok</button>
+<div id="pembeli" class="card hidden">
+  <h3>Daftar Barang</h3>
+  <div id="listBarang" class="grid"></div>
+  <br>
+  <a id="waLink" target="_blank">💬 Pesan via WhatsApp</a>
+  <br><br>
+  <button class="secondary" onclick="kembali()">⬅ Kembali</button>
 </div>
+
+</div>
+
+<footer>❤️ Kios Keluarga ❤️</footer>
 
 <script>
-/* ================= FIREBASE ================= */
+// ================= FIREBASE =================
 const firebaseConfig = {
-  apiKey: "ISI_APIKEY",
-  authDomain: "ISI_DOMAIN",
-  projectId: "ISI_PROJECT_ID"
+  apiKey: "AIzaSyBCpRbMAIyfJzpzi5iC4xljFt_gyXaJ5Yw",
+  authDomain: "kios-30.firebaseapp.com",
+  projectId: "kios-30",
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-/* ================= STATE ================= */
-let isAdmin=false;
-let isSuper=false;
-let tapCount=0;
+// ================= VAR =================
+const NO_WA = "62811897005";
+let dataBarang = [];
 
-/* ================= RENDER ================= */
-function renderBarang(data){
-  const list=document.getElementById("list");
-  list.innerHTML="";
-  data.forEach(doc=>{
-    const b=doc.data();
-    if(!b.nama)return;
-    const div=document.createElement("div");
-    div.className="card";
-    div.innerHTML=`
-      <b>${b.nama}</b><br>
-      Rp ${b.harga ?? 0}<br>
-      Stok: ${b.stok ?? 0} ${b.satuan ?? ""}
-    `;
-    list.appendChild(div);
-  });
+// ================= NAV =================
+function hideAll(){
+  landing.classList.add("hidden");
+  admin.classList.add("hidden");
+  pembeli.classList.add("hidden");
+}
+function kembali(){
+  hideAll();
+  landing.classList.remove("hidden");
+}
+function bukaAdmin(){
+  hideAll();
+  admin.classList.remove("hidden");
+  loadBarang();
+}
+function bukaPembeli(){
+  hideAll();
+  pembeli.classList.remove("hidden");
+  loadBarang();
 }
 
-/* ================= LISTENER ================= */
-db.collection("barang").onSnapshot(snap=>{
-  renderBarang(snap.docs);
-});
-
-/* ================= ADMIN ================= */
-function openAdmin(){
-  const pw=prompt("Password Admin:");
-  if(pw==="1234"){
-    isAdmin=true;
-    adminPanel.classList.remove("hidden");
+// ================= DATA =================
+async function loadBarang(){
+  try{
+    const snap = await db.collection("barang").get();
+    dataBarang = snap.docs.map(d => ({
+      id:d.id,
+      nama:d.data().nama || "",
+      harga:d.data().harga || 0,
+      stok:d.data().stok || 0,
+      satuan:d.data().satuan || "",
+      kategori:d.data().kategori || ""
+    }));
+    renderAdmin();
+    renderPembeli();
+  }catch(e){
+    alert("Gagal load data");
+    console.error(e);
   }
 }
 
-/* ================= SUPER ADMIN ================= */
-let startX=null;
-document.addEventListener("touchstart",e=>{
-  startX=e.touches[0].clientX;
-});
-document.addEventListener("touchend",e=>{
-  if(startX && e.changedTouches[0].clientX-startX>120){
-    openSuper();
-  }
-  startX=null;
-});
-title.onclick=()=>{
-  tapCount++;
-  setTimeout(()=>tapCount=0,800);
-  if(tapCount>=5)openSuper();
-}
-function openSuper(){
-  const pw=prompt("System Passcode:");
-  if(pw==="Edmund28"){
-    isSuper=true;
-    superAdmin.classList.remove("hidden");
-    alert("Super Admin Aktif");
-  }
-}
-
-/* ================= AKSI ================= */
-function simpanBarang(){
-  if(!isAdmin)return;
-  db.collection("barang").add({
+async function tambahBarang(){
+  if(!nama.value) return alert("Nama kosong");
+  await db.collection("barang").add({
     nama:nama.value,
-    harga:Number(harga.value),
-    stok:Number(stok.value),
+    harga:Number(harga.value||0),
+    stok:Number(stok.value||0),
     satuan:satuan.value,
-    updated:Date.now()
+    kategori:kategori.value
   });
-}
-function forceSync(){location.reload()}
-function fixData(){
-  db.collection("barang").get().then(snap=>{
-    snap.forEach(d=>{
-      const b=d.data();
-      db.collection("barang").doc(d.id).update({
-        nama:b.nama||"",
-        harga:b.harga||0,
-        stok:b.stok||0,
-        satuan:b.satuan||"pcs"
-      })
-    })
-  })
-}
-function resetStok(){
-  if(confirm("Reset semua stok?")){
-    db.collection("barang").get().then(snap=>{
-      snap.forEach(d=>{
-        db.collection("barang").doc(d.id).update({stok:0})
-      })
-    })
-  }
+  nama.value=harga.value=stok.value="";
+  loadBarang();
 }
 
-/* ================= THEME ================= */
-function toggleTheme(){
-  document.body.dataset.theme=
-    document.body.dataset.theme==="dark"?"":"dark";
+// ================= RENDER =================
+function renderAdmin(){
+  adminList.innerHTML="";
+  dataBarang.forEach(b=>{
+    const d=document.createElement("div");
+    d.className="item";
+    d.innerHTML=`
+      <strong>${b.nama}</strong><br>
+      ${b.kategori} • ${b.stok} ${b.satuan}<br>
+      Rp ${b.harga}
+    `;
+    adminList.appendChild(d);
+  });
+}
+
+function renderPembeli(){
+  listBarang.innerHTML="";
+  dataBarang.forEach(b=>{
+    const d=document.createElement("div");
+    d.className="item";
+    d.innerHTML=`
+      <strong>${b.nama}</strong><br>
+      ${b.stok} ${b.satuan}<br>
+      Rp ${b.harga}
+    `;
+    listBarang.appendChild(d);
+  });
+  waLink.href=`https://wa.me/${NO_WA}`;
 }
 </script>
 
