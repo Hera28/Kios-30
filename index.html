@@ -3,246 +3,210 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Kios Bersama</title>
+<title>Kios 30</title>
 
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <style>
 :root{
-  --bg:#f8fafc;--card:#fff;--text:#1f2937;--primary:#22c55e
+  --bg:#f9fafb;
+  --card:#fff;
+  --text:#111;
 }
-body.dark{
-  --bg:#0f172a;--card:#1e293b;--text:#e5e7eb
+[data-theme="dark"]{
+  --bg:#0f172a;
+  --card:#1e293b;
+  --text:#f8fafc;
 }
 body{
-  margin:0;font-family:system-ui;
-  background:var(--bg);color:var(--text)
+  margin:0;
+  font-family:system-ui;
+  background:var(--bg);
+  color:var(--text);
 }
 header{
-  background:var(--primary);color:white;
-  padding:16px;text-align:center;position:relative
+  text-align:center;
+  padding:16px;
+  font-size:22px;
+  font-weight:700;
+  user-select:none;
 }
-#theme{position:absolute;right:16px;top:16px;cursor:pointer}
-.container{max-width:900px;margin:auto;padding:20px}
-.card{background:var(--card);border-radius:16px;padding:20px;margin-bottom:16px}
-button{
-  width:100%;padding:14px;margin-top:8px;
-  border:none;border-radius:12px;
-  background:var(--primary);color:white;font-size:1rem
+button,input,select{
+  padding:10px;
+  border-radius:10px;
+  border:1px solid #ccc;
 }
-.secondary{background:#64748b}
-.danger{background:#ef4444}
-input,select{
-  width:100%;padding:12px;margin-top:6px;
-  border-radius:10px;border:1px solid #cbd5e1
+.card{
+  background:var(--card);
+  padding:14px;
+  margin:12px auto;
+  max-width:480px;
+  border-radius:14px;
 }
 .hidden{display:none}
-.item{
-  border:1px solid #e5e7eb;
-  border-radius:12px;padding:12px;margin-bottom:10px
-}
 .flex{display:flex;gap:8px}
-.flex button{flex:1}
+.right-top{
+  position:fixed;
+  top:10px;
+  right:10px;
+}
 </style>
 </head>
 
 <body>
 
-<header>
-<h2 id="title">🧺 Kios Bersama</h2>
-<div id="theme" onclick="toggleTheme()">🌙</div>
-</header>
+<header id="title">🛒 Kios 30</header>
 
-<div class="container">
-
-<div id="home" class="card">
-<button onclick="openBuyer()">🛒 Pembeli</button>
-<button class="secondary" onclick="openLogin()">🔐 Admin</button>
+<div class="right-top">
+  <button onclick="toggleTheme()">🌙</button>
 </div>
 
-<div id="login" class="card hidden">
-<input id="pass" type="password" placeholder="Password Admin">
-<button onclick="login()">Masuk</button>
-<button class="secondary" onclick="goHome()">Kembali</button>
+<!-- ADMIN ORANG TUA -->
+<div class="card">
+  <button onclick="openAdmin()">🔑 Admin</button>
 </div>
 
-<div id="admin" class="card hidden">
-<h3>📦 Kelola Barang</h3>
-
-<input id="nama" placeholder="Nama barang">
-<input id="harga" type="number" placeholder="Harga">
-<input id="stok" type="number" placeholder="Jumlah stok (bebas)">
-<select id="satuan">
-<option>kg</option><option>gram</option><option>pcs</option>
-<option>dus</option><option>lusin</option><option>karung</option>
-<option>satuan</option>
-</select>
-
-<button onclick="simpan()">💾 Simpan</button>
-
-<h4>Daftar Barang</h4>
-<div id="adminList"></div>
-
-<button class="secondary" onclick="goHome()">Keluar</button>
+<!-- FORM BARANG -->
+<div id="adminPanel" class="card hidden">
+  <h3>Tambah / Edit Barang</h3>
+  <input id="nama" placeholder="Nama barang">
+  <input id="harga" type="number" placeholder="Harga">
+  <input id="stok" type="number" placeholder="Stok">
+  <select id="satuan">
+    <option>kg</option>
+    <option>pcs</option>
+    <option>lusin</option>
+    <option>dos</option>
+    <option>satuan</option>
+  </select>
+  <button onclick="simpanBarang()">💾 Simpan</button>
 </div>
 
-<div id="buyer" class="card hidden">
-<h3>🛍 Daftar Barang</h3>
-<div id="buyerList"></div>
-<a id="wa" target="_blank">📱 Pesan via WhatsApp</a>
-<button class="secondary" onclick="goHome()">Kembali</button>
-</div>
+<!-- DAFTAR BARANG -->
+<div id="list"></div>
 
+<!-- SUPER ADMIN -->
+<div id="superAdmin" class="card hidden">
+  <h3>🧠 System Tools</h3>
+  <button onclick="forceSync()">🔄 Force Sync</button>
+  <button onclick="fixData()">🧹 Fix Undefined</button>
+  <button onclick="resetStok()">📅 Reset Stok</button>
 </div>
 
 <script>
-// ================= FIREBASE =================
-firebase.initializeApp({
-  apiKey:"AIzaSyBCpRbMAIyfJzpzi5iC4xljFt_gyXaJ5Yw",
-  authDomain:"kios-30.firebaseapp.com",
-  projectId:"kios-30"
-});
-const db=firebase.firestore();
+/* ================= FIREBASE ================= */
+const firebaseConfig = {
+  apiKey: "ISI_APIKEY",
+  authDomain: "ISI_DOMAIN",
+  projectId: "ISI_PROJECT_ID"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 
-// 🔒 PAKSA OFFLINE MODE
-firebase.firestore().enablePersistence({synchronizeTabs:false})
-.catch(()=>console.warn("offline persistence aktif di device lain"));
+/* ================= STATE ================= */
+let isAdmin=false;
+let isSuper=false;
+let tapCount=0;
 
-// ================= STATE =================
-const ADMIN="11229911";
-const WA="62811897005";
-let STATE=[];
-let editId=null;
-let ready=false;
-
-// ================= THEME =================
-function toggleTheme(){
-  document.body.classList.toggle("dark");
-  localStorage.theme=document.body.classList.contains("dark")?"dark":"light";
-}
-if(localStorage.theme==="dark")document.body.classList.add("dark");
-
-// ================= NAV =================
-function show(id){
-["home","login","admin","buyer"].forEach(x=>document.getElementById(x).classList.add("hidden"));
-document.getElementById(id).classList.remove("hidden");
-}
-function goHome(){show("home")}
-function openLogin(){show("login")}
-function openBuyer(){renderBuyer();show("buyer")}
-
-// ================= LOGIN =================
-function login(){
-if(pass.value!==ADMIN)return alert("Password salah");
-show("admin");
-}
-
-// ================= LISTENER AMAN =================
-db.collection("barang").onSnapshot(snap=>{
-  const clean=[];
-  snap.forEach(doc=>{
-    const d=doc.data();
-    if(!d||!d.nama||!d.satuan) return;
-    clean.push({
-      id:doc.id,
-      nama:String(d.nama),
-      harga:Number(d.harga||0),
-      stok:Number(d.stok||0),
-      satuan:String(d.satuan)
-    });
+/* ================= RENDER ================= */
+function renderBarang(data){
+  const list=document.getElementById("list");
+  list.innerHTML="";
+  data.forEach(doc=>{
+    const b=doc.data();
+    if(!b.nama)return;
+    const div=document.createElement("div");
+    div.className="card";
+    div.innerHTML=`
+      <b>${b.nama}</b><br>
+      Rp ${b.harga ?? 0}<br>
+      Stok: ${b.stok ?? 0} ${b.satuan ?? ""}
+    `;
+    list.appendChild(div);
   });
-  STATE=clean;
-  localStorage.setItem("barang_cache",JSON.stringify(STATE));
-  if(!ready){
-    ready=true;
+}
+
+/* ================= LISTENER ================= */
+db.collection("barang").onSnapshot(snap=>{
+  renderBarang(snap.docs);
+});
+
+/* ================= ADMIN ================= */
+function openAdmin(){
+  const pw=prompt("Password Admin:");
+  if(pw==="1234"){
+    isAdmin=true;
+    adminPanel.classList.remove("hidden");
   }
-  renderAdmin();
-  renderBuyer();
-},err=>{
-  const cache=localStorage.getItem("barang_cache");
-  if(cache){
-    STATE=JSON.parse(cache);
-    renderAdmin();
-    renderBuyer();
+}
+
+/* ================= SUPER ADMIN ================= */
+let startX=null;
+document.addEventListener("touchstart",e=>{
+  startX=e.touches[0].clientX;
+});
+document.addEventListener("touchend",e=>{
+  if(startX && e.changedTouches[0].clientX-startX>120){
+    openSuper();
   }
+  startX=null;
 });
-
-// ================= CRUD =================
-function simpan(){
-if(!nama.value||!harga.value||!stok.value)return alert("Lengkapi data");
-const data={
-  nama:nama.value.trim(),
-  harga:Number(harga.value),
-  stok:Number(stok.value),
-  satuan:satuan.value,
-  ts:Date.now()
-};
-if(editId){
-  db.collection("barang").doc(editId).set(data,{merge:true});
-}else{
-  db.collection("barang").add(data);
-}
-editId=null;
-nama.value=harga.value=stok.value="";
-}
-
-function editBarang(id){
-const b=STATE.find(x=>x.id===id);
-if(!b)return;
-editId=id;
-nama.value=b.nama;
-harga.value=b.harga;
-stok.value=b.stok;
-satuan.value=b.satuan;
-}
-
-function hapusBarang(id){
-if(confirm("Hapus barang?")){
-  db.collection("barang").doc(id).delete();
-}
-}
-
-// ================= RENDER =================
-function renderAdmin(){
-const el=document.getElementById("adminList");
-el.innerHTML="";
-STATE.forEach(b=>{
-  const d=document.createElement("div");
-  d.className="item";
-  d.innerHTML=`
-<b>${b.nama}</b><br>
-${b.stok} ${b.satuan}<br>
-Rp ${b.harga}
-<div class="flex">
-<button onclick="editBarang('${b.id}')">✏ Edit</button>
-<button class="danger" onclick="hapusBarang('${b.id}')">🗑</button>
-</div>`;
-  el.appendChild(d);
-});
-}
-
-function renderBuyer(){
-const el=document.getElementById("buyerList");
-el.innerHTML="";
-STATE.forEach(b=>{
-  const d=document.createElement("div");
-  d.className="item";
-  d.innerHTML=`<b>${b.nama}</b><br>${b.stok} ${b.satuan}<br>Rp ${b.harga}`;
-  el.appendChild(d);
-});
-wa.href=`https://wa.me/${WA}`;
-}
-
-// ================= BACKDOOR =================
-let tap=0;
 title.onclick=()=>{
-tap++;
-if(tap===5){
-tap=0;
-show("login");
+  tapCount++;
+  setTimeout(()=>tapCount=0,800);
+  if(tapCount>=5)openSuper();
 }
-};
+function openSuper(){
+  const pw=prompt("System Passcode:");
+  if(pw==="Edmund28"){
+    isSuper=true;
+    superAdmin.classList.remove("hidden");
+    alert("Super Admin Aktif");
+  }
+}
+
+/* ================= AKSI ================= */
+function simpanBarang(){
+  if(!isAdmin)return;
+  db.collection("barang").add({
+    nama:nama.value,
+    harga:Number(harga.value),
+    stok:Number(stok.value),
+    satuan:satuan.value,
+    updated:Date.now()
+  });
+}
+function forceSync(){location.reload()}
+function fixData(){
+  db.collection("barang").get().then(snap=>{
+    snap.forEach(d=>{
+      const b=d.data();
+      db.collection("barang").doc(d.id).update({
+        nama:b.nama||"",
+        harga:b.harga||0,
+        stok:b.stok||0,
+        satuan:b.satuan||"pcs"
+      })
+    })
+  })
+}
+function resetStok(){
+  if(confirm("Reset semua stok?")){
+    db.collection("barang").get().then(snap=>{
+      snap.forEach(d=>{
+        db.collection("barang").doc(d.id).update({stok:0})
+      })
+    })
+  }
+}
+
+/* ================= THEME ================= */
+function toggleTheme(){
+  document.body.dataset.theme=
+    document.body.dataset.theme==="dark"?"":"dark";
+}
 </script>
 
 </body>
