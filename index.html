@@ -20,25 +20,36 @@ header{
   padding:28px;
   text-align:center;
   background:linear-gradient(135deg,#16a34a,#22c55e);
-  color:#fff;
+  color:white;
   user-select:none;
 }
-.container{max-width:900px;margin:auto;padding:20px}
+.container{
+  max-width:900px;
+  margin:auto;
+  padding:20px;
+}
 .card{
-  background:#fff;
+  background:white;
   border-radius:16px;
   padding:20px;
   margin-bottom:20px;
-  box-shadow:0 10px 25px rgba(0,0,0,.08)
+  box-shadow:0 10px 25px rgba(0,0,0,.08);
+}
+.center{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  align-items:center;
 }
 button{
-  padding:12px 16px;
+  width:100%;
+  max-width:280px;
+  padding:14px;
   border:none;
-  border-radius:10px;
+  border-radius:12px;
   background:#22c55e;
   color:white;
   font-size:1rem;
-  cursor:pointer
 }
 button.secondary{background:#64748b}
 button.danger{background:#ef4444}
@@ -47,22 +58,24 @@ input,select{
   padding:10px;
   border-radius:8px;
   border:1px solid #d1d5db;
-  margin-top:6px;
-  margin-bottom:12px;
+  margin:6px 0 12px;
 }
-.grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-  gap:16px
+.range{
+  display:flex;
+  gap:10px;
+  align-items:center;
 }
+.hidden{display:none}
 .item{
   border:1px solid #e5e7eb;
   border-radius:12px;
-  padding:14px
+  padding:14px;
 }
-.hidden{display:none}
-footer{text-align:center;padding:20px;color:#6b7280}
-small{color:#6b7280}
+footer{
+  text-align:center;
+  padding:20px;
+  color:#6b7280;
+}
 </style>
 </head>
 
@@ -70,27 +83,28 @@ small{color:#6b7280}
 
 <header id="judul">
   <h1>🧺 Kios Bersama</h1>
-  <p>Stok Harian • Harga Pasar • Mudah Dipakai</p>
+  <p>Stok Harian • Toko Keluarga</p>
 </header>
 
 <div class="container">
 
 <!-- LANDING -->
-<div id="landing" class="card">
-  <button onclick="bukaPembeli()">🛒 Lihat Barang</button>
+<div id="landing" class="card center">
+  <button onclick="bukaPembeli()">🛒 Saya Pembeli</button>
+  <button class="secondary" onclick="bukaLogin()">🔐 Admin Toko</button>
 </div>
 
-<!-- LOGIN ADMIN -->
+<!-- LOGIN -->
 <div id="login" class="card hidden">
-  <h3>🔐 Akses Admin</h3>
-  <input type="password" id="password" placeholder="Password admin">
+  <h3>Login Admin</h3>
+  <input id="password" type="password" placeholder="Password">
   <button onclick="loginAdmin()">Masuk</button>
   <button class="secondary" onclick="kembali()">Batal</button>
 </div>
 
 <!-- ADMIN -->
 <div id="admin" class="card hidden">
-  <h3>📦 Kelola Stok Harian</h3>
+  <h3>📦 Input Stok</h3>
 
   <label>Nama Barang</label>
   <input id="nama">
@@ -98,8 +112,20 @@ small{color:#6b7280}
   <label>Harga</label>
   <input id="harga">
 
-  <label>Stok (bebas, contoh: 10 karung / 2 lusin)</label>
-  <input id="stok">
+  <label>Jumlah</label>
+  <div class="range">
+    <input type="range" id="jumlah" min="1" max="30" value="1" oninput="jmlView.innerText=this.value">
+    <strong id="jmlView">1</strong>
+  </div>
+
+  <label>Satuan</label>
+  <select id="satuan">
+    <option>kg</option>
+    <option>gram</option>
+    <option>dus</option>
+    <option>lusin</option>
+    <option>karung</option>
+  </select>
 
   <label>Kategori</label>
   <select id="kategori">
@@ -110,12 +136,12 @@ small{color:#6b7280}
     <option>Lainnya</option>
   </select>
 
-  <button onclick="tambahBarang()">➕ Simpan</button>
+  <button onclick="tambahBarang()">Simpan</button>
 
   <h4>Daftar Barang</h4>
   <select id="daftarAdmin" size="6"></select>
 
-  <button class="danger" onclick="hapusBarang()">🗑 Hapus</button>
+  <button class="danger" onclick="hapusBarang()">Hapus</button>
   <br><br>
   <button class="secondary" onclick="kembali()">Keluar</button>
 </div>
@@ -123,38 +149,41 @@ small{color:#6b7280}
 <!-- PEMBELI -->
 <div id="pembeli" class="card hidden">
   <h3>🛍 Barang Tersedia</h3>
-  <div id="listBarang" class="grid"></div>
+  <div id="listBarang"></div>
   <br>
-  <a id="waLink" target="_blank">📱 Pesan via WhatsApp</a>
+  <a id="waLink" target="_blank">Pesan via WhatsApp</a>
   <br><br>
   <button class="secondary" onclick="kembali()">Kembali</button>
 </div>
 
 </div>
 
-<footer>❤️ Terima kasih • Data stok diperbarui harian ❤️</footer>
+<footer>❤️ Data tersimpan walau internet putus ❤️</footer>
 
 <script>
-/* FIREBASE */
+// FIREBASE
 firebase.initializeApp({
-  apiKey: "AIzaSyBCpRbMAIyfJzpzi5iC4xljFt_gyXaJ5Yw",
-  authDomain: "kios-30.firebaseapp.com",
-  projectId: "kios-30"
+  apiKey:"AIzaSyBCpRbMAIyfJzpzi5iC4xljFt_gyXaJ5Yw",
+  authDomain:"kios-30.firebaseapp.com",
+  projectId:"kios-30"
 });
 const db = firebase.firestore();
 
-/* CONFIG */
-const ADMIN_PASSWORD = "11229911";
-const NO_WA = "62811897005";
+// OFFLINE SUPPORT
+db.enablePersistence().catch(()=>{});
 
-/* STATE */
-const landing = document.getElementById("landing");
-const login = document.getElementById("login");
-const admin = document.getElementById("admin");
-const pembeli = document.getElementById("pembeli");
-let data = [];
+// CONFIG
+const ADMIN_PASSWORD="11229911";
+const NO_WA="62811897005";
 
-/* NAV */
+// STATE
+const landing=landingEl=document.getElementById("landing");
+const login=document.getElementById("login");
+const admin=document.getElementById("admin");
+const pembeli=document.getElementById("pembeli");
+let data=[];
+
+// NAV
 function hideAll(){
   landing.classList.add("hidden");
   login.classList.add("hidden");
@@ -166,24 +195,27 @@ function kembali(){
   landing.classList.remove("hidden");
 }
 
-/* LOAD */
+// LOAD
 async function loadData(){
-  const snap = await db.collection("barang").orderBy("created","desc").get();
-  data = snap.docs.map(d=>({id:d.id,...d.data()}));
+  const s=await db.collection("barang").orderBy("created","desc").get();
+  data=s.docs.map(d=>({id:d.id,...d.data()}));
 }
 
-/* BACKDOOR ADMIN (tap judul 5x) */
-let tap = 0;
-judul.onclick = ()=>{
+// BACKDOOR
+let tap=0;
+judul.onclick=()=>{
   tap++;
   if(tap>=5){
     tap=0;
-    hideAll();
-    login.classList.remove("hidden");
+    bukaLogin();
   }
 };
 
-/* LOGIN */
+// LOGIN
+function bukaLogin(){
+  hideAll();
+  login.classList.remove("hidden");
+}
 async function loginAdmin(){
   if(password.value!==ADMIN_PASSWORD) return alert("Password salah");
   await loadData();
@@ -192,31 +224,29 @@ async function loginAdmin(){
   admin.classList.remove("hidden");
 }
 
-/* CRUD */
+// CRUD
 async function tambahBarang(){
-  if(!nama.value||!harga.value||!stok.value)
-    return alert("Lengkapi data");
+  const stok=`${jumlah.value} ${satuan.value}`;
   await db.collection("barang").add({
     n:nama.value,
     h:harga.value,
-    s:stok.value,
+    s:stok,
     k:kategori.value,
     created:new Date()
   });
-  nama.value=harga.value=stok.value="";
   await loadData();
   renderAdmin();
 }
 
 async function hapusBarang(){
-  const id = daftarAdmin.value;
-  if(!id) return alert("Pilih barang dulu");
+  const id=daftarAdmin.value;
+  if(!id) return;
   await db.collection("barang").doc(id).delete();
   await loadData();
   renderAdmin();
 }
 
-/* RENDER */
+// RENDER
 function renderAdmin(){
   daftarAdmin.innerHTML="";
   data.forEach(b=>{
@@ -233,12 +263,7 @@ async function bukaPembeli(){
   data.forEach(b=>{
     const d=document.createElement("div");
     d.className="item";
-    d.innerHTML=`
-      <h4>${b.n}</h4>
-      <p>${b.k}</p>
-      <strong>Rp ${b.h}</strong>
-      <p>Stok: ${b.s}</p>
-    `;
+    d.innerHTML=`<strong>${b.n}</strong><br>${b.s}<br>Rp ${b.h}`;
     listBarang.appendChild(d);
   });
   waLink.href=`https://wa.me/${NO_WA}`;
@@ -249,3 +274,4 @@ async function bukaPembeli(){
 
 </body>
 </html>
+
