@@ -1,246 +1,251 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Kios 30</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kios Bersama</title>
 
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
-  <style>
-    body{
-      margin:0;
-      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
-      background:linear-gradient(135deg,#fefce8,#dcfce7);
-      color:#1f2937;
-    }
-    header{
-      padding:32px 20px;
-      text-align:center;
-      background:linear-gradient(135deg,#22c55e,#16a34a);
-      color:white;
-    }
-    .container{max-width:900px;margin:auto;padding:20px}
-    .card{
-      background:white;
-      border-radius:16px;
-      padding:20px;
-      margin-bottom:20px;
-      box-shadow:0 10px 25px rgba(0,0,0,.08)
-    }
-    button{
-      padding:12px 16px;
-      border:none;
-      border-radius:10px;
-      background:#22c55e;
-      color:white;
-      font-size:1rem;
-      cursor:pointer
-    }
-    button.secondary{background:#64748b}
-    button.danger{background:#ef4444}
-    input,select{
-      width:100%;
-      padding:10px;
-      border-radius:8px;
-      border:1px solid #d1d5db;
-      margin-top:6px;
-      margin-bottom:12px;
-      font-size:1rem
-    }
-    .grid{
-      display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-      gap:16px
-    }
-    .item{
-      border:1px solid #e5e7eb;
-      border-radius:12px;
-      padding:14px
-    }
-    .hidden{display:none}
-    footer{text-align:center;padding:20px;color:#6b7280}
-  </style>
+<style>
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto;
+  background:linear-gradient(135deg,#fefce8,#dcfce7);
+  color:#1f2937;
+}
+header{
+  padding:28px;
+  text-align:center;
+  background:linear-gradient(135deg,#16a34a,#22c55e);
+  color:#fff;
+  user-select:none;
+}
+.container{max-width:900px;margin:auto;padding:20px}
+.card{
+  background:#fff;
+  border-radius:16px;
+  padding:20px;
+  margin-bottom:20px;
+  box-shadow:0 10px 25px rgba(0,0,0,.08)
+}
+button{
+  padding:12px 16px;
+  border:none;
+  border-radius:10px;
+  background:#22c55e;
+  color:white;
+  font-size:1rem;
+  cursor:pointer
+}
+button.secondary{background:#64748b}
+button.danger{background:#ef4444}
+input,select{
+  width:100%;
+  padding:10px;
+  border-radius:8px;
+  border:1px solid #d1d5db;
+  margin-top:6px;
+  margin-bottom:12px;
+}
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:16px
+}
+.item{
+  border:1px solid #e5e7eb;
+  border-radius:12px;
+  padding:14px
+}
+.hidden{display:none}
+footer{text-align:center;padding:20px;color:#6b7280}
+small{color:#6b7280}
+</style>
 </head>
 
 <body>
 
-<header>
-  <h1>🧺 Toko Serbaguna</h1>
-  <p>Harga hari ini • Mudah dilihat • Mudah dipesan</p>
+<header id="judul">
+  <h1>🧺 Kios Bersama</h1>
+  <p>Stok Harian • Harga Pasar • Mudah Dipakai</p>
 </header>
 
 <div class="container">
 
-  <!-- LANDING -->
-  <div id="landing" class="card">
-    <h2>Selamat Datang 👋</h2>
-    <div class="grid">
-      <button onclick="bukaPembeli()">🛒 Saya Pembeli</button>
-      <button class="secondary" onclick="bukaLogin()">🔐 Saya Penjual</button>
-    </div>
-  </div>
+<!-- LANDING -->
+<div id="landing" class="card">
+  <button onclick="bukaPembeli()">🛒 Lihat Barang</button>
+</div>
 
-  <!-- LOGIN -->
-  <div id="login" class="card hidden">
-    <h3>Login Penjual</h3>
-    <input type="password" id="password" placeholder="Masukkan password" />
-    <button onclick="loginAdmin()">Masuk</button>
-    <button class="secondary" onclick="kembali()">Kembali</button>
-  </div>
+<!-- LOGIN ADMIN -->
+<div id="login" class="card hidden">
+  <h3>🔐 Akses Admin</h3>
+  <input type="password" id="password" placeholder="Password admin">
+  <button onclick="loginAdmin()">Masuk</button>
+  <button class="secondary" onclick="kembali()">Batal</button>
+</div>
 
-  <!-- ADMIN -->
-  <div id="admin" class="card hidden">
-    <h3>📦 Kelola Barang</h3>
+<!-- ADMIN -->
+<div id="admin" class="card hidden">
+  <h3>📦 Kelola Stok Harian</h3>
 
-    <label>Nama Barang</label>
-    <input id="nama" />
+  <label>Nama Barang</label>
+  <input id="nama">
 
-    <label>Harga</label>
-    <input id="harga" type="number" />
+  <label>Harga</label>
+  <input id="harga">
 
-    <label>Kategori</label>
-    <select id="kategori">
-      <option>Sembako</option>
-      <option>Sayur</option>
-      <option>Buah</option>
-      <option>Lainnya</option>
-    </select>
+  <label>Stok (bebas, contoh: 10 karung / 2 lusin)</label>
+  <input id="stok">
 
-    <button onclick="tambahBarang()">Tambah Barang</button>
+  <label>Kategori</label>
+  <select id="kategori">
+    <option>Sembako</option>
+    <option>Beras</option>
+    <option>Minyak</option>
+    <option>Garam</option>
+    <option>Lainnya</option>
+  </select>
 
-    <h4>Daftar Barang</h4>
-    <select id="daftarAdmin" size="6"></select>
+  <button onclick="tambahBarang()">➕ Simpan</button>
 
-    <button class="danger" onclick="hapusBarang()">🗑 Hapus</button>
-    <br><br>
-    <button class="secondary" onclick="kembali()">Keluar</button>
-  </div>
+  <h4>Daftar Barang</h4>
+  <select id="daftarAdmin" size="6"></select>
 
-  <!-- PEMBELI -->
-  <div id="pembeli" class="card hidden">
-    <h3>🛍 Daftar Barang</h3>
-    <div id="listBarang" class="grid"></div>
-    <br>
-    <a id="waLink" target="_blank">Chat via WhatsApp</a>
-    <br><br>
-    <button class="secondary" onclick="kembali()">Kembali</button>
-  </div>
+  <button class="danger" onclick="hapusBarang()">🗑 Hapus</button>
+  <br><br>
+  <button class="secondary" onclick="kembali()">Keluar</button>
+</div>
+
+<!-- PEMBELI -->
+<div id="pembeli" class="card hidden">
+  <h3>🛍 Barang Tersedia</h3>
+  <div id="listBarang" class="grid"></div>
+  <br>
+  <a id="waLink" target="_blank">📱 Pesan via WhatsApp</a>
+  <br><br>
+  <button class="secondary" onclick="kembali()">Kembali</button>
+</div>
 
 </div>
 
-<footer>❤️ Terima kasih telah belanja ❤️</footer>
+<footer>❤️ Terima kasih • Data stok diperbarui harian ❤️</footer>
 
 <script>
-  // 🔥 FIREBASE CONFIG
-  const firebaseConfig = {
-    apiKey: "AIzaSyBCpRbMAIyfJzpzi5iC4xljFt_gyXaJ5Yw",
-    authDomain: "kios-30.firebaseapp.com",
-    projectId: "kios-30",
-    storageBucket: "kios-30.firebasestorage.app",
-    messagingSenderId: "253251437301",
-    appId: "1:253251437301:web:310e2495d742aa2dd63bbc"
-  };
+/* FIREBASE */
+firebase.initializeApp({
+  apiKey: "AIzaSyBCpRbMAIyfJzpzi5iC4xljFt_gyXaJ5Yw",
+  authDomain: "kios-30.firebaseapp.com",
+  projectId: "kios-30"
+});
+const db = firebase.firestore();
 
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
+/* CONFIG */
+const ADMIN_PASSWORD = "11229911";
+const NO_WA = "62811897005";
 
-  const ADMIN_PASSWORD = "11229911";
-  const NO_WA = "62811897005";
+/* STATE */
+const landing = document.getElementById("landing");
+const login = document.getElementById("login");
+const admin = document.getElementById("admin");
+const pembeli = document.getElementById("pembeli");
+let data = [];
 
-  const landing = document.getElementById("landing");
-  const login = document.getElementById("login");
-  const admin = document.getElementById("admin");
-  const pembeli = document.getElementById("pembeli");
+/* NAV */
+function hideAll(){
+  landing.classList.add("hidden");
+  login.classList.add("hidden");
+  admin.classList.add("hidden");
+  pembeli.classList.add("hidden");
+}
+function kembali(){
+  hideAll();
+  landing.classList.remove("hidden");
+}
 
-  let data = [];
+/* LOAD */
+async function loadData(){
+  const snap = await db.collection("barang").orderBy("created","desc").get();
+  data = snap.docs.map(d=>({id:d.id,...d.data()}));
+}
 
-  function hideAll(){
-    landing.classList.add("hidden");
-    login.classList.add("hidden");
-    admin.classList.add("hidden");
-    pembeli.classList.add("hidden");
-  }
-
-  function kembali(){
-    hideAll();
-    landing.classList.remove("hidden");
-  }
-
-  async function loadData(){
-    const snap = await db.collection("barang").get();
-    data = snap.docs.map(d => ({id:d.id, ...d.data()}));
-  }
-
-  async function bukaPembeli(){
-    await loadData();
-    renderPembeli();
-    hideAll();
-    pembeli.classList.remove("hidden");
-  }
-
-  function bukaLogin(){
+/* BACKDOOR ADMIN (tap judul 5x) */
+let tap = 0;
+judul.onclick = ()=>{
+  tap++;
+  if(tap>=5){
+    tap=0;
     hideAll();
     login.classList.remove("hidden");
   }
+};
 
-  async function loginAdmin(){
-    if(password.value !== ADMIN_PASSWORD) return alert("Password salah");
-    await loadData();
-    renderAdmin();
-    hideAll();
-    admin.classList.remove("hidden");
-  }
+/* LOGIN */
+async function loginAdmin(){
+  if(password.value!==ADMIN_PASSWORD) return alert("Password salah");
+  await loadData();
+  renderAdmin();
+  hideAll();
+  admin.classList.remove("hidden");
+}
 
-  async function tambahBarang(){
-    if(!nama.value || !harga.value) return alert("Lengkapi data");
-    await db.collection("barang").add({
-      n: nama.value,
-      h: harga.value,
-      k: kategori.value,
-      secret: ADMIN_PASSWORD
-    });
-    nama.value = harga.value = "";
-    await loadData();
-    renderAdmin();
-  }
+/* CRUD */
+async function tambahBarang(){
+  if(!nama.value||!harga.value||!stok.value)
+    return alert("Lengkapi data");
+  await db.collection("barang").add({
+    n:nama.value,
+    h:harga.value,
+    s:stok.value,
+    k:kategori.value,
+    created:new Date()
+  });
+  nama.value=harga.value=stok.value="";
+  await loadData();
+  renderAdmin();
+}
 
-  async function hapusBarang(){
-    const i = daftarAdmin.selectedIndex;
-    if(i < 0) return;
-    const id = data[i].id;
-    await db.collection("barang").doc(id).update({secret:ADMIN_PASSWORD});
-    await db.collection("barang").doc(id).delete();
-    await loadData();
-    renderAdmin();
-  }
+async function hapusBarang(){
+  const id = daftarAdmin.value;
+  if(!id) return alert("Pilih barang dulu");
+  await db.collection("barang").doc(id).delete();
+  await loadData();
+  renderAdmin();
+}
 
-  function renderAdmin(){
-    daftarAdmin.innerHTML = "";
-    data.forEach(b=>{
-      const o = document.createElement("option");
-      o.text = `${b.n} - Rp${b.h}`;
-      daftarAdmin.appendChild(o);
-    });
-  }
+/* RENDER */
+function renderAdmin(){
+  daftarAdmin.innerHTML="";
+  data.forEach(b=>{
+    const o=document.createElement("option");
+    o.value=b.id;
+    o.text=`${b.n} | ${b.s} | Rp${b.h}`;
+    daftarAdmin.appendChild(o);
+  });
+}
 
-  function renderPembeli(){
-    listBarang.innerHTML = "";
-    data.forEach(b=>{
-      const d = document.createElement("div");
-      d.className = "item";
-      d.innerHTML = `<h4>${b.n}</h4><p>${b.k}</p><strong>Rp ${b.h}</strong>`;
-      listBarang.appendChild(d);
-    });
-    waLink.href = `https://wa.me/${NO_WA}`;
-  }
+async function bukaPembeli(){
+  await loadData();
+  listBarang.innerHTML="";
+  data.forEach(b=>{
+    const d=document.createElement("div");
+    d.className="item";
+    d.innerHTML=`
+      <h4>${b.n}</h4>
+      <p>${b.k}</p>
+      <strong>Rp ${b.h}</strong>
+      <p>Stok: ${b.s}</p>
+    `;
+    listBarang.appendChild(d);
+  });
+  waLink.href=`https://wa.me/${NO_WA}`;
+  hideAll();
+  pembeli.classList.remove("hidden");
+}
 </script>
-
-</body>
-</html>
-
 
 </body>
 </html>
