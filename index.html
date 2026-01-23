@@ -38,8 +38,8 @@ header{
 .center{
   display:flex;
   flex-direction:column;
-  gap:12px;
   align-items:center;
+  gap:12px;
 }
 button{
   width:100%;
@@ -60,7 +60,7 @@ input,select{
   border:1px solid #d1d5db;
   margin:6px 0 12px;
 }
-.range{
+.range-wrap{
   display:flex;
   gap:10px;
   align-items:center;
@@ -70,6 +70,7 @@ input,select{
   border:1px solid #e5e7eb;
   border-radius:12px;
   padding:14px;
+  margin-bottom:12px;
 }
 footer{
   text-align:center;
@@ -97,25 +98,25 @@ footer{
 <!-- LOGIN -->
 <div id="login" class="card hidden">
   <h3>Login Admin</h3>
-  <input id="password" type="password" placeholder="Password">
+  <input id="password" type="password" placeholder="Password admin">
   <button onclick="loginAdmin()">Masuk</button>
   <button class="secondary" onclick="kembali()">Batal</button>
 </div>
 
 <!-- ADMIN -->
 <div id="admin" class="card hidden">
-  <h3>📦 Input Stok</h3>
+  <h3>📦 Input Stok Barang</h3>
 
   <label>Nama Barang</label>
   <input id="nama">
 
   <label>Harga</label>
-  <input id="harga">
+  <input id="harga" type="number">
 
-  <label>Jumlah</label>
-  <div class="range">
-    <input type="range" id="jumlah" min="1" max="30" value="1" oninput="jmlView.innerText=this.value">
-    <strong id="jmlView">1</strong>
+  <label>Jumlah Barang</label>
+  <div class="range-wrap">
+    <input type="range" id="jumlahRange" min="1" max="5000000" value="1">
+    <input type="number" id="jumlahInput" min="1" max="5000000" style="max-width:120px">
   </div>
 
   <label>Satuan</label>
@@ -125,6 +126,7 @@ footer{
     <option>dus</option>
     <option>lusin</option>
     <option>karung</option>
+    <option>pcs</option>
   </select>
 
   <label>Kategori</label>
@@ -136,12 +138,12 @@ footer{
     <option>Lainnya</option>
   </select>
 
-  <button onclick="tambahBarang()">Simpan</button>
+  <button onclick="tambahBarang()">➕ Simpan Barang</button>
 
   <h4>Daftar Barang</h4>
   <select id="daftarAdmin" size="6"></select>
 
-  <button class="danger" onclick="hapusBarang()">Hapus</button>
+  <button class="danger" onclick="hapusBarang()">🗑 Hapus</button>
   <br><br>
   <button class="secondary" onclick="kembali()">Keluar</button>
 </div>
@@ -151,14 +153,14 @@ footer{
   <h3>🛍 Barang Tersedia</h3>
   <div id="listBarang"></div>
   <br>
-  <a id="waLink" target="_blank">Pesan via WhatsApp</a>
+  <a id="waLink" target="_blank">📱 Pesan via WhatsApp</a>
   <br><br>
   <button class="secondary" onclick="kembali()">Kembali</button>
 </div>
 
 </div>
 
-<footer>❤️ Data tersimpan walau internet putus ❤️</footer>
+<footer>❤️ Data otomatis tersimpan walau internet putus ❤️</footer>
 
 <script>
 // FIREBASE
@@ -168,8 +170,6 @@ firebase.initializeApp({
   projectId:"kios-30"
 });
 const db = firebase.firestore();
-
-// OFFLINE SUPPORT
 db.enablePersistence().catch(()=>{});
 
 // CONFIG
@@ -177,7 +177,7 @@ const ADMIN_PASSWORD="11229911";
 const NO_WA="62811897005";
 
 // STATE
-const landing=landingEl=document.getElementById("landing");
+const landing=document.getElementById("landing");
 const login=document.getElementById("login");
 const admin=document.getElementById("admin");
 const pembeli=document.getElementById("pembeli");
@@ -197,8 +197,8 @@ function kembali(){
 
 // LOAD
 async function loadData(){
-  const s=await db.collection("barang").orderBy("created","desc").get();
-  data=s.docs.map(d=>({id:d.id,...d.data()}));
+  const snap = await db.collection("barang").orderBy("created","desc").get();
+  data = snap.docs.map(d=>({id:d.id,...d.data()}));
 }
 
 // BACKDOOR
@@ -224,20 +224,30 @@ async function loginAdmin(){
   admin.classList.remove("hidden");
 }
 
+// SYNC RANGE & INPUT
+jumlahRange.oninput=()=>jumlahInput.value=jumlahRange.value;
+jumlahInput.oninput=()=>jumlahRange.value=jumlahInput.value;
+
 // CRUD
 async function tambahBarang(){
-  const stok=`${jumlah.value} ${satuan.value}`;
+  if(!nama.value||!harga.value||!jumlahInput.value){
+    alert("Lengkapi semua data");
+    return;
+  }
   await db.collection("barang").add({
     n:nama.value,
-    h:harga.value,
-    s:stok,
+    h:Number(harga.value),
+    s:`${jumlahInput.value} ${satuan.value}`,
     k:kategori.value,
     created:new Date()
   });
+  nama.value=harga.value=jumlahInput.value="";
+  jumlahRange.value=1;
   await loadData();
   renderAdmin();
 }
 
+// DELETE
 async function hapusBarang(){
   const id=daftarAdmin.value;
   if(!id) return;
@@ -263,7 +273,11 @@ async function bukaPembeli(){
   data.forEach(b=>{
     const d=document.createElement("div");
     d.className="item";
-    d.innerHTML=`<strong>${b.n}</strong><br>${b.s}<br>Rp ${b.h}`;
+    d.innerHTML=`
+      <strong>${b.n}</strong><br>
+      Stok: ${b.s}<br>
+      Harga: Rp ${b.h}
+    `;
     listBarang.appendChild(d);
   });
   waLink.href=`https://wa.me/${NO_WA}`;
@@ -274,4 +288,3 @@ async function bukaPembeli(){
 
 </body>
 </html>
-
