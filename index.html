@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Kios Bersama</title>
 
+<!-- Firebase compat -->
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
@@ -34,6 +35,7 @@ body{
 header{
   background:linear-gradient(90deg,#22c55e,#16a34a);
   padding:18px;
+  border-radius:0 0 18px 18px;
   text-align:center;
   font-weight:700;
   font-size:20px;
@@ -67,6 +69,7 @@ button{
   font-weight:600;
   cursor:pointer;
 }
+button.secondary{background:#64748b;color:white}
 button.danger{background:#ef4444;color:white}
 input,select{
   width:100%;
@@ -78,37 +81,31 @@ input,select{
 }
 .grid{
   display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-  gap:12px;
+  grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+  gap:16px;
 }
 .item{
   border-bottom:1px solid var(--border);
-  padding:14px 0;
+  padding:12px 0;
 }
+.item:last-child{border:none}
 .flex{
   display:flex;
   justify-content:space-between;
   align-items:center;
-  gap:10px;
+  gap:12px;
 }
 .small{font-size:13px;color:var(--muted)}
-.tag{
-  display:inline-block;
-  padding:4px 8px;
-  border-radius:8px;
-  font-size:12px;
-  margin-right:6px;
-}
-.tag.green{background:#22c55e;color:#022c22}
-.tag.yellow{background:#facc15;color:#422006}
 .hidden{display:none}
 .tabs{
   display:flex;
+  background:var(--card);
   border-radius:14px;
   overflow:hidden;
   margin-bottom:20px;
 }
 .tabs button{
+  flex:1;
   background:none;
   color:var(--text);
 }
@@ -121,8 +118,8 @@ input,select{
 
 <body>
 <header>
-🧺 Kios Bersama
-<div id="theme">🌙</div>
+  🧺 Kios Bersama
+  <div id="theme">🌙</div>
 </header>
 
 <div class="container">
@@ -142,8 +139,10 @@ input,select{
   <div class="card">
     <h3>Keranjang</h3>
     <div id="cart"></div>
-    <b>Total: Rp <span id="total">0</span></b>
-    <button style="margin-top:12px" onclick="checkout()">Checkout WA</button>
+    <div class="flex" style="margin-top:12px">
+      <b>Total: Rp <span id="total">0</span></b>
+      <button onclick="checkout()">Checkout WA</button>
+    </div>
   </div>
 </div>
 
@@ -153,17 +152,17 @@ input,select{
     <h3>Tambah / Edit Barang</h3>
     <div class="grid">
       <input id="nama" placeholder="Nama barang">
-      <input id="harga" type="number" placeholder="Harga pcs">
+      <input id="harga" type="number" placeholder="Harga">
       <input id="stok" type="number" placeholder="Stok">
-      <input id="isiDus" type="number" placeholder="Isi dus (opsional)">
-      <input id="hargaDus" type="number" placeholder="Harga dus (opsional)">
-      <select id="label">
-        <option value="">Label</option>
-        <option>Paling laku</option>
-        <option>Promo</option>
+      <select id="satuan">
+        <option value="">Satuan</option>
+        <option>pcs</option>
+        <option>kg</option>
+        <option>dus</option>
+        <option>lusin</option>
       </select>
     </div>
-    <button style="margin-top:14px" onclick="simpan()">Simpan</button>
+    <button style="margin-top:14px" onclick="simpan()">Simpan Barang</button>
   </div>
 
   <div class="card">
@@ -175,132 +174,128 @@ input,select{
 </div>
 
 <script>
+/* FIREBASE */
 firebase.initializeApp({
-  apiKey:"AIzaSyBCpRbMAIyfJzpzi5iC4xljFt_gyXaJ5Yw",
-  authDomain:"kios-30.firebaseapp.com",
-  projectId:"kios-30"
+  apiKey: "AIzaSyBCpRbMAIyfJzpzi5iC4xljFt_gyXaJ5Yw",
+  authDomain: "kios-30.firebaseapp.com",
+  projectId: "kios-30"
 });
-const db=firebase.firestore();
+const db = firebase.firestore();
 
+/* CONFIG */
 const ADMIN_PASS="11229911";
 const WA="62811897005";
 
-let BARANG=[], CART={};
+/* STATE */
+let BARANG=[], CART={}, editId=null;
 
-theme.onclick=()=>document.body.classList.toggle("light");
+/* THEME */
+theme.onclick=()=>{
+  document.body.classList.toggle("light");
+};
 
+/* TAB */
 tabBuyer.onclick=()=>switchTab("buyer");
 tabAdmin.onclick=()=>{
-  if(prompt("Password admin:")===ADMIN_PASS) switchTab("admin");
+  const pw=prompt("Password admin:");
+  if(pw===ADMIN_PASS) switchTab("admin");
 };
-function switchTab(t){
-  buyer.classList.toggle("hidden",t!=="buyer");
-  admin.classList.toggle("hidden",t!=="admin");
-  tabBuyer.classList.toggle("active",t==="buyer");
-  tabAdmin.classList.toggle("active",t==="admin");
+function switchTab(tab){
+  buyer.classList.toggle("hidden",tab!=="buyer");
+  admin.classList.toggle("hidden",tab!=="admin");
+  tabBuyer.classList.toggle("active",tab==="buyer");
+  tabAdmin.classList.toggle("active",tab==="admin");
 }
 
-db.collection("barang").onSnapshot(s=>{
+/* LISTENER */
+db.collection("barang").onSnapshot(snap=>{
   BARANG=[];
-  s.forEach(d=>BARANG.push({id:d.id,...d.data()}));
-  renderBuyer();renderAdmin();
+  snap.forEach(doc=>{
+    const d=doc.data();
+    if(!d?.nama||d.harga==null||d.stok==null||!d.satuan) return;
+    BARANG.push({id:doc.id,...d});
+  });
+  renderBuyer();
+  renderAdmin();
 });
 
+/* CRUD */
 function simpan(){
+  if(!nama.value||!harga.value||!stok.value||!satuan.value)
+    return alert("Lengkapi data");
   const data={
-    nama:nama.value,
+    nama:nama.value.trim(),
     harga:+harga.value,
     stok:+stok.value,
-    isiDus:+isiDus.value||null,
-    hargaDus:+hargaDus.value||null,
-    label:label.value||null
+    satuan:satuan.value
   };
-  db.collection("barang").add(data);
-  nama.value=harga.value=stok.value=isiDus.value=hargaDus.value="";
+  editId
+    ? db.collection("barang").doc(editId).set(data,{merge:true})
+    : db.collection("barang").add(data);
+  editId=null;
+  nama.value=harga.value=stok.value="";
 }
 
+/* RENDER */
 function renderBuyer(){
-  buyerList.innerHTML = "";
-
-  if(BARANG.length === 0){
-    buyerList.innerHTML = "<div class='small'>Belum ada barang</div>";
-    return;
-  }
-
+  buyerList.innerHTML="";
   BARANG.forEach(b=>{
-    const hasDus = b.isiDus && b.hargaDus;
-
-    buyerList.innerHTML += `
-    <div class="item">
-      <b>${b.nama}</b>
-      <div class="small">
-        Rp ${b.harga.toLocaleString()} / pcs
-        ${hasDus ? ` • Rp ${b.hargaDus.toLocaleString()} / dus (${b.isiDus} pcs)` : ""}
+    buyerList.innerHTML+=`
+    <div class="item flex">
+      <div>
+        <b>${b.nama}</b>
+        <div class="small">Rp ${b.harga} / ${b.satuan} • Stok ${b.stok}</div>
       </div>
-
-      <div style="margin:6px 0">
-        ${b.label ? `<span class="tag green">${b.label}</span>` : ""}
-        ${hasDus ? `<span class="tag yellow">Bisa eceran</span>` : ""}
-      </div>
-
-      <div class="flex">
-        <select id="mode-${b.id}">
-          <option value="pcs">pcs</option>
-          ${hasDus ? `<option value="dus">dus</option>` : ""}
-        </select>
-        <button onclick="addCart('${b.id}')">Tambah</button>
-      </div>
-    </div>
-    `;
+      <button onclick="addCart('${b.id}')">Tambah</button>
+    </div>`;
   });
 }
-
-
 function renderAdmin(){
   adminList.innerHTML="";
   BARANG.forEach(b=>{
     adminList.innerHTML+=`
     <div class="item flex">
-      <b>${b.nama}</b>
+      <div>
+        <b>${b.nama}</b>
+        <div class="small">Stok ${b.stok}</div>
+      </div>
       <button class="danger" onclick="hapus('${b.id}')">Hapus</button>
     </div>`;
   });
 }
 function hapus(id){
-  if(confirm("Hapus barang?")) db.collection("barang").doc(id).delete();
+  if(confirm("Hapus barang?"))
+    db.collection("barang").doc(id).delete();
 }
 
+/* CART */
 function addCart(id){
-  const mode = document.getElementById(`mode-${id}`).value;
-  const key = id + "_" + mode;
-  CART[key] = (CART[key] || 0) + 1;
+  CART[id]=(CART[id]||0)+1;
   renderCart();
 }
-
 function renderCart(){
   cart.innerHTML="";
   let total=0;
-  for(let k in CART){
-    const [id,mode]=k.split("_");
+  for(let id in CART){
     const b=BARANG.find(x=>x.id===id);
-    let h=mode==="dus"?b.hargaDus:b.harga;
-    total+=h*CART[k];
-    cart.innerHTML+=`${b.nama} ${CART[k]} ${mode}<br>`;
+    if(!b)continue;
+    total+=b.harga*CART[id];
+    cart.innerHTML+=`${b.nama} x ${CART[id]}<br>`;
   }
-  total.innerText=total.toLocaleString();
+  totalEl.innerText=total.toLocaleString();
 }
+const totalEl=document.getElementById("total");
 
+/* CHECKOUT */
 function checkout(){
-  let msg="Halo saya mau pesan:%0A";
+  let msg="Halo, saya mau pesan:%0A";
   let total=0;
-  for(let k in CART){
-    const [id,mode]=k.split("_");
+  for(let id in CART){
     const b=BARANG.find(x=>x.id===id);
-    let h=mode==="dus"?b.hargaDus:b.harga;
-    total+=h*CART[k];
-    msg+=`• ${b.nama} ${CART[k]} ${mode}%0A`;
+    msg+=`* ${b.nama} ${CART[id]} ${b.satuan}%0A`;
+    total+=b.harga*CART[id];
   }
-  msg+=`Total: Rp ${total.toLocaleString()}`;
+  msg+=`Total: Rp ${total}`;
   window.open(`https://wa.me/${WA}?text=${msg}`);
 }
 </script>
