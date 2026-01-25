@@ -1,271 +1,336 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <title>Kios Bersama</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kios Bersama</title>
 
-  <!-- Firebase -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+<!-- Firebase compat (AMAN & STABIL) -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyBCpRbMAIyfJzpzi5iC4xljFt_gyXaJ5Yw",
-      authDomain: "kios-30.firebaseapp.com",
-      projectId: "kios-30",
-      storageBucket: "kios-30.appspot.com",
-      messagingSenderId: "253251437301",
-      appId: "1:253251437301:web:310e2495d742aa2dd63bbc"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-
-    window.db = db;
-    window.collection = collection;
-    window.addDoc = addDoc;
-    window.onSnapshot = onSnapshot;
-    window.doc = doc;
-    window.updateDoc = updateDoc;
-  </script>
-
-  <style>
-    :root {
-      --green: #1abc5c;
-      --dark: #0f172a;
-      --card: #1e293b;
-      --text: #e5e7eb;
-    }
-
-    body {
-      margin: 0;
-      font-family: system-ui, sans-serif;
-      background: linear-gradient(180deg, #0f172a, #020617);
-      color: var(--text);
-    }
-
-    header {
-      background: var(--green);
-      color: #fff;
-      padding: 14px 20px;
-      font-size: 20px;
-      font-weight: bold;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .container {
-      max-width: 1100px;
-      margin: auto;
-      padding: 20px;
-    }
-
-    .hidden { display: none; }
-
-    .card {
-      background: var(--card);
-      border-radius: 14px;
-      padding: 16px;
-      margin-bottom: 16px;
-      box-shadow: 0 10px 30px rgba(0,0,0,.3);
-    }
-
-    button {
-      background: var(--green);
-      border: none;
-      padding: 10px 14px;
-      border-radius: 10px;
-      color: #fff;
-      font-weight: 600;
-      cursor: pointer;
-    }
-
-    button.secondary {
-      background: #475569;
-    }
-
-    input, select {
-      width: 100%;
-      padding: 10px;
-      margin-top: 8px;
-      margin-bottom: 10px;
-      border-radius: 10px;
-      border: none;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill,minmax(220px,1fr));
-      gap: 12px;
-    }
-
-    .item {
-      background: #020617;
-      padding: 12px;
-      border-radius: 12px;
-    }
-
-    .item h4 { margin: 0 0 6px; }
-
-    .nav-btn {
-      width: 100%;
-      padding: 14px;
-      margin-bottom: 10px;
-      font-size: 16px;
-    }
-  </style>
+<style>
+:root{
+  --bg:#0f172a;
+  --card:#1e293b;
+  --text:#e5e7eb;
+  --primary:#22c55e;
+  --muted:#94a3b8;
+}
+body.light{
+  --bg:#f8fafc;
+  --card:#ffffff;
+  --text:#1f2937;
+  --muted:#64748b;
+}
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI;
+  background:var(--bg);
+  color:var(--text);
+}
+header{
+  background:var(--primary);
+  padding:16px;
+  text-align:center;
+  position:relative;
+}
+header h1{margin:0;font-size:1.4rem}
+#theme{
+  position:absolute;
+  right:16px;
+  top:16px;
+  cursor:pointer;
+}
+.container{
+  max-width:900px;
+  margin:auto;
+  padding:20px;
+}
+.card{
+  background:var(--card);
+  border-radius:16px;
+  padding:20px;
+  margin-bottom:16px;
+}
+button{
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:12px;
+  background:var(--primary);
+  color:white;
+  font-size:1rem;
+  cursor:pointer;
+}
+button.secondary{background:#64748b}
+button.danger{background:#ef4444}
+input,select{
+  width:100%;
+  padding:12px;
+  margin-top:8px;
+  border-radius:10px;
+  border:1px solid #cbd5e1;
+}
+.hidden{display:none}
+.item{
+  border:1px solid #334155;
+  border-radius:12px;
+  padding:12px;
+  margin-bottom:10px;
+}
+.flex{
+  display:flex;
+  gap:8px;
+  margin-top:8px;
+}
+.flex button{flex:1}
+.small{color:var(--muted);font-size:.85rem}
+</style>
 </head>
 
-<body>
+<body class="dark">
 
 <header>
-  🧺 Kios Bersama
-  <button onclick="toggleMode()">🌙</button>
+  <h1 id="title">🧺 Kios Bersama</h1>
+  <div id="theme">🌙</div>
 </header>
 
 <div class="container">
 
-  <!-- WELCOME -->
-  <div id="welcome">
-    <div class="card">
-      <button class="nav-btn" onclick="goBuyer()">🛒 Pembeli</button>
-      <button class="nav-btn secondary" onclick="goAdmin()">🔐 Admin</button>
-    </div>
+<!-- HOME -->
+<div id="home" class="card">
+  <button onclick="openBuyer()">🛒 Pembeli</button>
+  <button class="secondary" onclick="openLogin()">🔐 Admin</button>
+</div>
+
+<!-- LOGIN -->
+<div id="login" class="card hidden">
+  <input id="pass" type="password" placeholder="Password Admin">
+  <button onclick="login()">Masuk</button>
+  <button class="secondary" onclick="goHome()">Kembali</button>
+</div>
+
+<!-- ADMIN -->
+<div id="admin" class="card hidden">
+  <h3>📦 Kelola Barang</h3>
+
+  <input id="nama" placeholder="Nama barang">
+  <input id="harga" type="number" placeholder="Harga">
+  <input id="stok" type="number" placeholder="Stok">
+  <select id="satuan">
+    <option value="">Pilih satuan</option>
+    <option>kg</option>
+    <option>pcs</option>
+    <option>dus</option>
+    <option>lusin</option>
+    <option>satuan</option>
+  </select>
+
+  <button onclick="simpan()">💾 Simpan Barang</button>
+
+  <h4>📋 Daftar Barang</h4>
+  <div id="adminList"></div>
+
+  <button class="secondary" onclick="goHome()">Keluar</button>
+</div>
+
+<!-- BUYER -->
+<div id="buyer" class="card hidden">
+  <h3>🛍 Pilih Barang</h3>
+  <div id="buyerList"></div>
+
+  <div class="item">
+    <b>🧾 Keranjang</b>
+    <div id="cart"></div>
+    <b>Total: Rp <span id="total">0</span></b>
+    <button onclick="checkout()">📱 Pesan via WhatsApp</button>
   </div>
 
-  <!-- BUYER -->
-  <div id="buyer" class="hidden">
-    <div class="card">
-      <h3>Pilih Barang</h3>
-      <div id="buyerList" class="grid"></div>
-    </div>
-
-    <div class="card">
-      <h3>Keranjang</h3>
-      <div id="cart"></div>
-      <h4 id="total">Total: Rp 0</h4>
-      <button onclick="checkout()">📲 Pesan via WhatsApp</button>
-      <button class="secondary" onclick="goWelcome()">⬅ Kembali</button>
-    </div>
-  </div>
-
-  <!-- ADMIN -->
-  <div id="admin" class="hidden">
-    <div class="card">
-      <h3>Kelola Barang</h3>
-      <input id="nama" placeholder="Nama barang">
-      <input id="harga" type="number" placeholder="Harga">
-      <input id="stok" type="number" placeholder="Stok">
-      <select id="satuan">
-        <option value="">Satuan</option>
-        <option>pcs</option>
-        <option>kg</option>
-        <option>dus</option>
-        <option>lusin</option>
-      </select>
-      <button onclick="simpan()">💾 Simpan</button>
-    </div>
-
-    <div class="card">
-      <h3>Daftar Barang</h3>
-      <div id="adminList" class="grid"></div>
-      <button class="secondary" onclick="goWelcome()">⬅ Keluar</button>
-    </div>
-  </div>
+  <button class="secondary" onclick="goHome()">Kembali</button>
+</div>
 
 </div>
 
 <script>
-  let cart = [];
-  let total = 0;
-  let dark = true;
+/* ================= FIREBASE ================= */
+firebase.initializeApp({
+  apiKey: "AIzaSyBCpRbMAIyfJzpzi5iC4xljFt_gyXaJ5Yw",
+  authDomain: "kios-30.firebaseapp.com",
+  projectId: "kios-30"
+});
+const db = firebase.firestore();
 
-  function goBuyer() {
-    hideAll();
-    document.getElementById("buyer").classList.remove("hidden");
-  }
+/* ================= CONFIG ================= */
+const ADMIN_PASS = "11229911";
+const WA = "62811897005";
 
-  function goAdmin() {
-    hideAll();
-    document.getElementById("admin").classList.remove("hidden");
-  }
+/* ================= STATE ================= */
+let BARANG = [];
+let CART = {};
+let editId = null;
 
-  function goWelcome() {
-    hideAll();
-    document.getElementById("welcome").classList.remove("hidden");
-  }
+/* ================= THEME ================= */
+theme.onclick = () => {
+  document.body.classList.toggle("light");
+  localStorage.theme = document.body.classList.contains("light") ? "light" : "dark";
+};
+if(localStorage.theme === "light") document.body.classList.add("light");
 
-  function hideAll() {
-    ["welcome","buyer","admin"].forEach(id =>
-      document.getElementById(id).classList.add("hidden")
-    );
-  }
+/* ================= NAV ================= */
+function show(id){
+  ["home","login","admin","buyer"].forEach(x=>document.getElementById(x).classList.add("hidden"));
+  document.getElementById(id).classList.remove("hidden");
+}
+function goHome(){show("home")}
+function openLogin(){show("login")}
+function openBuyer(){renderBuyer();show("buyer")}
 
-  function toggleMode() {
-    dark = !dark;
-    document.body.style.background = dark
-      ? "linear-gradient(180deg,#0f172a,#020617)"
-      : "#f8fafc";
-    document.body.style.color = dark ? "#e5e7eb" : "#020617";
-  }
+/* ================= LOGIN ================= */
+function login(){
+  if(pass.value !== ADMIN_PASS) return alert("Password salah");
+  show("admin");
+}
 
-  async function simpan() {
-    const data = {
-      nama: nama.value,
-      harga: +harga.value,
-      stok: +stok.value,
-      satuan: satuan.value
-    };
-    if (!data.nama) return alert("Lengkapi data");
+/* ================= LISTENER (FIX UNDEFINED) ================= */
+db.collection("barang").onSnapshot(snap=>{
+  BARANG = [];
+  snap.forEach(doc=>{
+    const d = doc.data();
 
-    await addDoc(collection(db,"barang"), data);
-    nama.value = harga.value = stok.value = "";
-  }
+    // 🔥 FILTER DATA RUSAK / LAMA
+    if(
+      !d ||
+      !d.nama ||
+      d.harga === undefined ||
+      d.stok === undefined ||
+      !d.satuan
+    ) return;
 
-  onSnapshot(collection(db,"barang"), snap => {
-    buyerList.innerHTML = "";
-    adminList.innerHTML = "";
-
-    snap.forEach(d => {
-      const b = d.data();
-      if (!b.nama) return;
-
-      buyerList.innerHTML += `
-        <div class="item">
-          <h4>${b.nama}</h4>
-          <p>Rp ${b.harga} / ${b.satuan}</p>
-          <p>Stok ${b.stok}</p>
-          <button onclick='addCart("${b.nama}",${b.harga})'>Tambah</button>
-        </div>`;
-
-      adminList.innerHTML += `
-        <div class="item">
-          <b>${b.nama}</b>
-          <p>Stok: ${b.stok}</p>
-        </div>`;
+    BARANG.push({
+      id: doc.id,
+      nama: String(d.nama),
+      harga: Number(d.harga),
+      stok: Number(d.stok),
+      satuan: String(d.satuan)
     });
   });
+  renderAdmin();
+  renderBuyer();
+});
 
-  function addCart(nama,harga){
-    cart.push({nama,harga});
-    total += harga;
-    renderCart();
+/* ================= CRUD ================= */
+function simpan(){
+  if(!nama.value || !harga.value || !stok.value || !satuan.value)
+    return alert("Lengkapi data");
+
+  const data = {
+    nama: nama.value.trim(),
+    harga: Number(harga.value),
+    stok: Number(stok.value),
+    satuan: satuan.value,
+    ts: Date.now()
+  };
+
+  if(editId){
+    db.collection("barang").doc(editId).set(data,{merge:true});
+  }else{
+    db.collection("barang").add(data);
   }
 
-  function renderCart(){
-    cartDiv = document.getElementById("cart");
-    cartDiv.innerHTML = cart.map(c=>`• ${c.nama} - Rp ${c.harga}`).join("<br>");
-    document.getElementById("total").innerText = "Total: Rp " + total;
-  }
+  editId=null;
+  nama.value=harga.value=stok.value="";
+}
 
-  function checkout(){
-    let text = "Halo, saya mau pesan:%0A";
-    cart.forEach(c=> text += `• ${c.nama} Rp ${c.harga}%0A`);
-    text += `%0ATotal: Rp ${total}`;
-    window.open("https://wa.me/62XXXXXXXXXX?text="+text);
+function editBarang(id){
+  const b = BARANG.find(x=>x.id===id);
+  if(!b) return;
+  editId=id;
+  nama.value=b.nama;
+  harga.value=b.harga;
+  stok.value=b.stok;
+  satuan.value=b.satuan;
+}
+
+function hapusBarang(id){
+  if(confirm("Hapus barang?")){
+    db.collection("barang").doc(id).delete();
   }
+}
+
+/* ================= RENDER ================= */
+function renderAdmin(){
+  adminList.innerHTML="";
+  BARANG.forEach(b=>{
+    adminList.innerHTML += `
+    <div class="item">
+      <b>${b.nama}</b><br>
+      ${b.stok} ${b.satuan}<br>
+      Rp ${b.harga}
+      <div class="flex">
+        <button onclick="editBarang('${b.id}')">✏ Edit</button>
+        <button class="danger" onclick="hapusBarang('${b.id}')">🗑</button>
+      </div>
+    </div>`;
+  });
+}
+
+function renderBuyer(){
+  buyerList.innerHTML="";
+  BARANG.forEach(b=>{
+    buyerList.innerHTML += `
+    <div class="item">
+      <b>${b.nama}</b><br>
+      Rp ${b.harga} / ${b.satuan} • Stok ${b.stok}
+      <button onclick="addCart('${b.id}')">Tambah</button>
+    </div>`;
+  });
+}
+
+/* ================= CART ================= */
+function addCart(id){
+  CART[id] = (CART[id]||0)+1;
+  renderCart();
+}
+function renderCart(){
+  cart.innerHTML="";
+  let total=0;
+  for(let id in CART){
+    const b = BARANG.find(x=>x.id===id);
+    if(!b) continue;
+    total += b.harga*CART[id];
+    cart.innerHTML += `${b.nama} x ${CART[id]}<br>`;
+  }
+  totalEl.innerText = total;
+}
+const totalEl=document.getElementById("total");
+
+/* ================= CHECKOUT ================= */
+function checkout(){
+  if(Object.keys(CART).length===0) return alert("Keranjang kosong");
+
+  let msg="Halo, saya mau pesan:%0A";
+  let total=0;
+
+  for(let id in CART){
+    const b=BARANG.find(x=>x.id===id);
+    if(!b) continue;
+    msg+=`* ${b.nama} ${CART[id]} ${b.satuan}%0A`;
+    total+=b.harga*CART[id];
+  }
+  msg+=`Total: Rp ${total}`;
+  window.open(`https://wa.me/${WA}?text=${msg}`);
+}
+
+/* ================= BACKDOOR TAP ================= */
+let tap=0;
+title.onclick=()=>{
+  tap++;
+  if(tap===5){
+    tap=0;
+    openLogin();
+  }
+};
 </script>
 
 </body>
