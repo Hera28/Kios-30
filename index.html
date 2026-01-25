@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Kios Bersama</title>
 
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -10,25 +10,35 @@
 
 <style>
 :root{
-  --bg:#f8fafc;--card:#fff;--text:#1f2937;--primary:#22c55e
+--bg:#f8fafc;--card:#fff;--text:#111827;--primary:#22c55e
 }
 body.dark{
-  --bg:#0f172a;--card:#1e293b;--text:#e5e7eb
+--bg:#0f172a;--card:#1e293b;--text:#e5e7eb
 }
-body{margin:0;font-family:system-ui;background:var(--bg);color:var(--text)}
-header{background:var(--primary);color:#fff;padding:16px;text-align:center;position:relative}
+body{
+margin:0;font-family:system-ui;background:var(--bg);color:var(--text)
+}
+header{
+background:var(--primary);color:#fff;
+padding:16px;text-align:center;position:relative
+}
 #theme{position:absolute;right:16px;top:16px;cursor:pointer}
-.container{max-width:960px;margin:auto;padding:20px}
-.card{background:var(--card);border-radius:16px;padding:20px;margin-bottom:16px}
-button{width:100%;padding:14px;margin-top:8px;border:none;border-radius:12px;background:var(--primary);color:#fff;font-size:1rem}
+.container{max-width:900px;margin:auto;padding:16px}
+.card{background:var(--card);padding:16px;border-radius:16px;margin-bottom:16px}
+button{
+width:100%;padding:14px;border:none;border-radius:12px;
+background:var(--primary);color:#fff;font-size:1rem;margin-top:8px
+}
 .secondary{background:#64748b}
 .danger{background:#ef4444}
 input,select{width:100%;padding:12px;margin-top:6px;border-radius:10px;border:1px solid #cbd5e1}
 .hidden{display:none}
-.item{border:1px solid #e5e7eb;border-radius:12px;padding:12px;margin-bottom:10px}
+.item{border:1px solid #e5e7eb;padding:12px;border-radius:12px;margin-bottom:10px}
 .flex{display:flex;gap:8px}
 .flex button{flex:1}
-.small{font-size:.85rem;opacity:.7}
+.badge{background:red;color:#fff;border-radius:999px;padding:2px 8px;font-size:.8rem}
+hr{border:none;border-top:1px solid #e5e7eb;margin:12px 0}
+small{opacity:.7}
 </style>
 </head>
 
@@ -41,214 +51,214 @@ input,select{width:100%;padding:12px;margin-top:6px;border-radius:10px;border:1p
 
 <div class="container">
 
-<!-- HOME -->
 <div id="home" class="card">
 <button onclick="openBuyer()">🛒 Pembeli</button>
-<button class="secondary" onclick="openLogin()">🔐 Admin</button>
+<button class="secondary" onclick="openLogin()">🔐 Admin <span id="notif" class="badge hidden">0</span></button>
 </div>
 
-<!-- LOGIN -->
 <div id="login" class="card hidden">
 <input id="pass" type="password" placeholder="Password Admin">
 <button onclick="login()">Masuk</button>
 <button class="secondary" onclick="goHome()">Kembali</button>
 </div>
 
-<!-- ADMIN -->
 <div id="admin" class="card hidden">
-<h3>📦 Kelola Barang</h3>
-
-<input id="nama" placeholder="Nama barang">
-<input id="harga" type="number" placeholder="Harga">
-<input id="stok" type="number" placeholder="Stok">
-<select id="satuan">
-<option>kg</option><option>gram</option><option>pcs</option>
-<option>dus</option><option>lusin</option><option>karung</option><option>satuan</option>
-</select>
-<input id="kategori" placeholder="Kategori (mie, minuman, beras)">
-
-<button onclick="simpan()">💾 Simpan Barang</button>
-
-<h4>Daftar Barang</h4>
-<div id="adminList"></div>
-
+<h3>📥 Pesanan Masuk</h3>
+<div id="orderList"></div>
 <button class="secondary" onclick="goHome()">Keluar</button>
 </div>
 
-<!-- BUYER -->
 <div id="buyer" class="card hidden">
-<h3>🛍 Daftar Barang</h3>
+<h3>🛍 Pilih Barang</h3>
 <div id="buyerList"></div>
-
-<h4>🛒 Keranjang</h4>
-<div id="cartList"></div>
-<button onclick="checkout()">📱 Pesan via WhatsApp</button>
-
+<button onclick="openCheckout()">🧾 Checkout</button>
 <button class="secondary" onclick="goHome()">Kembali</button>
 </div>
 
+<div id="checkout" class="card hidden">
+<h3>🧾 Checkout</h3>
+<div id="cartList"></div>
+
+<hr>
+<h4>💡 Biasanya dibeli barengan</h4>
+<div id="rekomendasi"></div>
+
+<button onclick="checkout()">📱 Pesan via WhatsApp</button>
+<button class="secondary" onclick="openBuyer()">Kembali</button>
 </div>
+
+</div>
+
+<!-- 🔔 ALARM -->
+<audio id="alarm">
+  <source src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" type="audio/ogg">
+</audio>
 
 <script>
 // ================= FIREBASE =================
 firebase.initializeApp({
-  apiKey:"AIzaSyBCpRbMAIyfJzpzi5iC4xljFt_gyXaJ5Yw",
-  authDomain:"kios-30.firebaseapp.com",
-  projectId:"kios-30"
+apiKey:"AIzaSyBCpRbMAIyfJzpzi5iC4xljFt_gyXaJ5Yw",
+authDomain:"kios-30.firebaseapp.com",
+projectId:"kios-30"
 });
-const db = firebase.firestore();
-db.enablePersistence({synchronizeTabs:false}).catch(()=>{});
+const db=firebase.firestore();
 
-// ================= STATE =================
+// ================= CONFIG =================
 const ADMIN="11229911";
 const WA="62811897005";
-let BARANG=[];
-let CART=[];
-let editId=null;
+
+// ================= STATE =================
+let BARANG=[], CART=[], ORDERS=[], played=false;
 
 // ================= THEME =================
 function toggleTheme(){
-  document.body.classList.toggle("dark");
-  localStorage.theme=document.body.classList.contains("dark")?"dark":"light";
+document.body.classList.toggle("dark");
+localStorage.theme=document.body.classList.contains("dark")?"dark":"light";
 }
 if(localStorage.theme==="dark")document.body.classList.add("dark");
 
 // ================= NAV =================
 function show(id){
-["home","login","admin","buyer"].forEach(x=>document.getElementById(x).classList.add("hidden"));
+["home","login","admin","buyer","checkout"].forEach(x=>document.getElementById(x).classList.add("hidden"));
 document.getElementById(id).classList.remove("hidden");
 }
-const goHome=()=>show("home");
-const openLogin=()=>show("login");
-function openBuyer(){renderBuyer();show("buyer")}
+function goHome(){show("home")}
+function openLogin(){show("login")}
+function openBuyer(){show("buyer")}
+function openCheckout(){renderCheckout();show("checkout")}
 
 // ================= LOGIN =================
 function login(){
-if(pass.value!==ADMIN) return alert("Password salah");
+if(pass.value!==ADMIN)return alert("Password salah");
 show("admin");
+Notification.requestPermission();
 }
 
-// ================= FIRESTORE LISTENER =================
-db.collection("barang").orderBy("nama").onSnapshot(snap=>{
-  BARANG=[];
-  snap.forEach(doc=>{
-    const d=doc.data();
-    if(!d?.nama) return;
-    BARANG.push({
-      id:doc.id,
-      nama:d.nama,
-      harga:Number(d.harga||0),
-      stok:Number(d.stok||0),
-      satuan:d.satuan||"",
-      kategori:d.kategori||"lain"
-    });
-  });
-  renderAdmin();
-  renderBuyer();
+// ================= LOAD BARANG =================
+db.collection("barang").onSnapshot(s=>{
+BARANG=[];
+s.forEach(d=>BARANG.push({id:d.id,...d.data()}));
+renderBuyer();
 });
-
-// ================= ADMIN CRUD =================
-function simpan(){
-if(!nama.value||!harga.value||!stok.value) return alert("Lengkapi data");
-const data={
-  nama:nama.value.trim(),
-  harga:+harga.value,
-  stok:+stok.value,
-  satuan:satuan.value,
-  kategori:kategori.value||"lain",
-  ts:Date.now()
-};
-if(editId){
-  db.collection("barang").doc(editId).set(data,{merge:true});
-}else{
-  db.collection("barang").add(data);
-}
-editId=null;
-nama.value=harga.value=stok.value=kategori.value="";
-}
-
-function editBarang(id){
-const b=BARANG.find(x=>x.id===id);
-if(!b)return;
-editId=id;
-nama.value=b.nama;
-harga.value=b.harga;
-stok.value=b.stok;
-satuan.value=b.satuan;
-kategori.value=b.kategori;
-}
-
-function hapusBarang(id){
-if(confirm("Hapus barang?")) db.collection("barang").doc(id).delete();
-}
 
 // ================= BUYER =================
-function tambahCart(id){
-const item=CART.find(x=>x.id===id);
-if(item) item.qty++;
-else CART.push({id,qty:1});
-renderCart();
-}
-
-function renderCart(){
-const el=document.getElementById("cartList");
-el.innerHTML="";
-CART.forEach(c=>{
-  const b=BARANG.find(x=>x.id===c.id);
-  if(!b)return;
-  el.innerHTML+=`<div class="item">
-  ${b.nama} (${c.qty} ${b.satuan})
-  </div>`;
-});
-}
-
-function checkout(){
-if(!CART.length) return alert("Keranjang kosong");
-let msg="Halo, saya mau pesan:%0A";
-let total=0;
-CART.forEach(c=>{
-  const b=BARANG.find(x=>x.id===c.id);
-  total+=b.harga*c.qty;
-  msg+=`- ${b.nama} ${c.qty} ${b.satuan}%0A`;
-});
-msg+=`Total: Rp ${total}`;
-window.open(`https://wa.me/${WA}?text=${msg}`,"_blank");
-}
-
-// ================= RENDER =================
-function renderAdmin(){
-adminList.innerHTML="";
-BARANG.forEach(b=>{
-  adminList.innerHTML+=`<div class="item">
-<b>${b.nama}</b><br>
-${b.stok} ${b.satuan} • Rp ${b.harga}
-<div class="flex">
-<button onclick="editBarang('${b.id}')">✏ Edit</button>
-<button class="danger" onclick="hapusBarang('${b.id}')">🗑</button>
-</div></div>`;
-});
+function addCart(id){
+const b=CART.find(x=>x.id===id);
+b?b.qty++:CART.push({id,qty:1});
+alert("Masuk keranjang");
 }
 
 function renderBuyer(){
 buyerList.innerHTML="";
 BARANG.forEach(b=>{
-  buyerList.innerHTML+=`<div class="item">
+buyerList.innerHTML+=`
+<div class="item">
 <b>${b.nama}</b><br>
 ${b.stok} ${b.satuan}<br>
 Rp ${b.harga}
-<button onclick="tambahCart('${b.id}')">➕ Keranjang</button>
+<button onclick="addCart('${b.id}')">➕ Tambah</button>
 </div>`;
 });
-renderCart();
 }
 
-// ================= BACKDOOR =================
-let tap=0;
-title.onclick=()=>{
-tap++;
-if(tap===5){tap=0;show("login")}
-};
+// ================= CHECKOUT + REKOMENDASI =================
+function renderCheckout(){
+cartList.innerHTML="";
+let kategori=new Set();
+
+CART.forEach(c=>{
+const b=BARANG.find(x=>x.id===c.id);
+if(!b)return;
+kategori.add(b.kategori||b.nama);
+cartList.innerHTML+=`
+<div class="item">
+${b.nama} — ${c.qty} ${b.satuan}
+</div>`;
+});
+
+renderRekomendasi([...kategori]);
+}
+
+function renderRekomendasi(keys){
+rekomendasi.innerHTML="";
+BARANG.filter(b=>{
+return !CART.find(c=>c.id===b.id) &&
+keys.some(k=>b.nama.toLowerCase().includes(k.toLowerCase()));
+}).slice(0,3).forEach(b=>{
+rekomendasi.innerHTML+=`
+<div class="item">
+${b.nama}<br>
+<small>Rp ${b.harga}</small>
+<button onclick="addCart('${b.id}')">Tambah</button>
+</div>`;
+});
+}
+
+// ================= CHECKOUT =================
+function checkout(){
+if(!CART.length)return alert("Keranjang kosong");
+
+db.collection("orders").add({
+cart:CART,
+status:"pending",
+ts:Date.now()
+});
+
+const msg=CART.map(c=>{
+const b=BARANG.find(x=>x.id===c.id);
+return `- ${b.nama} ${c.qty} ${b.satuan}`;
+}).join("%0A");
+
+window.open(`https://wa.me/${WA}?text=Halo%20saya%20mau%20pesan:%0A${msg}`);
+CART=[];
+goHome();
+}
+
+// ================= ADMIN ORDERS + ALARM =================
+db.collection("orders").where("status","==","pending")
+.onSnapshot(s=>{
+ORDERS=[];
+s.forEach(d=>ORDERS.push({id:d.id,...d.data()}));
+
+if(ORDERS.length){
+notif.classList.remove("hidden");
+notif.innerText=ORDERS.length;
+
+if(!played){
+document.getElementById("alarm").play().catch(()=>{});
+played=true;
+}
+}else{
+notif.classList.add("hidden");
+played=false;
+}
+
+renderOrders();
+});
+
+function renderOrders(){
+orderList.innerHTML="";
+ORDERS.forEach(o=>{
+orderList.innerHTML+=`
+<div class="item">
+<b>Pesanan Baru</b>
+<button onclick="acc('${o.id}')">✔ ACC & Potong Stok</button>
+</div>`;
+});
+}
+
+function acc(id){
+const o=ORDERS.find(x=>x.id===id);
+o.cart.forEach(c=>{
+db.collection("barang").doc(c.id).get().then(d=>{
+const s=(d.data().stok||0)-c.qty;
+db.collection("barang").doc(c.id).update({stok:s});
+});
+});
+db.collection("orders").doc(id).update({status:"done"});
+}
 </script>
 
 </body>
 </html>
+
