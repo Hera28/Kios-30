@@ -220,30 +220,41 @@ function simpan(){
 }
 
 function renderBuyer(){
-  buyerList.innerHTML="";
+  buyerList.innerHTML = "";
+
+  if(BARANG.length === 0){
+    buyerList.innerHTML = "<div class='small'>Belum ada barang</div>";
+    return;
+  }
+
   BARANG.forEach(b=>{
-    const hasDus=b.isiDus&&b.hargaDus;
-    buyerList.innerHTML+=`
+    const hasDus = b.isiDus && b.hargaDus;
+
+    buyerList.innerHTML += `
     <div class="item">
       <b>${b.nama}</b>
       <div class="small">
         Rp ${b.harga.toLocaleString()} / pcs
-        ${hasDus?` • Rp ${b.hargaDus.toLocaleString()} / dus (${b.isiDus} pcs)`:""}
+        ${hasDus ? ` • Rp ${b.hargaDus.toLocaleString()} / dus (${b.isiDus} pcs)` : ""}
       </div>
+
       <div style="margin:6px 0">
-        ${b.label?`<span class="tag green">${b.label}</span>`:""}
-        ${hasDus?`<span class="tag yellow">Bisa eceran</span>`:""}
+        ${b.label ? `<span class="tag green">${b.label}</span>` : ""}
+        ${hasDus ? `<span class="tag yellow">Bisa eceran</span>` : ""}
       </div>
+
       <div class="flex">
         <select id="mode-${b.id}">
           <option value="pcs">pcs</option>
-          ${hasDus?`<option value="dus">dus</option>`:""}
+          ${hasDus ? `<option value="dus">dus</option>` : ""}
         </select>
         <button onclick="addCart('${b.id}')">Tambah</button>
       </div>
-    </div>`;
+    </div>
+    `;
   });
 }
+
 
 function renderAdmin(){
   adminList.innerHTML="";
@@ -260,11 +271,12 @@ function hapus(id){
 }
 
 function addCart(id){
-  const mode=document.getElementById(`mode-${id}`).value;
-  const key=id+"_"+mode;
-  CART[key]=(CART[key]||0)+1;
+  const mode = document.getElementById(`mode-${id}`).value;
+  const key = id + "_" + mode;
+  CART[key] = (CART[key] || 0) + 1;
   renderCart();
 }
+
 function renderCart(){
   cart.innerHTML="";
   let total=0;
