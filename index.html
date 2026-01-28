@@ -231,79 +231,102 @@ function simpan(){
   nama.value=harga.value=stok.value="";
 }
 
-/* RENDER */
+<script>
+
+/* ================= RENDER ================= */
+
 function renderBuyer(){
-  buyerList.innerHTML="";
-  BARANG.forEach(b=>{
-    buyerList.innerHTML+=`
-    <div class="item flex">
-      <div>
-        <b>${b.nama}</b>
-        <div class="small">Rp ${b.harga} / ${b.satuan} • Stok ${b.stok}</div>
-      </div>
-      <button onclick="addCart('${b.id}')">Tambah</button>
-    </div>`;
+  buyerList.innerHTML = "";
+
+  BARANG.forEach(function(b){
+    buyerList.innerHTML +=
+      '<div class="item flex">' +
+        '<div>' +
+          '<b>' + b.nama + '</b>' +
+          '<div class="small">' +
+            'Rp ' + b.harga + ' / ' + b.satuan + ' • Stok ' + b.stok +
+          '</div>' +
+        '</div>' +
+        '<button onclick="addCart(\'' + b.id + '\')">Tambah</button>' +
+      '</div>';
   });
-}
-function renderAdmin(){
-  adminList.innerHTML="";
-  BARANG.forEach(b=>{
-    adminList.innerHTML+=`
-    <div class="item flex">
-      <b>${b.nama}</b>
-      <button class="danger" onclick="hapus('${b.id}')">Hapus</button>
-    </div>`;
-  });
-}
-function hapus(id){
-  if(confirm("Hapus barang?"))
-    db.collection("barang").doc(id).delete();
 }
 
-/* CART */
+function renderAdmin(){
+  adminList.innerHTML = "";
+
+  BARANG.forEach(function(b){
+    adminList.innerHTML +=
+      '<div class="item flex">' +
+        '<b>' + b.nama + '</b>' +
+        '<button class="danger" onclick="hapus(\'' + b.id + '\')">Hapus</button>' +
+      '</div>';
+  });
+}
+
+function hapus(id){
+  if(confirm("Hapus barang?")){
+    db.collection("barang").doc(id).delete();
+  }
+}
+
+/* ================= CART ================= */
+
 function addCart(id){
-  CART[id]=(CART[id]||0)+1;
+  CART[id] = (CART[id] || 0) + 1;
   renderCart();
 }
+
 function renderCart(){
-  cart.innerHTML="";
-  let total=0;
+  cart.innerHTML = "";
+  let total = 0;
+
   for(let id in CART){
-    const b=BARANG.find(x=>x.id===id);
+    const b = BARANG.find(x => x.id === id);
     if(!b) continue;
-    total+=b.harga*CART[id];
-    cart.innerHTML+=`${b.nama} x ${CART[id]}<br>`;
-  }
-  totalEl.innerText=total.toLocaleString();
-}
-const totalEl=document.getElementById("total");
 
-/* CHECKOUT */
+    total += b.harga * CART[id];
+    cart.innerHTML += b.nama + " x " + CART[id] + "<br>";
+  }
+
+  totalEl.innerText = total.toLocaleString();
+}
+
+const totalEl = document.getElementById("total");
+
+/* ================= CHECKOUT ================= */
+
 function checkout(){
-  let msg="Halo, saya mau pesan:%0A";
-  let total=0;
+  let msg = "Halo, saya mau pesan:%0A";
+  let total = 0;
+
   for(let id in CART){
-    const b=BARANG.find(x=>x.id===id);
-    msg+=`• ${b.nama} x ${CART[id]}%0A`;
-    total+=b.harga*CART[id];
+    const b = BARANG.find(x => x.id === id);
+    msg += "• " + b.nama + " x " + CART[id] + "%0A";
+    total += b.harga * CART[id];
   }
-  msg+=`Total: Rp ${total}`;
-  window.open(`https://wa.me/${WA}?text=${msg}`);
+
+  msg += "Total: Rp " + total;
+  window.open("https://wa.me/" + WA + "?text=" + msg);
 }
 
-/* ASISTEN STOK */
+/* ================= ASISTEN STOK ================= */
+
 function tanyaAsisten(){
   const q = aiInput.value.toLowerCase();
   const out = document.getElementById("aiOutput");
 
-  const found = BARANG.find(b =>
-    q.includes(b.nama.toLowerCase())
-  );
+  const found = BARANG.find(function(b){
+    return q.includes(b.nama.toLowerCase());
+  });
 
+  out.style.display = "block";
   out.innerText = found
-    ? `🤖 Stok ${found.nama}: ${found.stok} ${found.satuan}`
+    ? "🤖 Stok " + found.nama + ": " + found.stok + " " + found.satuan
     : "🤖 Barang tidak ditemukan";
 }
+
 </script>
+
 </body>
 </html>
