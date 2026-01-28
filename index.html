@@ -14,7 +14,7 @@
   --text:#e5e7eb;--muted:#9ca3af;--green:#22c55e;
 }
 body{margin:0;font-family:system-ui;background:var(--bg);color:var(--text)}
-header{background:#22c55e;padding:16px;text-align:center;font-weight:700}
+header{background:var(--green);padding:16px;text-align:center;font-weight:700}
 .container{max-width:1100px;margin:auto;padding:20px}
 .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:16px}
 button{padding:10px;border:none;border-radius:10px;background:var(--green);cursor:pointer;font-weight:600}
@@ -26,8 +26,8 @@ input,select,textarea{width:100%;padding:10px;border-radius:8px;border:1px solid
 .hidden{display:none}
 .tabs{display:flex;margin-bottom:16px}
 .tabs button{flex:1;background:#1f2937;color:white}
-.tabs button.active{background:#22c55e;color:#022c22}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.tabs button.active{background:var(--green);color:#022c22}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}
 </style>
 </head>
 
@@ -41,6 +41,7 @@ input,select,textarea{width:100%;padding:10px;border-radius:8px;border:1px solid
   <button id="tabAdmin">🔐 Admin</button>
 </div>
 
+<!-- BUYER -->
 <div id="buyer">
   <div class="card">
     <h3>Daftar Barang</h3>
@@ -55,11 +56,20 @@ input,select,textarea{width:100%;padding:10px;border-radius:8px;border:1px solid
   </div>
 </div>
 
+<!-- ADMIN -->
 <div id="admin" class="hidden">
+
   <div class="card">
     <h3>🤖 Asisten Stok</h3>
+
+    <div class="grid">
+      <button onclick="asisten('daftar')">📦 Daftar</button>
+      <button onclick="asisten('menipis')">⚠️ Menipis</button>
+      <button onclick="asisten('total')">📊 Total</button>
+    </div>
+
     <textarea id="aiInput" placeholder="contoh: stok gula berapa?"></textarea>
-    <button style="margin-top:8px" onclick="tanyaAsisten()">Tanya</button>
+    <button style="margin-top:8px" onclick="asisten('tanya')">Tanya</button>
     <div id="aiOutput" class="small" style="margin-top:8px;display:none"></div>
   </div>
 
@@ -82,11 +92,15 @@ input,select,textarea{width:100%;padding:10px;border-radius:8px;border:1px solid
     <h3>Data Barang</h3>
     <div id="adminList"></div>
   </div>
+
 </div>
 </div>
 
 <script>
-/* ===== INIT ===== */
+/* ===== CONFIG ===== */
+const ADMIN_PW = "kios123";
+let adminUnlocked = false;
+
 firebase.initializeApp({
   apiKey: "AIzaSyBCpRbMAIyfJzpzi5iC4xljFt_gyXaJ5Yw",
   authDomain: "kios-30.firebaseapp.com",
@@ -117,20 +131,11 @@ const aiOutput = document.getElementById("aiOutput");
 /* ===== FIRESTORE (SAFE) ===== */
 db.collection("barang").onSnapshot(snap=>{
   BARANG = [];
-
   snap.forEach(doc=>{
     const d = doc.data();
     if(!d?.nama || d.harga==null || d.stok==null || !d.satuan) return;
-
-    BARANG.push({
-      id: doc.id,
-      nama: d.nama,
-      harga: d.harga,
-      stok: d.stok,
-      satuan: d.satuan
-    });
+    BARANG.push({ id:doc.id, ...d });
   });
-
   renderBuyer();
   renderAdmin();
 });
@@ -139,14 +144,12 @@ db.collection("barang").onSnapshot(snap=>{
 function simpan(){
   if(!nama.value||!harga.value||!stok.value||!satuan.value)
     return alert("Lengkapi data");
-
   db.collection("barang").add({
     nama:nama.value,
     harga:+harga.value,
     stok:+stok.value,
     satuan:satuan.value
   });
-
   nama.value=harga.value=stok.value="";
 }
 
@@ -214,13 +217,34 @@ function checkout(){
 }
 
 /* ===== ASISTEN ===== */
-function tanyaAsisten(){
+function asisten(mode){
   aiOutput.style.display="block";
-  const q=aiInput.value.toLowerCase();
-  const b=BARANG.find(x=>q.includes(x.nama.toLowerCase()));
-  aiOutput.innerText=b
-    ? `🤖 Stok ${b.nama}: ${b.stok} ${b.satuan}`
-    : "🤖 Barang tidak ditemukan";
+  if(BARANG.length===0){
+    aiOutput.innerText="🤖 Data barang kosong";
+    return;
+  }
+  if(mode==="daftar"){
+    aiOutput.innerHTML=BARANG.map(b=>`• ${b.nama} (${b.stok} ${b.satuan})`).join("<br>");
+    return;
+  }
+  if(mode==="menipis"){
+    const low=BARANG.filter(b=>b.stok<=5);
+    aiOutput.innerHTML=low.length
+      ? low.map(b=>`⚠️ ${b.nama}: ${b.stok}`).join("<br>")
+      : "✅ Semua stok aman";
+    return;
+  }
+  if(mode==="total"){
+    aiOutput.innerText=`📊 Total jenis barang: ${BARANG.length}`;
+    return;
+  }
+  if(mode==="tanya"){
+    const q=aiInput.value.toLowerCase();
+    const b=BARANG.find(x=>q.includes(x.nama.toLowerCase()));
+    aiOutput.innerText=b
+      ? `🤖 Stok ${b.nama}: ${b.stok} ${b.satuan}`
+      : "🤖 Barang tidak ditemukan";
+  }
 }
 
 /* ===== TABS ===== */
@@ -230,7 +254,13 @@ tabBuyer.onclick=()=>{
   tabBuyer.classList.add("active");
   tabAdmin.classList.remove("active");
 };
+
 tabAdmin.onclick=()=>{
+  if(!adminUnlocked){
+    const pw=prompt("Password admin:");
+    if(pw!==ADMIN_PW) return alert("Password salah");
+    adminUnlocked=true;
+  }
   admin.classList.remove("hidden");
   buyer.classList.add("hidden");
   tabAdmin.classList.add("active");
