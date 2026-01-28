@@ -19,6 +19,7 @@ header{background:var(--green);padding:16px;text-align:center;font-weight:700}
 .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:16px}
 button{padding:10px;border:none;border-radius:10px;background:var(--green);cursor:pointer;font-weight:600}
 button.danger{background:#ef4444;color:white}
+button.gray{background:#334155;color:white}
 input,select,textarea{width:100%;padding:10px;border-radius:8px;border:1px solid var(--border);background:#020617;color:var(--text)}
 .item{border-bottom:1px solid var(--border);padding:10px 0}
 .flex{display:flex;justify-content:space-between;gap:10px;align-items:center}
@@ -41,7 +42,7 @@ input,select,textarea{width:100%;padding:10px;border-radius:8px;border:1px solid
   <button id="tabAdmin">🔐 Admin</button>
 </div>
 
-<!-- BUYER -->
+<!-- ================= BUYER ================= -->
 <div id="buyer">
   <div class="card">
     <h3>Daftar Barang</h3>
@@ -50,24 +51,26 @@ input,select,textarea{width:100%;padding:10px;border-radius:8px;border:1px solid
 
   <div class="card">
     <h3>Keranjang</h3>
-    <div id="cart"></div>
+    <div id="cart" class="small"></div>
     <b>Total: Rp <span id="total">0</span></b>
-    <button style="margin-top:10px" onclick="checkout()">Checkout WA</button>
+
+    <div class="grid" style="margin-top:10px">
+      <button onclick="checkout()">Checkout WA</button>
+      <button class="gray" onclick="resetCart()">Reset Keranjang</button>
+    </div>
   </div>
 </div>
 
-<!-- ADMIN -->
+<!-- ================= ADMIN ================= -->
 <div id="admin" class="hidden">
 
   <div class="card">
     <h3>🤖 Asisten Stok</h3>
-
     <div class="grid">
       <button onclick="asisten('daftar')">📦 Daftar</button>
       <button onclick="asisten('menipis')">⚠️ Menipis</button>
       <button onclick="asisten('total')">📊 Total</button>
     </div>
-
     <textarea id="aiInput" placeholder="contoh: stok gula berapa?"></textarea>
     <button style="margin-top:8px" onclick="asisten('tanya')">Tanya</button>
     <div id="aiOutput" class="small" style="margin-top:8px;display:none"></div>
@@ -81,8 +84,21 @@ input,select,textarea{width:100%;padding:10px;border-radius:8px;border:1px solid
       <input id="stok" type="number" placeholder="Stok">
       <select id="satuan">
         <option value="">Satuan</option>
-        <option>pcs</option><option>kg</option>
-        <option>dus</option><option>liter</option>
+        <option>Kilogram</option>
+        <option>Ons</option>
+        <option>Gram</option>
+        <option>Liter</option>
+        <option>Mililiter</option>
+        <option>Botol</option>
+        <option>Sachet</option>
+        <option>Bungkus</option>
+        <option>Pack</option>
+        <option>Kardus</option>
+        <option>Renceng</option>
+        <option>Rak</option>
+        <option>Karung</option>
+        <option>Butir</option>
+        <option>Potong</option>
       </select>
     </div>
     <button style="margin-top:10px" onclick="simpan()">Simpan</button>
@@ -128,13 +144,13 @@ const satuan = document.getElementById("satuan");
 const aiInput = document.getElementById("aiInput");
 const aiOutput = document.getElementById("aiOutput");
 
-/* ===== FIRESTORE (SAFE) ===== */
+/* ===== FIRESTORE SAFE ===== */
 db.collection("barang").onSnapshot(snap=>{
-  BARANG = [];
+  BARANG=[];
   snap.forEach(doc=>{
-    const d = doc.data();
-    if(!d?.nama || d.harga==null || d.stok==null || !d.satuan) return;
-    BARANG.push({ id:doc.id, ...d });
+    const d=doc.data();
+    if(!d?.nama||d.harga==null||d.stok==null||!d.satuan) return;
+    BARANG.push({id:doc.id,...d});
   });
   renderBuyer();
   renderAdmin();
@@ -190,6 +206,12 @@ function addCart(id){
   renderCart();
 }
 
+function resetCart(){
+  if(!confirm("Reset seluruh keranjang?")) return;
+  CART={};
+  renderCart();
+}
+
 function renderCart(){
   cart.innerHTML="";
   let total=0;
@@ -204,6 +226,8 @@ function renderCart(){
 
 /* ===== CHECKOUT ===== */
 function checkout(){
+  if(Object.keys(CART).length===0)
+    return alert("Keranjang masih kosong");
   let msg="Halo, saya mau pesan:%0A";
   let total=0;
   for(let id in CART){
@@ -220,7 +244,7 @@ function checkout(){
 function asisten(mode){
   aiOutput.style.display="block";
   if(BARANG.length===0){
-    aiOutput.innerText="🤖 Data barang kosong";
+    aiOutput.innerText="🤖 Data kosong";
     return;
   }
   if(mode==="daftar"){
