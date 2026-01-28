@@ -69,9 +69,8 @@ button{
   font-weight:600;
   cursor:pointer;
 }
-button.secondary{background:#64748b;color:white}
 button.danger{background:#ef4444;color:white}
-input,select{
+input,select,textarea{
   width:100%;
   padding:12px;
   border-radius:10px;
@@ -81,7 +80,7 @@ input,select{
 }
 .grid{
   display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
   gap:16px;
 }
 .item{
@@ -147,45 +146,29 @@ input,select{
 </div>
 
 <!-- ADMIN -->
-<!-- ADMIN -->
-<!-- ADMIN -->
 <div id="admin" class="hidden">
 
   <!-- ASISTEN -->
   <div class="card">
     <h3>🤖 Asisten Kios</h3>
-    <p style="font-size:14px;opacity:.8">
-      Asisten kecil untuk bantu kelola barang, satuan, dan pesanan.
-      <br>
-      <i>(Online → bisa aktif AI)</i>
-    </p>
+    <p class="small">Cek stok barang (versi simple)</p>
 
-    <textarea
-      id="aiInput"
-      placeholder="Contoh: stok minyak tinggal berapa?"
-      style="width:100%;min-height:70px;margin-top:10px"
-    ></textarea>
+    <textarea id="aiInput" placeholder="contoh: stok minyak"></textarea>
+    <button style="margin-top:10px" onclick="tanyaAsisten()">Tanya Asisten</button>
 
-    <button style="margin-top:10px" onclick="tanyaAsisten()">
-      Tanya Asisten
-    </button>
-
-    <div
-      id="aiOutput"
-      style="
-        margin-top:12px;
-        padding:10px;
-        background:#0f172a;
-        border-radius:8px;
-        font-size:14px;
-        display:none;
-      "
-    ></div>
+    <div id="aiOutput" style="
+      margin-top:12px;
+      padding:10px;
+      background:#020617;
+      border-radius:8px;
+      display:none;
+      font-size:14px">
+    </div>
   </div>
 
   <!-- TAMBAH BARANG -->
   <div class="card">
-    <h3>Tambah / Edit Barang</h3>
+    <h3>Tambah Barang</h3>
     <div class="grid">
       <input id="nama" placeholder="Nama barang">
       <input id="harga" type="number" placeholder="Harga">
@@ -195,9 +178,7 @@ input,select{
         <option>pcs</option>
         <option>kg</option>
         <option>dus</option>
-        <option>lusin</option>
         <option>liter</option>
-        <option>ml</option>
       </select>
     </div>
     <button style="margin-top:14px" onclick="simpan()">Simpan Barang</button>
@@ -211,6 +192,7 @@ input,select{
 
 </div>
 
+</div>
 
 <script>
 /* FIREBASE */
@@ -226,18 +208,15 @@ const ADMIN_PASS="11229911";
 const WA="62811897005";
 
 /* STATE */
-let BARANG=[], CART={}, editId=null;
+let BARANG=[], CART={};
 
 /* THEME */
-theme.onclick=()=>{
-  document.body.classList.toggle("light");
-};
+theme.onclick=()=>document.body.classList.toggle("light");
 
 /* TAB */
 tabBuyer.onclick=()=>switchTab("buyer");
 tabAdmin.onclick=()=>{
-  const pw=prompt("Password admin:");
-  if(pw===ADMIN_PASS) switchTab("admin");
+  if(prompt("Password admin:")===ADMIN_PASS) switchTab("admin");
 };
 function switchTab(tab){
   buyer.classList.toggle("hidden",tab!=="buyer");
@@ -246,14 +225,10 @@ function switchTab(tab){
   tabAdmin.classList.toggle("active",tab==="admin");
 }
 
-/* LISTENER */
+/* FIRESTORE */
 db.collection("barang").onSnapshot(snap=>{
   BARANG=[];
-  snap.forEach(doc=>{
-    const d=doc.data();
-    if(!d?.nama||d.harga==null||d.stok==null||!d.satuan) return;
-    BARANG.push({id:doc.id,...d});
-  });
+  snap.forEach(d=>BARANG.push({id:d.id,...d.data()}));
   renderBuyer();
   renderAdmin();
 });
@@ -262,16 +237,12 @@ db.collection("barang").onSnapshot(snap=>{
 function simpan(){
   if(!nama.value||!harga.value||!stok.value||!satuan.value)
     return alert("Lengkapi data");
-  const data={
-    nama:nama.value.trim(),
+  db.collection("barang").add({
+    nama:nama.value,
     harga:+harga.value,
     stok:+stok.value,
     satuan:satuan.value
-  };
-  editId
-    ? db.collection("barang").doc(editId).set(data,{merge:true})
-    : db.collection("barang").add(data);
-  editId=null;
+  });
   nama.value=harga.value=stok.value="";
 }
 
@@ -294,10 +265,7 @@ function renderAdmin(){
   BARANG.forEach(b=>{
     adminList.innerHTML+=`
     <div class="item flex">
-      <div>
-        <b>${b.nama}</b>
-        <div class="small">Stok ${b.stok}</div>
-      </div>
+      <div><b>${b.nama}</b><div class="small">Stok ${b.stok}</div></div>
       <button class="danger" onclick="hapus('${b.id}')">Hapus</button>
     </div>`;
   });
@@ -317,7 +285,6 @@ function renderCart(){
   let total=0;
   for(let id in CART){
     const b=BARANG.find(x=>x.id===id);
-    if(!b)continue;
     total+=b.harga*CART[id];
     cart.innerHTML+=`${b.nama} x ${CART[id]}<br>`;
   }
@@ -331,68 +298,23 @@ function checkout(){
   let total=0;
   for(let id in CART){
     const b=BARANG.find(x=>x.id===id);
-    msg+=`* ${b.nama} ${CART[id]} ${b.satuan}%0A`;
+    msg+=`• ${b.nama} ${CART[id]} ${b.satuan}%0A`;
     total+=b.harga*CART[id];
   }
   msg+=`Total: Rp ${total}`;
   window.open(`https://wa.me/${WA}?text=${msg}`);
 }
-   function aiTanya(){
-    const q = aiInput.value.toLowerCase();
-    let jawab = "Maaf, saya belum paham. Coba ketik: stok / habis / saran";
 
-    if(q.includes("stok")){
-      jawab = "Stok barang saat ini:<br>";
-      BARANG.forEach(b=>{
-        jawab += `• ${b.nama}: ${b.stok} ${b.satuan}<br>`;
-      });
-    }
-
-    if(q.includes("habis")){
-      const h = BARANG.filter(b=>b.stok <= 5);
-      jawab = h.length
-        ? "Barang hampir habis:<br>" + h.map(b=>`• ${b.nama}`).join("<br>")
-        : "Semua stok masih aman.";
-    }
-
-    if(q.includes("saran")){
-      jawab = "Saran saya:<br>";
-      BARANG.filter(b=>b.stok <= 5).forEach(b=>{
-        jawab += `• ${b.nama} sebaiknya ditambah<br>`;
-      });
-    }
-
-    aiLog.innerHTML = jawab;
-    aiInput.value = "";
-  }
-  <script>
-function tanyaAsisten() {
-  const input = document.getElementById("aiInput").value.toLowerCase()
-  const output = document.getElementById("aiOutput")
-
-  if (!input.trim()) {
-    output.style.display = "block"
-    output.innerText = "🤖 Ketik nama barang dulu ya"
-    return
-  }
-
-  const data = JSON.parse(localStorage.getItem("barang")) || []
-
-  const found = data.find(b =>
-    input.includes(b.nama.toLowerCase())
-  )
-
-  output.style.display = "block"
-
-  if (found) {
-    output.innerText =
-      `🤖 Stok ${found.nama} saat ini ada ${found.stok} ${found.satuan}`
-  } else {
-    output.innerText =
-      "🤖 Barang tidak ditemukan di daftar"
-  }
+/* ASISTEN STOK */
+function tanyaAsisten(){
+  const q=aiInput.value.toLowerCase();
+  aiOutput.style.display="block";
+  const b=BARANG.find(x=>q.includes(x.nama.toLowerCase()));
+  aiOutput.innerText=b
+    ? `🤖 Stok ${b.nama}: ${b.stok} ${b.satuan}`
+    : "🤖 Barang tidak ditemukan";
 }
-
 </script>
+
 </body>
 </html>
