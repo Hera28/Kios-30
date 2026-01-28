@@ -147,9 +147,29 @@ input,select{
 </div>
 
 <!-- ADMIN -->
+<!-- ADMIN -->
 <div id="admin" class="hidden">
+
   <div class="card">
-     <h3>🤖 Asisten Kios</h3>
+    <h3>🤖 Asisten Kios</h3>
+    <p style="font-size:14px;opacity:.8">
+      Asisten kecil untuk bantu kelola barang, satuan, dan pesanan.
+      <br>
+      <i>(Online → bisa aktif AI)</i>
+    </p>
+
+    <textarea
+      id="aiInput"
+      placeholder="Contoh: stok minyak tinggal berapa?"
+      style="width:100%;min-height:70px;margin-top:10px"
+    ></textarea>
+
+    <button style="margin-top:10px" onclick="alert('AI siap dikembangkan 🚀')">
+      Tanya Asisten
+    </button>
+  </div>
+
+  <div class="card">
     <h3>Tambah / Edit Barang</h3>
     <div class="grid">
       <input id="nama" placeholder="Nama barang">
@@ -163,7 +183,6 @@ input,select{
         <option>lusin</option>
         <option>liter</option>
         <option>ml</option>
-
       </select>
     </div>
     <button style="margin-top:14px" onclick="simpan()">Simpan Barang</button>
@@ -173,7 +192,6 @@ input,select{
     <h3>Daftar Barang</h3>
     <div id="adminList"></div>
   </div>
-</div>
 
 </div>
 
