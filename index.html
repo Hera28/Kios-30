@@ -149,6 +149,7 @@ input,select{
 <!-- ADMIN -->
 <div id="admin" class="hidden">
   <div class="card">
+     <h3>🤖 Asisten Kios</h3>
     <h3>Tambah / Edit Barang</h3>
     <div class="grid">
       <input id="nama" placeholder="Nama barang">
@@ -301,6 +302,34 @@ function checkout(){
   msg+=`Total: Rp ${total}`;
   window.open(`https://wa.me/${WA}?text=${msg}`);
 }
+   function aiTanya(){
+    const q = aiInput.value.toLowerCase();
+    let jawab = "Maaf, saya belum paham. Coba ketik: stok / habis / saran";
+
+    if(q.includes("stok")){
+      jawab = "Stok barang saat ini:<br>";
+      BARANG.forEach(b=>{
+        jawab += `• ${b.nama}: ${b.stok} ${b.satuan}<br>`;
+      });
+    }
+
+    if(q.includes("habis")){
+      const h = BARANG.filter(b=>b.stok <= 5);
+      jawab = h.length
+        ? "Barang hampir habis:<br>" + h.map(b=>`• ${b.nama}`).join("<br>")
+        : "Semua stok masih aman.";
+    }
+
+    if(q.includes("saran")){
+      jawab = "Saran saya:<br>";
+      BARANG.filter(b=>b.stok <= 5).forEach(b=>{
+        jawab += `• ${b.nama} sebaiknya ditambah<br>`;
+      });
+    }
+
+    aiLog.innerHTML = jawab;
+    aiInput.value = "";
+  }
 </script>
 </body>
 </html>
