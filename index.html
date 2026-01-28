@@ -41,7 +41,6 @@ input,select,textarea{width:100%;padding:10px;border-radius:8px;border:1px solid
   <button id="tabAdmin">🔐 Admin</button>
 </div>
 
-<!-- BUYER -->
 <div id="buyer">
   <div class="card">
     <h3>Daftar Barang</h3>
@@ -56,9 +55,7 @@ input,select,textarea{width:100%;padding:10px;border-radius:8px;border:1px solid
   </div>
 </div>
 
-<!-- ADMIN -->
 <div id="admin" class="hidden">
-
   <div class="card">
     <h3>🤖 Asisten Stok</h3>
     <textarea id="aiInput" placeholder="contoh: stok gula berapa?"></textarea>
@@ -85,25 +82,25 @@ input,select,textarea{width:100%;padding:10px;border-radius:8px;border:1px solid
     <h3>Data Barang</h3>
     <div id="adminList"></div>
   </div>
-
 </div>
 </div>
 
 <script>
-/* ================= INIT ================= */
-const firebaseConfig = {
+/* ===== INIT ===== */
+firebase.initializeApp({
   apiKey: "AIzaSyBCpRbMAIyfJzpzi5iC4xljFt_gyXaJ5Yw",
   authDomain: "kios-30.firebaseapp.com",
   projectId: "kios-30"
-};
-firebase.initializeApp(firebaseConfig);
+});
 const db = firebase.firestore();
 
 let BARANG = [];
 let CART = {};
 const WA = "62811897005";
 
-/* ================= DOM ================= */
+/* ===== DOM ===== */
+const buyer = document.getElementById("buyer");
+const admin = document.getElementById("admin");
 const buyerList = document.getElementById("buyerList");
 const adminList = document.getElementById("adminList");
 const cart = document.getElementById("cart");
@@ -117,22 +114,13 @@ const satuan = document.getElementById("satuan");
 const aiInput = document.getElementById("aiInput");
 const aiOutput = document.getElementById("aiOutput");
 
-/* ================= FIRESTORE ================= */
-<script>
-/* ================= FIRESTORE (SAFE) ================= */
+/* ===== FIRESTORE (SAFE) ===== */
 db.collection("barang").onSnapshot(snap=>{
   BARANG = [];
 
   snap.forEach(doc=>{
     const d = doc.data();
-
-    // FILTER DATA RUSAK / UNDEFINED
-    if(
-      !d.nama ||
-      d.harga === undefined ||
-      d.stok === undefined ||
-      !d.satuan
-    ) return;
+    if(!d?.nama || d.harga==null || d.stok==null || !d.satuan) return;
 
     BARANG.push({
       id: doc.id,
@@ -146,34 +134,34 @@ db.collection("barang").onSnapshot(snap=>{
   renderBuyer();
   renderAdmin();
 });
-</script>
-;
 
-/* ================= CRUD ================= */
+/* ===== CRUD ===== */
 function simpan(){
   if(!nama.value||!harga.value||!stok.value||!satuan.value)
     return alert("Lengkapi data");
+
   db.collection("barang").add({
     nama:nama.value,
     harga:+harga.value,
     stok:+stok.value,
     satuan:satuan.value
   });
+
   nama.value=harga.value=stok.value="";
 }
 
-/* ================= RENDER ================= */
+/* ===== RENDER ===== */
 function renderBuyer(){
   buyerList.innerHTML="";
   BARANG.forEach(b=>{
     buyerList.innerHTML+=`
-    <div class="item flex">
-      <div>
-        <b>${b.nama}</b>
-        <div class="small">Rp ${b.harga} / ${b.satuan} • Stok ${b.stok}</div>
-      </div>
-      <button onclick="addCart('${b.id}')">+</button>
-    </div>`;
+      <div class="item flex">
+        <div>
+          <b>${b.nama}</b>
+          <div class="small">Rp ${b.harga} / ${b.satuan} • Stok ${b.stok}</div>
+        </div>
+        <button onclick="addCart('${b.id}')">+</button>
+      </div>`;
   });
 }
 
@@ -181,10 +169,10 @@ function renderAdmin(){
   adminList.innerHTML="";
   BARANG.forEach(b=>{
     adminList.innerHTML+=`
-    <div class="item flex">
-      <div><b>${b.nama}</b><div class="small">Stok ${b.stok}</div></div>
-      <button class="danger" onclick="hapus('${b.id}')">Hapus</button>
-    </div>`;
+      <div class="item flex">
+        <b>${b.nama}</b>
+        <button class="danger" onclick="hapus('${b.id}')">Hapus</button>
+      </div>`;
   });
 }
 
@@ -193,7 +181,7 @@ function hapus(id){
     db.collection("barang").doc(id).delete();
 }
 
-/* ================= CART ================= */
+/* ===== CART ===== */
 function addCart(id){
   CART[id]=(CART[id]||0)+1;
   renderCart();
@@ -211,31 +199,31 @@ function renderCart(){
   totalEl.innerText=total.toLocaleString();
 }
 
-/* ================= CHECKOUT ================= */
+/* ===== CHECKOUT ===== */
 function checkout(){
   let msg="Halo, saya mau pesan:%0A";
   let total=0;
   for(let id in CART){
     const b=BARANG.find(x=>x.id===id);
     if(!b) continue;
-    msg+=`• ${b.nama} ${CART[id]} ${b.satuan}%0A`;
+    msg+=`• ${b.nama} x ${CART[id]}%0A`;
     total+=b.harga*CART[id];
   }
   msg+=`Total: Rp ${total}`;
   window.open(`https://wa.me/${WA}?text=${msg}`);
 }
 
-/* ================= ASISTEN ================= */
+/* ===== ASISTEN ===== */
 function tanyaAsisten(){
-  const q=aiInput.value.toLowerCase();
   aiOutput.style.display="block";
+  const q=aiInput.value.toLowerCase();
   const b=BARANG.find(x=>q.includes(x.nama.toLowerCase()));
-  aiOutput.innerText = b
+  aiOutput.innerText=b
     ? `🤖 Stok ${b.nama}: ${b.stok} ${b.satuan}`
     : "🤖 Barang tidak ditemukan";
 }
 
-/* ================= TABS ================= */
+/* ===== TABS ===== */
 tabBuyer.onclick=()=>{
   buyer.classList.remove("hidden");
   admin.classList.add("hidden");
