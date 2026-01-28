@@ -5,122 +5,34 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Kios Bersama</title>
 
-<!-- Firebase compat -->
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
 <style>
 :root{
-  --bg:#0f172a;
-  --card:#111827;
-  --border:#1f2937;
-  --text:#e5e7eb;
-  --muted:#9ca3af;
-  --green:#22c55e;
+  --bg:#0f172a;--card:#111827;--border:#1f2937;
+  --text:#e5e7eb;--muted:#9ca3af;--green:#22c55e;
 }
-body.light{
-  --bg:#f8fafc;
-  --card:#ffffff;
-  --border:#e5e7eb;
-  --text:#1f2937;
-  --muted:#64748b;
-}
-*{box-sizing:border-box}
-body{
-  margin:0;
-  font-family:system-ui,Segoe UI,Roboto;
-  background:var(--bg);
-  color:var(--text);
-}
-header{
-  background:linear-gradient(90deg,#22c55e,#16a34a);
-  padding:18px;
-  border-radius:0 0 18px 18px;
-  text-align:center;
-  font-weight:700;
-  font-size:20px;
-  position:relative;
-}
-#theme{
-  position:absolute;
-  right:18px;
-  top:18px;
-  cursor:pointer;
-}
-.container{
-  max-width:1100px;
-  margin:auto;
-  padding:24px;
-}
-.card{
-  background:var(--card);
-  border:1px solid var(--border);
-  border-radius:16px;
-  padding:20px;
-  margin-bottom:20px;
-}
-button{
-  width:100%;
-  padding:12px;
-  border:none;
-  border-radius:12px;
-  background:var(--green);
-  color:#022c22;
-  font-weight:600;
-  cursor:pointer;
-}
-button.secondary{background:#64748b;color:white}
+body{margin:0;font-family:system-ui;background:var(--bg);color:var(--text)}
+header{background:#22c55e;padding:16px;text-align:center;font-weight:700}
+.container{max-width:1100px;margin:auto;padding:20px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:16px}
+button{padding:10px;border:none;border-radius:10px;background:var(--green);cursor:pointer;font-weight:600}
 button.danger{background:#ef4444;color:white}
-input,select{
-  width:100%;
-  padding:12px;
-  border-radius:10px;
-  border:1px solid var(--border);
-  background:#020617;
-  color:var(--text);
-}
-.grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
-  gap:16px;
-}
-.item{
-  border-bottom:1px solid var(--border);
-  padding:12px 0;
-}
-.item:last-child{border:none}
-.flex{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:12px;
-}
+input,select,textarea{width:100%;padding:10px;border-radius:8px;border:1px solid var(--border);background:#020617;color:var(--text)}
+.item{border-bottom:1px solid var(--border);padding:10px 0}
+.flex{display:flex;justify-content:space-between;gap:10px;align-items:center}
 .small{font-size:13px;color:var(--muted)}
 .hidden{display:none}
-.tabs{
-  display:flex;
-  background:var(--card);
-  border-radius:14px;
-  overflow:hidden;
-  margin-bottom:20px;
-}
-.tabs button{
-  flex:1;
-  background:none;
-  color:var(--text);
-}
-.tabs button.active{
-  background:var(--green);
-  color:#022c22;
-}
+.tabs{display:flex;margin-bottom:16px}
+.tabs button{flex:1;background:#1f2937;color:white}
+.tabs button.active{background:#22c55e;color:#022c22}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
 </style>
 </head>
 
 <body>
-<header>
-  🧺 Kios Bersama
-  <div id="theme">🌙</div>
-</header>
+<header>🧺 Kios Bersama</header>
 
 <div class="container">
 
@@ -132,150 +44,101 @@ input,select{
 <!-- BUYER -->
 <div id="buyer">
   <div class="card">
-    <h3>Pilih Barang</h3>
+    <h3>Daftar Barang</h3>
     <div id="buyerList"></div>
   </div>
 
   <div class="card">
     <h3>Keranjang</h3>
     <div id="cart"></div>
-    <div class="flex" style="margin-top:12px">
-      <b>Total: Rp <span id="total">0</span></b>
-      <button onclick="checkout()">Checkout WA</button>
-    </div>
+    <b>Total: Rp <span id="total">0</span></b>
+    <button style="margin-top:10px" onclick="checkout()">Checkout WA</button>
   </div>
 </div>
 
 <!-- ADMIN -->
-<!-- ADMIN -->
-<!-- ADMIN -->
 <div id="admin" class="hidden">
 
-  <!-- ASISTEN -->
   <div class="card">
-    <h3>🤖 Asisten Kios</h3>
-    <p style="font-size:14px;opacity:.8">
-      Asisten kecil untuk bantu kelola barang, satuan, dan pesanan.
-      <br>
-      <i>(Online → bisa aktif AI)</i>
-    </p>
-
-    <textarea
-      id="aiInput"
-      placeholder="Contoh: stok minyak tinggal berapa?"
-      style="width:100%;min-height:70px;margin-top:10px"
-    ></textarea>
-
-    <button style="margin-top:10px" onclick="tanyaAsisten()">
-      Tanya Asisten
-    </button>
-
-    <div
-      id="aiOutput"
-      style="
-        margin-top:12px;
-        padding:10px;
-        background:#0f172a;
-        border-radius:8px;
-        font-size:14px;
-        display:none;
-      "
-    ></div>
+    <h3>🤖 Asisten Stok</h3>
+    <textarea id="aiInput" placeholder="contoh: stok gula berapa?"></textarea>
+    <button style="margin-top:8px" onclick="tanyaAsisten()">Tanya</button>
+    <div id="aiOutput" class="small" style="margin-top:8px;display:none"></div>
   </div>
 
-  <!-- TAMBAH BARANG -->
   <div class="card">
-    <h3>Tambah / Edit Barang</h3>
+    <h3>Tambah Barang</h3>
     <div class="grid">
-      <input id="nama" placeholder="Nama barang">
+      <input id="nama" placeholder="Nama">
       <input id="harga" type="number" placeholder="Harga">
       <input id="stok" type="number" placeholder="Stok">
       <select id="satuan">
         <option value="">Satuan</option>
-        <option>pcs</option>
-        <option>kg</option>
-        <option>dus</option>
-        <option>lusin</option>
-        <option>liter</option>
-        <option>ml</option>
+        <option>pcs</option><option>kg</option>
+        <option>dus</option><option>liter</option>
       </select>
     </div>
-    <button style="margin-top:14px" onclick="simpan()">Simpan Barang</button>
+    <button style="margin-top:10px" onclick="simpan()">Simpan</button>
   </div>
 
-  <!-- DAFTAR -->
   <div class="card">
-    <h3>Daftar Barang</h3>
+    <h3>Data Barang</h3>
     <div id="adminList"></div>
   </div>
 
 </div>
-
+</div>
 
 <script>
-/* FIREBASE */
-firebase.initializeApp({
-  apiKey: "AIzaSyBCpRbMAIyfJzpzi5iC4xljFt_gyXaJ5Yw",
-  authDomain: "kios-30.firebaseapp.com",
-  projectId: "kios-30"
-});
+/* ================= INIT ================= */
+const firebaseConfig = {
+  apiKey: "ISI_PUNYAMU",
+  authDomain: "ISI_PUNYAMU",
+  projectId: "ISI_PUNYAMU"
+};
+firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-/* CONFIG */
-const ADMIN_PASS="11229911";
-const WA="62811897005";
+let BARANG = [];
+let CART = {};
+const WA = "628xxxxxxxxxx";
 
-/* STATE */
-let BARANG=[], CART={}, editId=null;
+/* ================= DOM ================= */
+const buyerList = document.getElementById("buyerList");
+const adminList = document.getElementById("adminList");
+const cart = document.getElementById("cart");
+const totalEl = document.getElementById("total");
 
-/* THEME */
-theme.onclick=()=>{
-  document.body.classList.toggle("light");
-};
+const nama = document.getElementById("nama");
+const harga = document.getElementById("harga");
+const stok = document.getElementById("stok");
+const satuan = document.getElementById("satuan");
 
-/* TAB */
-tabBuyer.onclick=()=>switchTab("buyer");
-tabAdmin.onclick=()=>{
-  const pw=prompt("Password admin:");
-  if(pw===ADMIN_PASS) switchTab("admin");
-};
-function switchTab(tab){
-  buyer.classList.toggle("hidden",tab!=="buyer");
-  admin.classList.toggle("hidden",tab!=="admin");
-  tabBuyer.classList.toggle("active",tab==="buyer");
-  tabAdmin.classList.toggle("active",tab==="admin");
-}
+const aiInput = document.getElementById("aiInput");
+const aiOutput = document.getElementById("aiOutput");
 
-/* LISTENER */
+/* ================= FIRESTORE ================= */
 db.collection("barang").onSnapshot(snap=>{
   BARANG=[];
-  snap.forEach(doc=>{
-    const d=doc.data();
-    if(!d?.nama||d.harga==null||d.stok==null||!d.satuan) return;
-    BARANG.push({id:doc.id,...d});
-  });
+  snap.forEach(d=>BARANG.push({id:d.id,...d.data()}));
   renderBuyer();
   renderAdmin();
 });
 
-/* CRUD */
+/* ================= CRUD ================= */
 function simpan(){
   if(!nama.value||!harga.value||!stok.value||!satuan.value)
     return alert("Lengkapi data");
-  const data={
-    nama:nama.value.trim(),
+  db.collection("barang").add({
+    nama:nama.value,
     harga:+harga.value,
     stok:+stok.value,
     satuan:satuan.value
-  };
-  editId
-    ? db.collection("barang").doc(editId).set(data,{merge:true})
-    : db.collection("barang").add(data);
-  editId=null;
+  });
   nama.value=harga.value=stok.value="";
 }
 
-/* RENDER */
+/* ================= RENDER ================= */
 function renderBuyer(){
   buyerList.innerHTML="";
   BARANG.forEach(b=>{
@@ -285,114 +148,82 @@ function renderBuyer(){
         <b>${b.nama}</b>
         <div class="small">Rp ${b.harga} / ${b.satuan} • Stok ${b.stok}</div>
       </div>
-      <button onclick="addCart('${b.id}')">Tambah</button>
+      <button onclick="addCart('${b.id}')">+</button>
     </div>`;
   });
 }
+
 function renderAdmin(){
   adminList.innerHTML="";
   BARANG.forEach(b=>{
     adminList.innerHTML+=`
     <div class="item flex">
-      <div>
-        <b>${b.nama}</b>
-        <div class="small">Stok ${b.stok}</div>
-      </div>
+      <div><b>${b.nama}</b><div class="small">Stok ${b.stok}</div></div>
       <button class="danger" onclick="hapus('${b.id}')">Hapus</button>
     </div>`;
   });
 }
+
 function hapus(id){
   if(confirm("Hapus barang?"))
     db.collection("barang").doc(id).delete();
 }
 
-/* CART */
+/* ================= CART ================= */
 function addCart(id){
   CART[id]=(CART[id]||0)+1;
   renderCart();
 }
+
 function renderCart(){
   cart.innerHTML="";
   let total=0;
   for(let id in CART){
     const b=BARANG.find(x=>x.id===id);
-    if(!b)continue;
+    if(!b) continue;
     total+=b.harga*CART[id];
     cart.innerHTML+=`${b.nama} x ${CART[id]}<br>`;
   }
   totalEl.innerText=total.toLocaleString();
 }
-const totalEl=document.getElementById("total");
 
-/* CHECKOUT */
+/* ================= CHECKOUT ================= */
 function checkout(){
   let msg="Halo, saya mau pesan:%0A";
   let total=0;
   for(let id in CART){
     const b=BARANG.find(x=>x.id===id);
-    msg+=`* ${b.nama} ${CART[id]} ${b.satuan}%0A`;
+    if(!b) continue;
+    msg+=`• ${b.nama} ${CART[id]} ${b.satuan}%0A`;
     total+=b.harga*CART[id];
   }
   msg+=`Total: Rp ${total}`;
   window.open(`https://wa.me/${WA}?text=${msg}`);
 }
-   function aiTanya(){
-    const q = aiInput.value.toLowerCase();
-    let jawab = "Maaf, saya belum paham. Coba ketik: stok / habis / saran";
 
-    if(q.includes("stok")){
-      jawab = "Stok barang saat ini:<br>";
-      BARANG.forEach(b=>{
-        jawab += `• ${b.nama}: ${b.stok} ${b.satuan}<br>`;
-      });
-    }
-
-    if(q.includes("habis")){
-      const h = BARANG.filter(b=>b.stok <= 5);
-      jawab = h.length
-        ? "Barang hampir habis:<br>" + h.map(b=>`• ${b.nama}`).join("<br>")
-        : "Semua stok masih aman.";
-    }
-
-    if(q.includes("saran")){
-      jawab = "Saran saya:<br>";
-      BARANG.filter(b=>b.stok <= 5).forEach(b=>{
-        jawab += `• ${b.nama} sebaiknya ditambah<br>`;
-      });
-    }
-
-    aiLog.innerHTML = jawab;
-    aiInput.value = "";
-  }
-  <script>
-function tanyaAsisten() {
-  const input = document.getElementById("aiInput").value.toLowerCase()
-  const output = document.getElementById("aiOutput")
-
-  if (!input.trim()) {
-    output.style.display = "block"
-    output.innerText = "🤖 Ketik nama barang dulu ya"
-    return
-  }
-
-  const data = JSON.parse(localStorage.getItem("barang")) || []
-
-  const found = data.find(b =>
-    input.includes(b.nama.toLowerCase())
-  )
-
-  output.style.display = "block"
-
-  if (found) {
-    output.innerText =
-      `🤖 Stok ${found.nama} saat ini ada ${found.stok} ${found.satuan}`
-  } else {
-    output.innerText =
-      "🤖 Barang tidak ditemukan di daftar"
-  }
+/* ================= ASISTEN ================= */
+function tanyaAsisten(){
+  const q=aiInput.value.toLowerCase();
+  aiOutput.style.display="block";
+  const b=BARANG.find(x=>q.includes(x.nama.toLowerCase()));
+  aiOutput.innerText = b
+    ? `🤖 Stok ${b.nama}: ${b.stok} ${b.satuan}`
+    : "🤖 Barang tidak ditemukan";
 }
 
+/* ================= TABS ================= */
+tabBuyer.onclick=()=>{
+  buyer.classList.remove("hidden");
+  admin.classList.add("hidden");
+  tabBuyer.classList.add("active");
+  tabAdmin.classList.remove("active");
+};
+tabAdmin.onclick=()=>{
+  admin.classList.remove("hidden");
+  buyer.classList.add("hidden");
+  tabAdmin.classList.add("active");
+  tabBuyer.classList.remove("active");
+};
 </script>
 </body>
-</html> final kode
+</html>
