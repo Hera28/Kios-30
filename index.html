@@ -148,8 +148,10 @@ input,select{
 
 <!-- ADMIN -->
 <!-- ADMIN -->
+<!-- ADMIN -->
 <div id="admin" class="hidden">
 
+  <!-- ASISTEN -->
   <div class="card">
     <h3>🤖 Asisten Kios</h3>
     <p style="font-size:14px;opacity:.8">
@@ -164,11 +166,24 @@ input,select{
       style="width:100%;min-height:70px;margin-top:10px"
     ></textarea>
 
-    <button style="margin-top:10px" onclick="alert('AI siap dikembangkan 🚀')">
+    <button style="margin-top:10px" onclick="tanyaAsisten()">
       Tanya Asisten
     </button>
+
+    <div
+      id="aiOutput"
+      style="
+        margin-top:12px;
+        padding:10px;
+        background:#0f172a;
+        border-radius:8px;
+        font-size:14px;
+        display:none;
+      "
+    ></div>
   </div>
 
+  <!-- TAMBAH BARANG -->
   <div class="card">
     <h3>Tambah / Edit Barang</h3>
     <div class="grid">
@@ -188,12 +203,14 @@ input,select{
     <button style="margin-top:14px" onclick="simpan()">Simpan Barang</button>
   </div>
 
+  <!-- DAFTAR -->
   <div class="card">
     <h3>Daftar Barang</h3>
     <div id="adminList"></div>
   </div>
 
 </div>
+
 
 <script>
 /* FIREBASE */
@@ -348,6 +365,34 @@ function checkout(){
     aiLog.innerHTML = jawab;
     aiInput.value = "";
   }
+  <script>
+function tanyaAsisten() {
+  const input = document.getElementById("aiInput").value.toLowerCase()
+  const output = document.getElementById("aiOutput")
+
+  if (!input.trim()) {
+    output.style.display = "block"
+    output.innerText = "🤖 Ketik nama barang dulu ya"
+    return
+  }
+
+  const data = JSON.parse(localStorage.getItem("barang")) || []
+
+  const found = data.find(b =>
+    input.includes(b.nama.toLowerCase())
+  )
+
+  output.style.display = "block"
+
+  if (found) {
+    output.innerText =
+      `🤖 Stok ${found.nama} saat ini ada ${found.stok} ${found.satuan}`
+  } else {
+    output.innerText =
+      "🤖 Barang tidak ditemukan di daftar"
+  }
+}
+
 </script>
 </body>
 </html>
