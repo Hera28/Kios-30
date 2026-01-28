@@ -118,12 +118,36 @@ const aiInput = document.getElementById("aiInput");
 const aiOutput = document.getElementById("aiOutput");
 
 /* ================= FIRESTORE ================= */
+<script>
+/* ================= FIRESTORE (SAFE) ================= */
 db.collection("barang").onSnapshot(snap=>{
-  BARANG=[];
-  snap.forEach(d=>BARANG.push({id:d.id,...d.data()}));
+  BARANG = [];
+
+  snap.forEach(doc=>{
+    const d = doc.data();
+
+    // FILTER DATA RUSAK / UNDEFINED
+    if(
+      !d.nama ||
+      d.harga === undefined ||
+      d.stok === undefined ||
+      !d.satuan
+    ) return;
+
+    BARANG.push({
+      id: doc.id,
+      nama: d.nama,
+      harga: d.harga,
+      stok: d.stok,
+      satuan: d.satuan
+    });
+  });
+
   renderBuyer();
   renderAdmin();
 });
+</script>
+;
 
 /* ================= CRUD ================= */
 function simpan(){
