@@ -144,7 +144,7 @@ input,select,textarea{width:100%; padding:10px; border-radius:8px; border:1px so
           <option value="">Pilih Satuan</option>
           <option>Bungkus</option><option>Botol</option><option>Kg</option><option>Liter</option><option>Pcs</option><option>Kardus</option>
         </select>
-        <input id="fotoUrl" placeholder="Tempel Link Foto (Cari di Google > Klik Kanan > Salin Alamat Gambar)">
+        <input id="fotoUrl" placeholder="Tempel Link Foto (Opsional)">
         <textarea id="notes" placeholder="Catatan Toko (Contoh: Expired Jan 2026)"></textarea>
         <button onclick="simpan()">Simpan ke Database</button>
       </div>
@@ -169,34 +169,37 @@ input,select,textarea{width:100%; padding:10px; border-radius:8px; border:1px so
 </div>
 
 <script>
-/* KONFIGURASI FIREBASE SESUAI MILIKMU */
-const firebaseConfig = {
-  apiKey: "AIzaSyBCpRbMAIyfJzpzi5iC4xljFt_gyXaJ5Yw",
-  authDomain: "kios-30.firebaseapp.com",
-  projectId: "kios-30",
-  storageBucket: "kios-30.firebasestorage.app",
-  messagingSenderId: "253251437301",
-  appId: "1:253251437301:web:310e2495d742aa2dd63bbc"
-};
-
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-
 const ADMIN_PW = "kios123";
 let adminUnlocked = false;
+
+firebase.initializeApp({
+  apiKey: "AIzaSyBCpRbMAIyfJzpzi5iC4xljFt_gyXaJ5Yw",
+  authDomain: "kios-30.firebaseapp.com",
+  projectId: "kios-30"
+});
+const db = firebase.firestore();
+
 let BARANG = [];
 let CART = {};
 const WA = "62811897005";
 
-/* REALTIME SYNC - MENARIK 36 BARANG KAMU */
+/* REALTIME SYNC - VERSI ANTI MACET */
 db.collection("barang").onSnapshot(snap=>{
   BARANG=[];
-  snap.forEach(doc=>{ BARANG.push({id:doc.id, ...doc.data()}); });
-  console.log("Data diterima:", BARANG.length);
+  snap.forEach(doc=>{ 
+    const d = doc.data();
+    BARANG.push({
+      id: doc.id,
+      nama: d.nama || "Tanpa Nama",
+      harga: Number(d.harga) || 0,
+      stok: Number(d.stok) || 0,
+      satuan: d.satuan || "pcs",
+      foto: d.foto || "",
+      notes: d.notes || ""
+    }); 
+  });
   renderBuyer();
   renderAdmin();
-}, err => {
-  console.error("Gagal ambil data:", err);
 });
 
 function getSmartDescription(b) {
@@ -208,6 +211,7 @@ function getSmartDescription(b) {
 
 function openDetail(id){
   const b = BARANG.find(x => x.id === id);
+  if(!b) return;
   document.getElementById("modalTitle").innerText = b.nama;
   document.getElementById("modalPrice").innerText = "Rp " + b.harga.toLocaleString();
   document.getElementById("modalStok").innerText = `Sisa: ${b.stok} ${b.satuan}`;
@@ -231,20 +235,25 @@ function simpan(){
   if(!n.value||!h.value||!s.value) return alert("Isi data barang!");
   db.collection("barang").add({
     nama:n.value, harga:+h.value, stok:+s.value, satuan:sat.value, notes:nt.value, foto:f.value
-  }).then(() => {
-    alert("Berhasil disimpan!");
-    n.value=h.value=s.value=nt.value=f.value="";
   });
+  n.value=h.value=s.value=nt.value=f.value="";
 }
 
 function renderBuyer(f = ""){
   const l = document.getElementById("buyerList"); l.innerHTML="";
-  BARANG.filter(b=>b.nama.toLowerCase().includes(f.toLowerCase())).forEach(b=>{
+  const filtered = BARANG.filter(b=>b.nama.toLowerCase().includes(f.toLowerCase()));
+  
+  if(filtered.length === 0) {
+    l.innerHTML = "<p style='grid-column:1/-1; text-align:center; color:gray'>Barang tidak ditemukan...</p>";
+    return;
+  }
+
+  filtered.forEach(b=>{
     l.innerHTML+=`<div class="item-produk" onclick="openDetail('${b.id}')">
         <div class="img-box">${b.foto ? `<img src="${b.foto}">` : '📦'}</div>
         <b>${b.nama}</b>
         <div class="price">Rp ${b.harga.toLocaleString()}</div>
-        <div class="stok-tag">Stok: ${b.stok}</div>
+        <div class="stok-tag">Stok: ${b.stok} ${b.satuan}</div>
       </div>`;
   });
 }
@@ -254,7 +263,7 @@ function renderAdmin(){
   BARANG.forEach(b=>{
     l.innerHTML+=`<div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding:8px 0">
       <div><b>${b.nama}</b><br><small>Sisa ${b.stok} ${b.satuan}</small></div>
-      <button class="danger" style="width:auto; padding:5px 10px" onclick="if(confirm('Hapus?')) db.collection('barang').doc('${b.id}').delete()">Hapus</button>
+      <button class="danger" style="width:auto; padding:5px 10px" onclick="if(confirm('Hapus barang ini?')) db.collection('barang').doc('${b.id}').delete()">Hapus</button>
     </div>`;
   });
 }
@@ -276,6 +285,7 @@ function asisten(mode){
 
 function addCart(id){
   const b = BARANG.find(x => x.id === id);
+  if(!b) return;
   if((CART[id]||0)+1 > b.stok) return alert("Stok habis!");
   CART[id]=(CART[id]||0)+1; renderCart();
 }
@@ -309,7 +319,8 @@ tabBuyer.onclick=()=>{
 };
 tabAdmin.onclick=()=>{
   if(!adminUnlocked){
-    if(prompt("Password:") !== ADMIN_PW) return;
+    const p = prompt("Password Admin:");
+    if(p !== ADMIN_PW) return;
     adminUnlocked=true;
   }
   document.getElementById("admin").classList.remove("hidden"); document.getElementById("buyer").classList.add("hidden");
