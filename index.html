@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Kios Bersama</title>
+<title>Kios Bersama - Smart Catalog</title>
 
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
@@ -48,20 +48,21 @@ header{
 .img-box{width:100%; aspect-ratio:1/1; background:#f3f4f6; border-radius:8px; margin-bottom:10px; display:flex; align-items:center; justify-content:center; color:#ccc; font-size:30px}
 .item-produk b{font-size:14px; height:38px; overflow:hidden; display:block; margin-bottom:4px}
 .item-produk .price{color:var(--text); font-weight:800; font-size:16px}
-.item-produk .stok-tag{font-size:12px; color:var(--muted); margin:5px 0}
 
 /* MODAL DETAIL STYLE */
 .modal{
   position: fixed; top:0; left:0; width:100%; height:100%; 
-  background:rgba(0,0,0,0.5); display:none; justify-content:center; align-items:center; z-index:1000;
+  background:rgba(0,0,0,0.6); display:none; justify-content:center; align-items:center; z-index:1000;
 }
 .modal-content{
-  background:white; width:90%; max-width:850px; border-radius:15px; 
-  padding:25px; display:flex; gap:30px; position:relative; max-height: 90vh; overflow-y: auto;
+  background:white; width:95%; max-width:850px; border-radius:20px; 
+  display:flex; position:relative; max-height: 90vh; overflow:hidden;
 }
-.close-modal{position:absolute; right:15px; top:10px; font-size:28px; cursor:pointer; color:var(--muted)}
-.modal-left{flex:1}
-.modal-right{flex:1.2; display:flex; flex-direction:column}
+.close-modal{position:absolute; right:20px; top:15px; font-size:30px; cursor:pointer; color:var(--muted); z-index:11}
+.modal-left{flex:1; background:#f9fafb; display:flex; align-items:center; justify-content:center; padding:40px}
+.modal-right{flex:1.2; padding:30px; overflow-y: auto; display:flex; flex-direction:column}
+
+.stok-badge{background: #fff0e6; color: #ff6600; padding: 6px 12px; border-radius: 8px; font-size: 14px; font-weight: 700; width: fit-content; margin-bottom:15px}
 .desc-section{border-top: 1px solid var(--border); margin-top: 20px; padding-top: 15px;}
 .desc-title{font-weight: 800; color: var(--green); margin-bottom: 10px; display: block;}
 .desc-text{font-size:14px; color:var(--text); line-height:1.6;}
@@ -74,13 +75,9 @@ button.danger{background:#ef4444}
 button.gray{background:#334155}
 input,select,textarea{width:100%; padding:10px; border-radius:8px; border:1px solid var(--border); margin-bottom:10px; box-sizing:border-box}
 
-.item-list{border-bottom:1px solid #f1f1f1; padding:10px 0; display:flex; justify-content:space-between; align-items:center}
 .hidden{display:none}
 
-@media (max-width: 750px) { 
-  .modal-content{flex-direction:column} 
-  .sidebar{width:100%} .main-content{width:100%} 
-}
+@media (max-width: 750px) { .modal-content{flex-direction:column} .modal-left{padding:20px} }
 </style>
 </head>
 
@@ -90,20 +87,25 @@ input,select,textarea{width:100%; padding:10px; border-radius:8px; border:1px so
   <div class="modal-content" onclick="event.stopPropagation()">
     <span class="close-modal" onclick="document.getElementById('productModal').style.display='none'">&times;</span>
     <div class="modal-left">
-      <div id="modalImg" class="img-box" style="height: 350px; font-size: 80px;">📦</div>
+      <div id="modalImg" class="img-box" style="width:100%; height: 300px; font-size: 100px;">📦</div>
     </div>
     <div class="modal-right">
-      <h1 id="modalTitle" style="margin:0; font-size: 24px;">Nama Produk</h1>
-      <div id="modalPrice" style="font-size: 32px; font-weight:800; color:var(--green); margin:10px 0">Rp 0</div>
-      <div id="modalStok" style="background: #fff0e6; color: #ff6600; padding: 4px 10px; border-radius: 5px; font-size: 13px; font-weight: 700; width: fit-content;">Sisa 0</div>
+      <h1 id="modalTitle" style="margin:0; font-size: 26px;">Nama Produk</h1>
+      <div id="modalPrice" style="font-size: 34px; font-weight:800; color:var(--green); margin:10px 0">Rp 0</div>
+      <div id="modalStok" class="stok-badge">Sisa 0</div>
       
       <div class="desc-section">
         <span class="desc-title">Detail Produk</span>
         <div class="desc-text" id="modalDesc"></div>
       </div>
       
-      <div style="margin-top: auto; padding-top: 20px;">
-        <button id="modalAddBtn" onclick="">+ Keranjang</button>
+      <div id="generalNoteBox" style="margin-top:20px; padding:15px; background:#f8fafc; border:1px solid #cbd5e1; border-radius:12px; display:none">
+        <b style="color:#475569; font-size:13px">📝 Catatan Tambahan:</b>
+        <div id="generalNoteText" style="font-size:14px; margin-top:5px; color:#334155"></div>
+      </div>
+      
+      <div style="margin-top: 30px;">
+        <button id="modalAddBtn">+ Tambah ke Keranjang</button>
       </div>
     </div>
   </div>
@@ -112,14 +114,14 @@ input,select,textarea{width:100%; padding:10px; border-radius:8px; border:1px so
 <header>
   <div class="logo" onclick="location.reload()">🧺 Kios Bersama</div>
   <div class="search-wrapper">
-    <input type="text" id="searchInput" placeholder="Cari kebutuhanmu di sini..." onkeyup="filterBarang()">
+    <input type="text" id="searchInput" placeholder="Cari barang..." onkeyup="filterBarang()">
   </div>
 </header>
 
 <div class="container">
   <div class="main-content">
     <div class="tabs">
-      <button id="tabBuyer" class="active">🛒 Toko</button>
+      <button id="tabBuyer" class="active">🛒 Belanja</button>
       <button id="tabAdmin">🔐 Admin</button>
     </div>
 
@@ -129,34 +131,21 @@ input,select,textarea{width:100%; padding:10px; border-radius:8px; border:1px so
 
     <div id="admin" class="hidden">
       <div class="card">
-        <h3>🤖 Asisten Stok</h3>
-        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:10px">
-          <button class="gray" onclick="asisten('daftar')">📦 Daftar</button>
-          <button class="danger" onclick="asisten('menipis')">⚠️ Menipis</button>
-          <button style="background:#0ea5e9" onclick="asisten('total')">📊 Total</button>
-        </div>
-        <textarea id="aiInput" placeholder="Contoh: Stok beras ada berapa?"></textarea>
-        <button onclick="asisten('tanya')">Tanya</button>
-        <div id="aiOutput" style="font-size:13px; margin-top:10px; padding:10px; background:#f9fafb; border-radius:8px; display:none"></div>
-      </div>
-
-      <div class="card">
-        <h3>Tambah Barang Baru</h3>
+        <h3>Input Inventaris</h3>
         <input id="nama" placeholder="Nama Barang">
-        <input id="harga" type="number" placeholder="Harga (Rp)">
-        <input id="stok" type="number" placeholder="Jumlah Stok">
+        <input id="harga" type="number" placeholder="Harga">
+        <input id="stok" type="number" placeholder="Stok">
         <select id="satuan">
-          <option value="">Pilih Satuan</option>
-          <option>Kilogram</option><option>Ons</option><option>Gram</option><option>Liter</option>
-          <option>Mililiter</option><option>Botol</option><option>Sachet</option><option>Bungkus</option>
-          <option>Pack</option><option>Kardus</option><option>Renceng</option><option>Rak</option>
-          <option>Karung</option><option>Butir</option><option>Potong</option>
+          <option value="">Satuan</option>
+          <option>Bungkus</option><option>Botol</option><option>Sachet</option><option>Kg</option>
+          <option>Liter</option><option>Pcs</option><option>Kardus</option>
         </select>
-        <button onclick="simpan()">Simpan ke Katalog</button>
+        <textarea id="notes" placeholder="Catatan tambahan untuk pembeli (Optional)..."></textarea>
+        <button onclick="simpan()">Simpan Barang</button>
       </div>
 
       <div class="card">
-        <h3>Daftar Inventaris</h3>
+        <h3>Daftar Barang</h3>
         <div id="adminList"></div>
       </div>
     </div>
@@ -164,13 +153,12 @@ input,select,textarea{width:100%; padding:10px; border-radius:8px; border:1px so
 
   <div class="sidebar">
     <div class="card cart-sticky">
-      <h3 style="margin-top:0">Keranjang</h3>
-      <div id="cart" style="font-size:13px; color:var(--muted); min-height:40px">Belum ada barang.</div>
-      <div style="margin:15px 0; border-top:1px solid #eee; padding-top:10px">
+      <h3>🛒 Pesanan</h3>
+      <div id="cart" style="font-size:14px">Kosong.</div>
+      <div style="margin-top:15px; border-top:1px solid #eee; padding-top:10px">
         <b>Total: Rp <span id="total">0</span></b>
       </div>
-      <button onclick="checkout()">Beli Sekarang (WA)</button>
-      <button class="gray" style="margin-top:8px; font-size:12px; background:none; color:var(--muted)" onclick="resetCart()">Bersihkan Keranjang</button>
+      <button onclick="checkout()">Order via WA</button>
     </div>
   </div>
 </div>
@@ -190,145 +178,107 @@ let BARANG = [];
 let CART = {};
 const WA = "62811897005";
 
-/* SINKRONISASI REAL-TIME */
 db.collection("barang").onSnapshot(snap=>{
   BARANG=[];
-  snap.forEach(doc=>{
-    const d=doc.data();
-    if(!d?.nama||d.harga==null||d.stok==null||!d.satuan) return;
-    BARANG.push({id:doc.id,...d});
-  });
+  snap.forEach(doc=>{ BARANG.push({id:doc.id, ...doc.data()}); });
   renderBuyer();
   renderAdmin();
 });
 
-function simpan(){
-  const n = document.getElementById("nama"), h = document.getElementById("harga"), s = document.getElementById("stok"), sat = document.getElementById("satuan");
-  if(!n.value||!h.value||!s.value||!sat.value) return alert("Lengkapi data!");
-  db.collection("barang").add({
-    nama:n.value, harga:+h.value, stok:+s.value, satuan:sat.value
-  });
-  n.value=h.value=s.value="";
-}
-
-function hapus(id){ if(confirm("Hapus barang dari katalog?")) db.collection("barang").doc(id).delete(); }
-
-/* LOGIKA DESKRIPSI DINAMIS (BERLAKU UNTUK SEMUA BARANG BARU) */
-function generateDynamicDesc(b) {
-  const template = [
-    `Produk <b>${b.nama}</b> ini adalah salah satu barang terlaris di Kios Bersama.`,
-    `Diproses dan dikemas dengan standar kebersihan tinggi untuk memastikan kualitas terbaik sampai di tangan Anda.`,
-    `<br><br><b>Spesifikasi Produk:</b>`,
-    `• Satuan Jual: 1 ${b.satuan}`,
-    `• Kondisi: Stok Baru`,
-    `• Kategori: Kebutuhan Harian`,
-    `<br><i>"Nikmati kemudahan belanja stok dapur dan rumah tangga hanya dari rumah."</i>`
-  ];
-  return template.join("<br>");
+function getSmartDescription(b) {
+  const n = b.nama.toLowerCase();
+  if(n.includes("mie") || n.includes("indomie")) return `Mie instan lezat, praktis, dan jadi favorit semua orang. Cocok untuk stok darurat di rumah!`;
+  if(n.includes("bir") || n.includes("bintang")) return `Minuman penyegar suasana. Nikmati kesegarannya dalam kondisi dingin bersama teman.`;
+  if(n.includes("beras")) return `Beras putih pilihan, pulen dan harum. Pilihan tepat untuk nasi berkualitas bagi keluarga.`;
+  if(n.includes("rokok")) return `Produk tembakau pilihan, stok selalu baru dan terjaga kualitasnya.`;
+  return `Produk <b>${b.nama}</b> dengan kualitas terjamin. Tersedia di Kios Bersama untuk memenuhi kebutuhan harian Anda.`;
 }
 
 function openDetail(id){
   const b = BARANG.find(x => x.id === id);
   document.getElementById("modalTitle").innerText = b.nama;
   document.getElementById("modalPrice").innerText = "Rp " + b.harga.toLocaleString();
-  document.getElementById("modalStok").innerText = "Sisa Stok: " + b.stok + " " + b.satuan;
+  document.getElementById("modalStok").innerText = `Sisa Stok: ${b.stok} ${b.satuan}`;
+  document.getElementById("modalDesc").innerHTML = getSmartDescription(b);
   
-  // Memanggil fungsi dinamis
-  document.getElementById("modalDesc").innerHTML = generateDynamicDesc(b);
+  const noteBox = document.getElementById("generalNoteBox");
+  if(b.notes && b.notes.trim() !== "") {
+    noteBox.style.display = "block";
+    document.getElementById("generalNoteText").innerText = b.notes;
+  } else {
+    noteBox.style.display = "none";
+  }
   
   document.getElementById("modalAddBtn").onclick = () => { addCart(id); document.getElementById('productModal').style.display='none'; };
   document.getElementById("productModal").style.display = "flex";
 }
 
-function closeModal(e){ if(e.target.id === "productModal") e.target.style.display="none"; }
-
-function renderBuyer(filter = ""){
-  const list = document.getElementById("buyerList");
-  list.innerHTML="";
-  const filteredData = BARANG.filter(b => b.nama.toLowerCase().includes(filter.toLowerCase()));
+function simpan(){
+  const n = document.getElementById("nama"), h = document.getElementById("harga"), 
+        s = document.getElementById("stok"), sat = document.getElementById("satuan"),
+        nt = document.getElementById("notes");
+        
+  if(!n.value||!h.value||!s.value||!sat.value) return alert("Isi data dengan lengkap!");
   
-  filteredData.forEach(b=>{
-    list.innerHTML+=`
-      <div class="item-produk" onclick="openDetail('${b.id}')">
+  db.collection("barang").add({
+    nama: n.value, harga: +h.value, stok: +s.value, satuan: sat.value, notes: nt.value
+  });
+  
+  n.value=h.value=s.value=nt.value="";
+}
+
+function renderBuyer(f = ""){
+  const l = document.getElementById("buyerList"); l.innerHTML="";
+  BARANG.filter(b=>b.nama.toLowerCase().includes(f.toLowerCase())).forEach(b=>{
+    l.innerHTML+=`<div class="item-produk" onclick="openDetail('${b.id}')">
         <div class="img-box">📦</div>
         <b>${b.nama}</b>
         <div class="price">Rp ${b.harga.toLocaleString()}</div>
-        <div class="stok-tag">Stok: ${b.stok} ${b.satuan}</div>
-        <button style="padding:6px; font-size:12px" onclick="event.stopPropagation(); addCart('${b.id}')">+ Keranjang</button>
+        <div style="font-size:11px; color:var(--muted); margin-top:5px">Stok: ${b.stok}</div>
       </div>`;
   });
 }
 
-function filterBarang(){ renderBuyer(document.getElementById("searchInput").value); }
-
 function renderAdmin(){
-  const list = document.getElementById("adminList");
-  list.innerHTML="";
+  const l = document.getElementById("adminList"); l.innerHTML="";
   BARANG.forEach(b=>{
-    list.innerHTML+=`
-      <div class="item-list">
-        <div><b>${b.nama}</b><br><small>${b.stok} ${b.satuan} • Rp ${b.harga}</small></div>
-        <button class="danger" style="width:auto; padding:5px 10px" onclick="hapus('${b.id}')">Hapus</button>
-      </div>`;
+    l.innerHTML+=`<div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding:8px 0">
+      <div><b>${b.nama}</b><br><small>Rp ${b.harga} | Sisa ${b.stok}</small></div>
+      <button class="danger" style="width:auto; padding:4px 10px" onclick="db.collection('barang').doc('${b.id}').delete()">Hapus</button>
+    </div>`;
   });
 }
 
 function addCart(id){
   const b = BARANG.find(x => x.id === id);
-  if((CART[id] || 0) + 1 > b.stok) return alert("Waduh, stoknya nggak cukup!");
-  CART[id]=(CART[id]||0)+1;
-  renderCart();
+  if((CART[id]||0)+1 > b.stok) return alert("Stok tidak cukup!");
+  CART[id]=(CART[id]||0)+1; renderCart();
 }
 
-function resetCart(){ if(confirm("Kosongkan semua belanjaan?")) { CART={}; renderCart(); } }
-
 function renderCart(){
-  const cartList = document.getElementById("cart");
-  cartList.innerHTML="";
-  let total=0;
+  const c = document.getElementById("cart"); c.innerHTML=""; let t=0;
   for(let id in CART){
-    const b=BARANG.find(x=>x.id===id);
+    const b = BARANG.find(x=>x.id===id);
     if(!b) continue;
-    total+=b.harga*CART[id];
-    cartList.innerHTML+=`<div style="display:flex; justify-content:space-between; margin-bottom:5px">
-      <span>${b.nama} (x${CART[id]})</span>
-      <span>Rp ${(b.harga * CART[id]).toLocaleString()}</span>
-    </div>`;
+    t += b.harga * CART[id];
+    c.innerHTML += `<div>${b.nama} x${CART[id]}</div>`;
   }
-  document.getElementById("total").innerText = total.toLocaleString();
-  if(total === 0) cartList.innerText = "Belum ada barang.";
+  document.getElementById("total").innerText = t.toLocaleString();
 }
 
 function checkout(){
-  if(Object.keys(CART).length===0) return alert("Keranjangmu masih kosong nih.");
-  let msg="*PESANAN KIOS BERSAMA*%0A%0A";
-  let total=0;
+  if(Object.keys(CART).length === 0) return alert("Keranjang kosong!");
+  let m = "*ORDER KIOS BERSAMA*%0A%0A";
   for(let id in CART){
-    const b=BARANG.find(x=>x.id===id);
-    if(!b) continue;
-    msg+=`- ${b.nama} (x${CART[id]})%0A`;
-    total+=b.harga*CART[id];
+    const b = BARANG.find(x=>x.id===id);
+    m += `- ${b.nama} (x${CART[id]})%0A`;
   }
-  msg+=`%0A*Total Akhir: Rp ${total.toLocaleString()}*`;
-  window.open(`https://wa.me/${WA}?text=${msg}`);
+  m += `%0A*Total: Rp ${document.getElementById("total").innerText}*`;
+  window.open(`https://wa.me/${WA}?text=${m}`);
 }
 
-function asisten(mode){
-  const out = document.getElementById("aiOutput");
-  out.style.display="block";
-  if(BARANG.length===0){ out.innerText="🤖 Maaf, datanya masih kosong."; return; }
-  if(mode==="daftar") out.innerHTML=BARANG.map(b=>`• ${b.nama} (${b.stok} ${b.satuan})`).join("<br>");
-  if(mode==="menipis"){
-    const low=BARANG.filter(b=>b.stok<=5);
-    out.innerHTML=low.length ? low.map(b=>`⚠️ ${b.nama}: Sisa ${b.stok}`).join("<br>") : "✅ Semua stok masih aman, Bos!";
-  }
-  if(mode==="total") out.innerText=`📊 Saat ini ada ${BARANG.length} jenis barang di toko.`;
-  if(mode==="tanya"){
-    const q=document.getElementById("aiInput").value.toLowerCase();
-    const b=BARANG.find(x=>q.includes(x.nama.toLowerCase()));
-    out.innerText=b ? `🤖 Stok ${b.nama} sekarang ada ${b.stok} ${b.satuan}.` : "🤖 Barangnya nggak ketemu nih.";
-  }
-}
+function filterBarang(){ renderBuyer(document.getElementById("searchInput").value); }
+function closeModal(e){ if(e.target.id === "productModal") e.target.style.display="none"; }
 
 tabBuyer.onclick=()=>{
   document.getElementById("buyer").classList.remove("hidden"); document.getElementById("admin").classList.add("hidden");
@@ -336,8 +286,7 @@ tabBuyer.onclick=()=>{
 };
 tabAdmin.onclick=()=>{
   if(!adminUnlocked){
-    const pw=prompt("Masukkan Password Admin:");
-    if(pw!==ADMIN_PW) return alert("Akses ditolak!");
+    if(prompt("Password Admin:") !== ADMIN_PW) return alert("Salah!");
     adminUnlocked=true;
   }
   document.getElementById("admin").classList.remove("hidden"); document.getElementById("buyer").classList.add("hidden");
