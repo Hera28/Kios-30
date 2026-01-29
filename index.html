@@ -51,7 +51,6 @@ header{
 .item-produk .price{color:var(--text); font-weight:800; font-size:16px}
 .item-produk .stok-tag{font-size:12px; color:var(--muted); margin:5px 0}
 
-/* MODAL DETAIL */
 .modal{
   position: fixed; top:0; left:0; width:100%; height:100%; 
   background:rgba(0,0,0,0.6); display:none; justify-content:center; align-items:center; z-index:1000;
@@ -145,7 +144,7 @@ input,select,textarea{width:100%; padding:10px; border-radius:8px; border:1px so
           <option value="">Pilih Satuan</option>
           <option>Bungkus</option><option>Botol</option><option>Kg</option><option>Liter</option><option>Pcs</option><option>Kardus</option>
         </select>
-        <input id="fotoUrl" placeholder="Tempel Link Foto (Opsional)">
+        <input id="fotoUrl" placeholder="Tempel Link Foto (Cari di Google > Klik Kanan > Salin Alamat Gambar)">
         <textarea id="notes" placeholder="Catatan Toko (Contoh: Expired Jan 2026)"></textarea>
         <button onclick="simpan()">Simpan ke Database</button>
       </div>
@@ -170,26 +169,34 @@ input,select,textarea{width:100%; padding:10px; border-radius:8px; border:1px so
 </div>
 
 <script>
-const ADMIN_PW = "kios123";
-let adminUnlocked = false;
-
-firebase.initializeApp({
+/* KONFIGURASI FIREBASE SESUAI MILIKMU */
+const firebaseConfig = {
   apiKey: "AIzaSyBCpRbMAIyfJzpzi5iC4xljFt_gyXaJ5Yw",
   authDomain: "kios-30.firebaseapp.com",
-  projectId: "kios-30"
-});
+  projectId: "kios-30",
+  storageBucket: "kios-30.firebasestorage.app",
+  messagingSenderId: "253251437301",
+  appId: "1:253251437301:web:310e2495d742aa2dd63bbc"
+};
+
+firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
+const ADMIN_PW = "kios123";
+let adminUnlocked = false;
 let BARANG = [];
 let CART = {};
 const WA = "62811897005";
 
-/* REALTIME SYNC */
+/* REALTIME SYNC - MENARIK 36 BARANG KAMU */
 db.collection("barang").onSnapshot(snap=>{
   BARANG=[];
   snap.forEach(doc=>{ BARANG.push({id:doc.id, ...doc.data()}); });
+  console.log("Data diterima:", BARANG.length);
   renderBuyer();
   renderAdmin();
+}, err => {
+  console.error("Gagal ambil data:", err);
 });
 
 function getSmartDescription(b) {
@@ -224,8 +231,10 @@ function simpan(){
   if(!n.value||!h.value||!s.value) return alert("Isi data barang!");
   db.collection("barang").add({
     nama:n.value, harga:+h.value, stok:+s.value, satuan:sat.value, notes:nt.value, foto:f.value
+  }).then(() => {
+    alert("Berhasil disimpan!");
+    n.value=h.value=s.value=nt.value=f.value="";
   });
-  n.value=h.value=s.value=nt.value=f.value="";
 }
 
 function renderBuyer(f = ""){
@@ -245,7 +254,7 @@ function renderAdmin(){
   BARANG.forEach(b=>{
     l.innerHTML+=`<div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding:8px 0">
       <div><b>${b.nama}</b><br><small>Sisa ${b.stok} ${b.satuan}</small></div>
-      <button class="danger" style="width:auto; padding:5px 10px" onclick="db.collection('barang').doc('${b.id}').delete()">Hapus</button>
+      <button class="danger" style="width:auto; padding:5px 10px" onclick="if(confirm('Hapus?')) db.collection('barang').doc('${b.id}').delete()">Hapus</button>
     </div>`;
   });
 }
