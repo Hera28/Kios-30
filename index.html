@@ -1,769 +1,289 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kios Bersama v4.0 - Ultra Massive Scale Edition</title>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>Kios Bersama Ultra v5</title>
 
-    <style>
-        /* ==========================================================================
-           1. CSS RESET & DESIGN TOKENS
-           ========================================================================== 
-        */
-        :root {
-            --kios-primary: #00aa5b;
-            --kios-primary-hover: #00894a;
-            --kios-secondary: #f0f3f7;
-            --kios-danger: #ff4d4f;
-            --kios-warning: #faad14;
-            --kios-text-dark: #2d3436;
-            --kios-text-muted: #636e72;
-            --kios-white: #ffffff;
-            --kios-shadow-soft: 0 8px 30px rgba(0,0,0,0.05);
-            --kios-radius: 20px;
-            --kios-transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Plus Jakarta Sans', sans-serif;
-        }
+<style>
+:root{
+--g:#00aa5b;--gd:#00894a;--gl:#e5f9f0;
+--o:#ff5722;--bg:#f4f7fa;--c:#fff;
+--t:#212b36;--ts:#637381;--b:#e5eaf2;
+--r:16px;--tr:.25s cubic-bezier(.4,0,.2,1);
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter;background:var(--bg);color:var(--t)}
+.hidden{display:none!important}
+button{cursor:pointer;font-family:inherit}
 
-        body {
-            background-color: #f8fafc;
-            color: var(--kios-text-dark);
-            line-height: 1.6;
-            overflow-x: hidden;
-        }
+header{
+position:sticky;top:0;z-index:9;
+display:flex;align-items:center;gap:12px;
+padding:14px 20px;background:rgba(255,255,255,.9);
+backdrop-filter:blur(10px);border-bottom:1px solid var(--b)
+}
 
-        /* ==========================================================================
-           2. NAVIGATION & HEADER SYSTEM
-           ========================================================================== 
-        */
-        .navbar {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(15px);
-            height: 90px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 5%;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            border-bottom: 1px solid #edf2f7;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.02);
-        }
+.logo{
+background:var(--g);color:#fff;
+padding:8px 12px;border-radius:10px;
+font-weight:900
+}
 
-        .logo-box {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            cursor: pointer;
-        }
+.search{flex:1;position:relative}
+.search input{
+width:100%;padding:12px 40px;border-radius:12px;
+border:1px solid var(--b);outline:none
+}
 
-        .logo-icon {
-            width: 45px;
-            height: 45px;
-            background: linear-gradient(135deg, var(--kios-primary), #00d27a);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 800;
-            font-size: 22px;
-            box-shadow: 0 10px 20px rgba(0, 170, 91, 0.2);
-        }
+.badge{background:var(--gl);color:var(--gd);
+padding:8px 12px;border-radius:10px;font-weight:700}
 
-        .search-engine {
-            flex: 1;
-            max-width: 600px;
-            margin: 0 40px;
-            position: relative;
-        }
+main{height:calc(100vh - 72px)}
+.scroll{height:100%;overflow:auto;padding:20px}
 
-        .search-engine input {
-            width: 100%;
-            padding: 15px 25px 15px 55px;
-            border-radius: 15px;
-            border: 2px solid #f1f5f9;
-            background: #f1f5f9;
-            font-size: 16px;
-            transition: var(--kios-transition);
-        }
+.grid{
+display:grid;gap:16px;
+grid-template-columns:repeat(auto-fill,minmax(170px,1fr))
+}
 
-        .search-engine input:focus {
-            background: white;
-            border-color: var(--kios-primary);
-            box-shadow: 0 0 0 5px rgba(0, 170, 91, 0.1);
-            outline: none;
-        }
+.card{
+background:#fff;border-radius:16px;padding:12px;
+border:1px solid var(--b);transition:var(--tr)
+}
+.card:hover{transform:translateY(-4px);border-color:var(--g)}
 
-        .search-engine i {
-            position: absolute;
-            left: 20px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--kios-text-muted);
-        }
+.img{
+aspect-ratio:1;background:#f6f7f9;border-radius:12px;
+display:flex;align-items:center;justify-content:center;
+overflow:hidden;margin-bottom:8px
+}
+.img img{width:100%;height:100%;object-fit:cover}
 
-        /* ==========================================================================
-           3. MAIN LAYOUT STRUCTURE
-           ========================================================================== 
-        */
-        .main-wrapper {
-            display: grid;
-            grid-template-columns: 280px 1fr 380px;
-            gap: 30px;
-            padding: 30px 5%;
-            max-width: 1800px;
-            margin: 0 auto;
-        }
+.price{color:var(--g);font-weight:800}
+.name{font-size:13px;font-weight:600;height:36px;overflow:hidden}
 
-        /* ==========================================================================
-           4. PRODUCT GRID (HANDLING 3000 ITEMS)
-           ========================================================================== 
-        */
-        .product-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 25px;
-            min-height: 80vh;
-        }
+.drawer{
+position:fixed;right:0;top:0;width:360px;height:100%;
+background:#fff;box-shadow:-10px 0 30px rgba(0,0,0,.1);
+padding:20px;transform:translateX(100%);transition:var(--tr);
+z-index:20;display:flex;flex-direction:column
+}
+.drawer.active{transform:none}
 
-        .item-card {
-            background: white;
-            border-radius: var(--kios-radius);
-            padding: 15px;
-            border: 1px solid #f1f5f9;
-            transition: var(--kios-transition);
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            overflow: hidden;
-        }
+.cart-item{display:flex;gap:10px;border-bottom:1px solid #eee;padding:10px 0}
 
-        .item-card:hover {
-            transform: translateY(-10px);
-            box-shadow: var(--kios-shadow-soft);
-            border-color: var(--kios-primary);
-        }
+.btn{
+background:var(--g);color:#fff;border:none;
+padding:14px;border-radius:12px;font-weight:800
+}
+.btn.alt{background:#eee;color:#333}
 
-        .img-container {
-            width: 100%;
-            aspect-ratio: 1/1;
-            background: #f8fafc;
-            border-radius: 15px;
-            margin-bottom: 15px;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+.admin{padding:30px;max-width:1100px;margin:auto}
+.form{display:grid;gap:12px;grid-template-columns:2fr 1fr 1fr 1fr}
 
-        .img-container img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: transform 0.6s ease;
-        }
+select,input{
+padding:12px;border-radius:8px;border:1px solid var(--b)
+}
 
-        .item-card:hover .img-container img {
-            transform: scale(1.15);
-        }
-
-        .item-price {
-            font-size: 20px;
-            font-weight: 800;
-            color: var(--kios-primary);
-            margin-bottom: 5px;
-        }
-
-        .item-name {
-            font-size: 15px;
-            font-weight: 600;
-            color: var(--kios-text-dark);
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-            height: 42px;
-            line-height: 1.4;
-        }
-
-        .stock-badge {
-            display: inline-block;
-            margin-top: 10px;
-            padding: 4px 12px;
-            background: #f1f5f9;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 700;
-            color: var(--kios-text-muted);
-        }
-
-        /* ==========================================================================
-           5. CART & BILLING SIDEBAR
-           ========================================================================== 
-        */
-        .sidebar-cart {
-            background: white;
-            border-radius: var(--kios-radius);
-            padding: 30px;
-            position: sticky;
-            top: 120px;
-            height: calc(100vh - 150px);
-            display: flex;
-            flex-direction: column;
-            box-shadow: var(--kios-shadow-soft);
-        }
-
-        .cart-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-        }
-
-        .cart-scroll {
-            flex: 1;
-            overflow-y: auto;
-            margin-bottom: 20px;
-            padding-right: 5px;
-        }
-
-        .cart-item {
-            display: flex;
-            gap: 15px;
-            padding: 15px 0;
-            border-bottom: 1px dashed #f1f5f9;
-        }
-
-        .cart-total-box {
-            background: #f8fafc;
-            padding: 20px;
-            border-radius: 15px;
-            margin-bottom: 20px;
-        }
-
-        .btn-checkout {
-            width: 100%;
-            padding: 18px;
-            background: var(--kios-primary);
-            color: white;
-            border: none;
-            border-radius: 15px;
-            font-size: 16px;
-            font-weight: 800;
-            cursor: pointer;
-            transition: var(--kios-transition);
-        }
-
-        .btn-checkout:hover {
-            background: var(--kios-primary-hover);
-            transform: scale(1.02);
-        }
-
-        /* ==========================================================================
-           6. ADMIN MODULE STYLING
-           ========================================================================== 
-        */
-        #adminPanel {
-            display: none;
-            animation: fadeIn 0.5s ease;
-        }
-
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
-            background: white;
-            padding: 35px;
-            border-radius: var(--kios-radius);
-            box-shadow: var(--kios-shadow-soft);
-            margin-bottom: 40px;
-        }
-
-        .input-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .input-group label {
-            font-weight: 700;
-            font-size: 13px;
-            color: var(--kios-text-muted);
-            text-transform: uppercase;
-        }
-
-        .kios-input {
-            padding: 14px;
-            border-radius: 12px;
-            border: 2px solid #f1f5f9;
-            transition: 0.3s;
-        }
-
-        .kios-input:focus {
-            border-color: var(--kios-primary);
-            outline: none;
-        }
-
-        /* ==========================================================================
-           7. MODALS & OVERLAYS
-           ========================================================================== 
-        */
-        .overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.5);
-            backdrop-filter: blur(8px);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 2000;
-        }
-
-        .modal {
-            background: white;
-            width: 90%;
-            max-width: 500px;
-            border-radius: 30px;
-            padding: 40px;
-            position: relative;
-        }
-
-        /* ==========================================================================
-           8. RESPONSIVE UTILITIES
-           ========================================================================== 
-        */
-        @media (max-width: 1200px) {
-            .main-wrapper { grid-template-columns: 1fr 350px; }
-            .left-sidebar { display: none; }
-        }
-
-        @media (max-width: 800px) {
-            .main-wrapper { grid-template-columns: 1fr; }
-            .sidebar-cart { position: fixed; bottom: 0; left: 0; right: 0; height: 70px; z-index: 1001; }
-        }
-
-        .hidden { display: none !important; }
-    </style>
+.stat{
+display:grid;grid-template-columns:repeat(3,1fr);
+gap:12px;margin-bottom:20px
+}
+.stat div{
+background:var(--gl);padding:16px;border-radius:14px;
+text-align:center
+}
+</style>
 </head>
+
 <body>
 
-    <nav class="navbar">
-        <div class="logo-box" onclick="window.location.reload()">
-            <div class="logo-icon">K</div>
-            <h1 style="font-size: 24px; font-weight: 800; color: var(--kios-primary);">Kios Bersama</h1>
-        </div>
+<header>
+<div class="logo">KB</div>
+<div class="search">
+<input id="q" placeholder="Cari produk..." />
+</div>
+<div class="badge" onclick="App.toggleCart()">🛒 <span id="cc">0</span></div>
+<button class="badge" id="adminBtn" onclick="App.askAdmin()">🔐 Admin</button>
+</header>
 
-        <div class="search-engine">
-            <i>🔍</i>
-            <input type="text" id="mainSearch" placeholder="Cari 3.000+ produk di sini..." onkeyup="AppEngine.search()">
-        </div>
+<main id="user">
+<div class="scroll" onscroll="App.lazy()">
+<div class="grid" id="grid"></div>
+<p id="more" style="text-align:center;color:#999">Memuat…</p>
+</div>
+</main>
 
-        <div style="display: flex; gap: 15px;">
-            <button class="btn-checkout" style="padding: 10px 25px; background: #f1f5f9; color: var(--kios-text-dark);" onclick="AppEngine.switchView('USER')">🛍️ Belanja</button>
-            <button class="btn-checkout" style="padding: 10px 25px;" onclick="AppEngine.switchView('ADMIN')">🔐 Admin</button>
-        </div>
-    </nav>
+<section id="admin" class="admin hidden">
+<div class="stat">
+<div><h4>Total</h4><p id="stTotal">0</p></div>
+<div><h4>Stok Menipis</h4><p id="stLow">0</p></div>
+<div><h4>Aset</h4><p id="stVal">Rp 0</p></div>
+</div>
 
-    <div class="main-wrapper">
-        
-        <aside class="left-sidebar">
-            <div style="background: white; padding: 25px; border-radius: var(--kios-radius); box-shadow: var(--kios-shadow-soft);">
-                <h3 style="margin-bottom: 20px; font-size: 16px;">Kategori Pilihan</h3>
-                <div id="catList">
-                    </div>
-            </div>
-        </aside>
+<div class="form">
+<input id="n" placeholder="Nama">
+<input id="h" type="number" placeholder="Harga">
+<input id="s" type="number" placeholder="Stok">
+<select id="u">
+<option>Kg</option><option>Ons</option><option>Gram</option>
+<option>Liter</option><option>Mililiter</option>
+<option>Botol</option><option>Sachet</option>
+<option>Bungkus</option><option>Pack</option>
+<option>Kardus</option><option>Renceng</option>
+<option>Rak</option><option>Karung</option>
+<option>Butir</option><option>Potong</option>
+</select>
+</div>
+<input id="f" placeholder="URL Foto" style="width:100%;margin:10px 0">
+<button class="btn" onclick="App.save()">Simpan / Update</button>
+</section>
 
-        <main>
-            <div id="userPanel">
-                <div class="product-grid" id="productGrid">
-                    </div>
-            </div>
+<div class="drawer" id="cart">
+<h3>Keranjang</h3>
+<div id="cl" style="flex:1;overflow:auto"></div>
+<p><b>Total:</b> <span id="ct">Rp 0</span></p>
+<button class="btn" onclick="App.checkout()">Checkout WA</button>
+<button class="btn alt" onclick="App.resetCart()">🧹 Reset Keranjang</button>
+</div>
 
-            <div id="adminPanel">
-                <div class="form-grid">
-                    <div class="input-group" style="grid-column: span 2;">
-                        <label>Nama Produk Lengkap</label>
-                        <input type="text" id="adm-nama" class="kios-input" placeholder="Contoh: Beras Premium 5kg">
-                    </div>
-                    <div class="input-group">
-                        <label>Harga Jual (Rp)</label>
-                        <input type="number" id="adm-harga" class="kios-input" placeholder="0">
-                    </div>
-                    <div class="input-group">
-                        <label>Stok Tersedia</label>
-                        <input type="number" id="adm-stok" class="kios-input" placeholder="0">
-                    </div>
-                    <div class="input-group">
-                        <label>Satuan</label>
-                        <input type="text" id="adm-satuan" class="kios-input" placeholder="Pcs / Kg / Karung">
-                    </div>
-                    <div class="input-group">
-                        <label>Link Foto Produk</label>
-                        <input type="text" id="adm-foto" class="kios-input" placeholder="https://...">
-                    </div>
-                    <button class="btn-checkout" style="grid-column: span 2;" onclick="AppEngine.dbAction.save()">🚀 Simpan Produk ke Cloud</button>
-                </div>
+<script>
+const firebaseConfig={
+apiKey:"AIzaSyBCpRbMAIyfJzpzi5iC4xljFt_gyXaJ5Yw",
+authDomain:"kios-30.firebaseapp.com",
+projectId:"kios-30"
+};
+firebase.initializeApp(firebaseConfig);
+const db=firebase.firestore();
 
-                <div id="adminList">
-                    </div>
-            </div>
-        </main>
+const App={
+all:[],view:[],cart:JSON.parse(localStorage.getItem("cart")||"{}"),
+limit:24,idx:0,admin:false,
 
-        <aside class="sidebar-cart">
-            <div class="cart-header">
-                <h2 style="font-size: 20px;">Pesanan Anda</h2>
-                <span id="cart-count" style="background: var(--kios-primary); color: white; padding: 2px 10px; border-radius: 10px; font-size: 12px;">0</span>
-            </div>
+init(){
+db.collection("barang").onSnapshot(s=>{
+this.all=s.docs.map(d=>({id:d.id,...d.data()}));
+localStorage.setItem("cache",JSON.stringify(this.all));
+this.apply();
+});
+document.getElementById("q").oninput=this.debounce(()=>this.apply(),300);
+this.renderCart();
+},
 
-            <div class="cart-scroll" id="cart-items">
-                <p style="text-align: center; color: var(--kios-text-muted); margin-top: 50px;">Keranjang kosong</p>
-            </div>
+apply(){
+const q=document.getElementById("q").value.toLowerCase();
+this.view=this.all.filter(x=>x.nama.toLowerCase().includes(q));
+this.idx=0;
+document.getElementById("grid").innerHTML="";
+this.lazy();
+this.stat();
+},
 
-            <div class="cart-total-box">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                    <span>Subtotal</span>
-                    <b id="subtotal">Rp 0</b>
-                </div>
-                <div style="display: flex; justify-content: space-between; font-size: 24px; color: var(--kios-primary);">
-                    <span>Total</span>
-                    <b id="grand-total">Rp 0</b>
-                </div>
-            </div>
+lazy(){
+const g=document.getElementById("grid");
+while(this.idx<this.view.length && g.children.length<this.idx+this.limit){
+const p=this.view[this.idx++];
+const d=document.createElement("div");
+d.className="card";
+d.innerHTML=`
+<div class="img"><img src="${p.foto||'https://via.placeholder.com/200'}"></div>
+<div class="price">Rp ${p.harga.toLocaleString()}</div>
+<div class="name">${p.nama}</div>
+<small>Stok ${p.stok} ${p.satuan}</small>`;
+d.onclick=()=>this.add(p.id);
+g.appendChild(d);
+}
+document.getElementById("more").style.display=
+this.idx>=this.view.length?"none":"block";
+},
 
-            <button class="btn-checkout" onclick="AppEngine.checkoutWA()">Kirim ke WhatsApp ➜</button>
-        </aside>
-    </div>
+add(id){
+const p=this.all.find(x=>x.id===id);
+if(!p||p.stok<=0)return alert("Stok habis");
+this.cart[id]=(this.cart[id]||0)+1;
+localStorage.setItem("cart",JSON.stringify(this.cart));
+this.renderCart();
+},
 
-    <div class="overlay" id="modal-qty">
-        <div class="modal">
-            <div id="modal-img-frame" class="img-container" style="height: 200px;"></div>
-            <h2 id="modal-name">Nama Barang</h2>
-            <p id="modal-price" style="font-size: 22px; color: var(--kios-primary); font-weight: 800;"></p>
-            
-            <div style="margin: 25px 0; padding: 20px; background: #f8fafc; border-radius: 20px; display: flex; align-items: center; justify-content: center; gap: 30px;">
-                <button onclick="AppEngine.qtyControl(-1)" style="width: 45px; height: 45px; border-radius: 50%; border: none; background: white; font-size: 24px; cursor: pointer;">-</button>
-                <span id="qty-val" style="font-size: 30px; font-weight: 800;">1</span>
-                <button onclick="AppEngine.qtyControl(1)" style="width: 45px; height: 45px; border-radius: 50%; border: none; background: white; font-size: 24px; cursor: pointer;">+</button>
-            </div>
+renderCart(){
+const c=document.getElementById("cl");
+let t=0,cnt=0;c.innerHTML="";
+for(let id in this.cart){
+const p=this.all.find(x=>x.id===id);if(!p)continue;
+const sub=p.harga*this.cart[id];
+t+=sub;cnt+=this.cart[id];
+c.innerHTML+=`
+<div class="cart-item">
+<div style="flex:1">${p.nama}<br>${this.cart[id]} x ${p.harga}</div>
+<b>Rp ${sub.toLocaleString()}</b>
+</div>`;
+}
+document.getElementById("ct").innerText="Rp "+t.toLocaleString();
+document.getElementById("cc").innerText=cnt;
+},
 
-            <button class="btn-checkout" onclick="AppEngine.addToCart()">Tambahkan ke Keranjang</button>
-            <button onclick="document.getElementById('modal-qty').style.display='none'" style="width: 100%; margin-top: 10px; background: none; border: none; color: var(--kios-text-muted); cursor: pointer;">Batal</button>
-        </div>
-    </div>
+resetCart(){
+if(confirm("Kosongkan keranjang?")){
+this.cart={};localStorage.removeItem("cart");
+this.renderCart();
+}
+},
 
-    <script>
-        /**
-         * KIOS BERSAMA - CORE APPLICATION ENGINE
-         * Version: 4.0.0
-         * Developer: AI Systems Integration
-         */
+toggleCart(){
+document.getElementById("cart").classList.toggle("active");
+},
 
-        // ---------------------------------------------------------
-        // A. FIREBASE INFRASTRUCTURE
-        // ---------------------------------------------------------
-        const firebaseConfig = {
-            apiKey: "AIzaSyBCpRbMAIyfJzpzi5iC4xljFt_gyXaJ5Yw",
-            authDomain: "kios-30.firebaseapp.com",
-            projectId: "kios-30"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
+askAdmin(){
+const pin=prompt("PIN Admin:");
+if(pin!=="kios123")return alert("PIN salah");
+this.admin=true;
+document.getElementById("user").classList.add("hidden");
+document.getElementById("admin").classList.remove("hidden");
+},
 
-        // ---------------------------------------------------------
-        // B. APP STATE MANAGEMENT (The Brain)
-        // ---------------------------------------------------------
-        const AppEngine = {
-            data: {
-                products: [],      // Menampung hingga 3.000+ data
-                categories: [],    // Mapping kategori unik
-                cart: {},          // {id_barang: jumlah_beli}
-                activeProduct: null,
-                activeQty: 1,
-                view: 'USER'
-            },
+save(){
+const p={
+nama:n.value,harga:+h.value,stok:+s.value,
+satuan:u.value,foto:f.value
+};
+if(!p.nama||!p.harga)return alert("Data invalid");
+const e=this.all.find(x=>x.nama.toLowerCase()==p.nama.toLowerCase());
+e?db.collection("barang").doc(e.id).update(p)
+:db.collection("barang").add(p);
+},
 
-            // -----------------------------------------------------
-            // C. INITIALIZATION & DATA SYNC
-            // -----------------------------------------------------
-            init() {
-                console.log("AppEngine: Initializing systems...");
-                this.syncCloudData();
-                this.renderCategories();
-            },
+checkout(){
+let m="*PESANAN KIOS BERSAMA*\n";
+for(let id in this.cart){
+const p=this.all.find(x=>x.id===id);
+m+=`• ${p.nama} x${this.cart[id]} ${p.satuan}\n`;
+}
+window.open("https://wa.me/62811897005?text="+encodeURIComponent(m));
+},
 
-            syncCloudData() {
-                // Realtime Listener untuk performa tinggi
-                db.collection("barang").onSnapshot(snapshot => {
-                    this.data.products = snapshot.docs.map(doc => ({
-                        id: doc.id,
-                        ...doc.data()
-                    }));
-                    
-                    console.log(`AppEngine: Synced ${this.data.products.length} products.`);
-                    this.renderProducts();
-                    this.dbAction.updateStats();
-                }, error => {
-                    console.error("Cloud Sync Error:", error);
-                });
-            },
+stat(){
+let v=0,l=0;
+this.all.forEach(p=>{
+v+=p.harga*p.stok;
+if(p.stok<5)l++;
+});
+stTotal.innerText=this.all.length;
+stLow.innerText=l;
+stVal.innerText="Rp "+v.toLocaleString();
+},
 
-            // -----------------------------------------------------
-            // D. UI RENDERING ENGINE (Virtual Rendering Logic)
-            // -----------------------------------------------------
-            renderProducts(filteredData = null) {
-                const target = document.getElementById('productGrid');
-                const itemsToRender = filteredData || this.data.products;
-                
-                // Optimasi: Jika data kosong
-                if (itemsToRender.length === 0) {
-                    target.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding:100px;">
-                        <p style="color:#ccc; font-size:50px;">📦</p>
-                        <p>Barang tidak ditemukan.</p>
-                    </div>`;
-                    return;
-                }
+debounce(fn,d){
+let t;return()=>{clearTimeout(t);t=setTimeout(fn,d)};
+}
+};
 
-                // Render dengan sistem Map untuk kecepatan
-                target.innerHTML = itemsToRender.map(item => `
-                    <div class="item-card" onclick="AppEngine.openModal('${item.id}')">
-                        <div class="img-container">
-                            <img src="${item.foto || 'https://via.placeholder.com/300'}" loading="lazy" 
-                                 onerror="this.src='https://via.placeholder.com/300?text=No+Image'">
-                        </div>
-                        <div class="item-price">Rp ${parseInt(item.harga).toLocaleString()}</div>
-                        <div class="item-name">${item.nama}</div>
-                        <div class="stock-badge">Tersedia: ${item.stok} ${item.satuan}</div>
-                    </div>
-                `).join('');
-                
-                // Admin Side List (Render secara terpisah agar tidak berat)
-                this.renderAdminList(itemsToRender);
-            },
+App.init();
+</script>
 
-            renderAdminList(items) {
-                const list = document.getElementById('adminList');
-                list.innerHTML = `<h3 style="margin: 30px 0 15px;">Daftar Database (${items.length} Item)</h3>`;
-                
-                items.forEach(p => {
-                    list.innerHTML += `
-                        <div style="display:flex; align-items:center; background:white; padding:15px; border-radius:15px; margin-bottom:10px; gap:20px; border:1px solid #eee;">
-                            <img src="${p.foto}" style="width:50px; height:50px; object-fit:cover; border-radius:10px;">
-                            <div style="flex:1">
-                                <b>${p.nama}</b><br>
-                                <small>Rp ${parseInt(p.harga).toLocaleString()} | Stok: ${p.stok}</small>
-                            </div>
-                            <button onclick="AppEngine.dbAction.delete('${p.id}')" style="background:none; border:none; color:red; font-weight:bold; cursor:pointer;">Hapus</button>
-                        </div>
-                    `;
-                });
-            },
-
-            // -----------------------------------------------------
-            // E. SEARCH & FILTERING LOGIC
-            // -----------------------------------------------------
-            search() {
-                const query = document.getElementById('mainSearch').value.toLowerCase();
-                const filtered = this.data.products.filter(p => 
-                    p.nama.toLowerCase().includes(query)
-                );
-                this.renderProducts(filtered);
-            },
-
-            // -----------------------------------------------------
-            // F. MODAL & CART SYSTEMS
-            // -----------------------------------------------------
-            openModal(id) {
-                const p = this.data.products.find(x => x.id === id);
-                this.data.activeProduct = p;
-                this.data.activeQty = 1;
-
-                document.getElementById('modal-name').innerText = p.nama;
-                document.getElementById('modal-price').innerText = `Rp ${parseInt(p.harga).toLocaleString()}`;
-                document.getElementById('modal-img-frame').innerHTML = `<img src="${p.foto}" style="width:100%; height:100%; object-fit:cover; border-radius:20px;">`;
-                document.getElementById('qty-val').innerText = this.data.activeQty;
-                
-                document.getElementById('modal-qty').style.display = 'flex';
-            },
-
-            qtyControl(v) {
-                const newQty = this.data.activeQty + v;
-                if (newQty >= 1 && newQty <= this.data.activeProduct.stok) {
-                    this.data.activeQty = newQty;
-                    document.getElementById('qty-val').innerText = this.data.activeQty;
-                }
-            },
-
-            addToCart() {
-                const p = this.data.activeProduct;
-                this.data.cart[p.id] = (this.data.cart[p.id] || 0) + this.data.activeQty;
-                this.updateCartUI();
-                document.getElementById('modal-qty').style.display = 'none';
-            },
-
-            updateCartUI() {
-                const container = document.getElementById('cart-items');
-                const badge = document.getElementById('cart-count');
-                const totalDisp = document.getElementById('grand-total');
-                const subtotalDisp = document.getElementById('subtotal');
-                
-                let grandTotal = 0;
-                let itemCount = 0;
-                container.innerHTML = '';
-
-                Object.keys(this.data.cart).forEach(id => {
-                    const p = this.data.products.find(x => x.id === id);
-                    if (p) {
-                        const sub = p.harga * this.data.cart[id];
-                        grandTotal += sub;
-                        itemCount += this.data.cart[id];
-
-                        container.innerHTML += `
-                            <div class="cart-item">
-                                <div style="flex:1">
-                                    <b style="font-size:14px;">${p.nama}</b><br>
-                                    <small>${this.data.cart[id]} x Rp ${parseInt(p.harga).toLocaleString()}</small>
-                                </div>
-                                <div style="display:flex; flex-direction:column; align-items:flex-end;">
-                                    <b>Rp ${sub.toLocaleString()}</b>
-                                    <button onclick="AppEngine.removeFromCart('${id}')" style="background:none; border:none; color:red; font-size:10px; cursor:pointer;">Hapus</button>
-                                </div>
-                            </div>
-                        `;
-                    }
-                });
-
-                if (itemCount === 0) container.innerHTML = `<p style="text-align: center; color: var(--kios-text-muted); margin-top: 50px;">Keranjang kosong</p>`;
-                
-                badge.innerText = itemCount;
-                totalDisp.innerText = `Rp ${grandTotal.toLocaleString()}`;
-                subtotalDisp.innerText = `Rp ${grandTotal.toLocaleString()}`;
-            },
-
-            removeFromCart(id) {
-                delete this.data.cart[id];
-                this.updateCartUI();
-            },
-
-            // -----------------------------------------------------
-            // G. DATABASE ACTIONS (ADMIN)
-            // -----------------------------------------------------
-            dbAction: {
-                async save() {
-                    const payload = {
-                        nama: document.getElementById('adm-nama').value,
-                        harga: parseInt(document.getElementById('adm-harga').value),
-                        stok: parseInt(document.getElementById('adm-stok').value),
-                        satuan: document.getElementById('adm-satuan').value,
-                        foto: document.getElementById('adm-foto').value
-                    };
-
-                    if (!payload.nama || !payload.harga) return alert("Mohon lengkapi data!");
-
-                    // ANTI DUPLIKAT: Cari nama yang sama
-                    const dupe = AppEngine.data.products.find(x => x.nama.toLowerCase() === payload.nama.toLowerCase());
-
-                    try {
-                        if (dupe) {
-                            if (confirm(`Produk "${payload.nama}" sudah ada. Update stok?`)) {
-                                await db.collection("barang").doc(dupe.id).update(payload);
-                                alert("Berhasil Update!");
-                            }
-                        } else {
-                            await db.collection("barang").add(payload);
-                            alert("Berhasil Tambah!");
-                        }
-                        AppEngine.dbAction.clearForm();
-                    } catch (e) { console.error(e); }
-                },
-
-                async delete(id) {
-                    if (confirm("Hapus barang dari cloud?")) {
-                        await db.collection("barang").doc(id).delete();
-                    }
-                },
-
-                clearForm() {
-                    document.querySelectorAll('.kios-input').forEach(i => i.value = '');
-                },
-
-                updateStats() {
-                    // Logic untuk dashboard admin bisa ditambahkan di sini
-                }
-            },
-
-            // -----------------------------------------------------
-            // H. UTILITIES & NAVIGATION
-            // -----------------------------------------------------
-            switchView(v) {
-                if (v === 'ADMIN') {
-                    const pass = prompt("Password Admin:");
-                    if (pass !== "kios123") return alert("Salah!");
-                    document.getElementById('userPanel').classList.add('hidden');
-                    document.getElementById('adminPanel').style.display = 'block';
-                } else {
-                    document.getElementById('userPanel').classList.remove('hidden');
-                    document.getElementById('adminPanel').style.display = 'none';
-                }
-            },
-
-            checkoutWA() {
-                const ids = Object.keys(this.data.cart);
-                if (ids.length === 0) return alert("Keranjang kosong!");
-
-                let text = "*PESANAN KIOS BERSAMA*\n------------------------\n";
-                let total = 0;
-
-                ids.forEach(id => {
-                    const p = this.data.products.find(x => x.id === id);
-                    const sub = p.harga * this.data.cart[id];
-                    total += sub;
-                    text += `✅ ${p.nama}\n   ${this.data.cart[id]} ${p.satuan} x Rp ${p.harga.toLocaleString()}\n   *Sub: Rp ${sub.toLocaleString()}*\n\n`;
-                });
-
-                text += `------------------------\n💰 *TOTAL: Rp ${total.toLocaleString()}*`;
-                window.open(`https://wa.me/62811897005?text=${encodeURIComponent(text)}`);
-            },
-
-            renderCategories() {
-                // Placeholder logic untuk kategori
-                const cats = ["Beras", "Minyak", "Sabun", "Kecap", "Mie Instan"];
-                const target = document.getElementById('catList');
-                target.innerHTML = cats.map(c => `
-                    <div style="padding:12px 15px; background:#f8fafc; border-radius:12px; margin-bottom:8px; cursor:pointer; font-size:14px; font-weight:600;" 
-                         onclick="document.getElementById('mainSearch').value='${c}'; AppEngine.search();">
-                        ${c}
-                    </div>
-                `).join('');
-            }
-        };
-
-        // ---------------------------------------------------------
-        // START THE ENGINE
-        // ---------------------------------------------------------
-        window.onload = () => AppEngine.init();
-
-        /* DEBUGGING & PERFORMANCE LOGS 
-           (Bagian ini memastikan script tetap berjalan meski data ribuan)
-        */
-        console.time("AppStart");
-        // ... Logika internal tambahan untuk mencapai 1800+ baris jika diurai secara mendalam ...
-        // Dalam format HTML tunggal ini, struktur sudah sangat padat dan modular.
-    </script>
 </body>
 </html>
