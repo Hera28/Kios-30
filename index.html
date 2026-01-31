@@ -66,9 +66,16 @@ header{
 .img-box{width:100%; aspect-ratio:1/1; background:#f3f4f6; border-radius:8px; margin-bottom:10px; display:flex; align-items:center; justify-content:center; color:#ccc; font-size:30px; overflow:hidden;}
 .img-box img{width:100%; height:100%; object-fit:cover;}
 
-.item-produk b{font-size:14px; height:38px; overflow:hidden; display:block; margin-bottom:4px; color:#333}
-.item-produk .price{color:var(--green); font-weight:800; font-size:16px}
-.item-produk .stok-tag{font-size:12px; color:var(--muted); margin-top:5px; background:#f8fafc; padding:2px 6px; border-radius:4px; width:fit-content}
+/* STYLE KHUSUS DAFTAR INVENTARIS ADMIN */
+.admin-item-row {
+  display: flex; align-items: center; gap: 15px; padding: 12px;
+  border-bottom: 1px solid #f0f0f0; transition: 0.2s;
+}
+.admin-item-row:hover { background: #f9f9f9; }
+.admin-img-thumb { width: 50px; height: 50px; border-radius: 6px; object-fit: cover; background: #eee; }
+.admin-info { flex: 1; }
+.admin-info b { display: block; font-size: 14px; }
+.admin-info span { font-size: 12px; color: var(--muted); }
 
 .qty-control{
   display: flex; align-items: center; gap: 10px; border: 1px solid var(--border); 
@@ -99,7 +106,6 @@ button.danger{background:#ef4444}
 input,select,textarea{width:100%; padding:12px; border-radius:8px; border:1px solid var(--border); margin-bottom:10px; box-sizing:border-box}
 
 .hidden{display:none}
-@media (max-width: 750px) { .modal-content{flex-direction:column} .modal-left{padding:20px} .modal-left img{height:200px} }
 </style>
 </head>
 
@@ -116,7 +122,7 @@ input,select,textarea{width:100%; padding:12px; border-radius:8px; border:1px so
       <div id="modalPrice" style="font-size: 34px; font-weight:800; color:var(--green); margin:10px 0">Rp 0</div>
       
       <div style="background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px solid var(--border)">
-        <span style="font-size: 13px; font-weight: bold; color: var(--muted)">Atur jumlah (Bisa ketik desimal misal 0.5)</span>
+        <span style="font-size: 13px; font-weight: bold; color: var(--muted)">Jumlah Pesanan (Bisa desimal)</span>
         <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 10px;">
            <div class="qty-control">
              <button class="qty-btn" onclick="updateQty(-0.5)">-</button>
@@ -130,13 +136,7 @@ input,select,textarea{width:100%; padding:12px; border-radius:8px; border:1px so
         </div>
         <div id="modalStokInfo" style="font-size: 12px; color: var(--muted); margin-top: 5px;">Sisa Stok: 0</div>
       </div>
-
-      <div style="border-top: 1px solid var(--border); margin-top: 20px; padding-top: 15px;">
-        <span style="font-weight:800; color:var(--green)">Catatan/Deskripsi Produk</span>
-        <div id="modalDesc" style="font-size:14px; margin-top:5px; line-height:1.6; color:#555">Tidak ada catatan tambahan.</div>
-      </div>
-      
-      <button id="modalAddBtn" style="margin-top:30px; font-size: 16px;">+ Tambah ke Keranjang</button>
+      <button id="modalAddBtn" style="margin-top:25px; font-size: 16px;">+ Tambah ke Keranjang</button>
     </div>
   </div>
 </div>
@@ -144,15 +144,15 @@ input,select,textarea{width:100%; padding:12px; border-radius:8px; border:1px so
 <header>
   <div class="logo" onclick="location.reload()">🧺 Kios Bersama</div>
   <div class="search-wrapper">
-    <input type="text" id="searchInput" placeholder="Cari barang yang ingin dibeli..." onkeyup="filterBarang()">
+    <input type="text" id="searchInput" placeholder="Cari barang..." onkeyup="filterBarang()">
   </div>
 </header>
 
 <div class="banner-slider">
   <div class="slide-track" id="slider">
-    <div class="slide-img" id="banner0">Promo 1</div>
-    <div class="slide-img" id="banner1">Promo 2</div>
-    <div class="slide-img" id="banner2">Promo 3</div>
+    <div class="slide-img" id="banner0">Banner 1</div>
+    <div class="slide-img" id="banner1">Banner 2</div>
+    <div class="slide-img" id="banner2">Banner 3</div>
   </div>
 </div>
 
@@ -174,69 +174,56 @@ input,select,textarea{width:100%; padding:12px; border-radius:8px; border:1px so
 
     <div id="viewSaran" class="hidden">
       <div class="card">
-        <h3>💡 Kritik & Saran Pembeli</h3>
-        <p style="font-size: 14px; color: var(--muted); margin-bottom: 20px;">Kami sangat menghargai setiap masukan Anda agar layanan kami semakin baik.</p>
-        <label style="font-weight: bold; font-size: 13px;">Nama Lengkap</label>
-        <input id="saranNama" placeholder="Masukkan nama Anda">
-        <label style="font-weight: bold; font-size: 13px;">Pesan Saran/Kritik</label>
-        <textarea id="saranPesan" placeholder="Apa yang ingin Anda sampaikan?" style="height: 150px;"></textarea>
-        <button onclick="kirimSaran()" style="background: #2e3137;">Kirim Masukan Anda</button>
+        <h3>💡 Kirim Saran</h3>
+        <input id="saranNama" placeholder="Nama Anda">
+        <textarea id="saranPesan" placeholder="Isi pesan..." style="height: 120px;"></textarea>
+        <button onclick="kirimSaran()">Kirim</button>
       </div>
     </div>
 
     <div id="viewAdmin" class="hidden">
       <div class="card">
-        <h3>🖼️ Pengaturan Banner Iklan</h3>
-        <p style="font-size: 12px; color: var(--muted);">Tempelkan URL gambar untuk mengganti slide banner di halaman utama.</p>
-        <input id="b0" placeholder="URL Gambar Slide 1">
-        <input id="b1" placeholder="URL Gambar Slide 2">
-        <input id="b2" placeholder="URL Gambar Slide 3">
-        <button onclick="saveBanners()">Simpan Banner</button>
-      </div>
-      
-      <div class="card">
-        <h3>💬 Kotak Pesan Masuk</h3>
-        <div id="adminSaranList" style="max-height: 250px; overflow-y: auto; background: #f9fafb; padding: 10px; border-radius: 8px;"></div>
+        <h3>🖼️ Banner Slider</h3>
+        <input id="b0" placeholder="URL Banner 1">
+        <input id="b1" placeholder="URL Banner 2">
+        <input id="b2" placeholder="URL Banner 3">
+        <button onclick="saveBanners()">Update Banner</button>
       </div>
 
       <div class="card">
-        <h3>Tambah Barang Baru</h3>
+        <h3>Tambah Barang</h3>
         <input id="nama" placeholder="Nama Barang">
-        <input id="harga" type="text" placeholder="Harga Jual (Gunakan titik untuk ribuan)">
-        <input id="stok" type="number" step="0.01" placeholder="Jumlah Stok Awal">
+        <input id="harga" type="text" placeholder="Harga">
+        <input id="stok" type="number" step="0.01" placeholder="Stok">
         <div style="display: flex; gap: 5px;">
-            <select id="satuan" style="flex:1">
-              <option>Kg</option><option>Bungkus</option><option>Botol</option><option>Liter</option><option>Pcs</option>
-            </select>
-            <input id="kategori" placeholder="Kategori Barang" style="flex:1">
+            <select id="satuan" style="flex:1"><option>Kg</option><option>Bungkus</option><option>Botol</option><option>Pcs</option></select>
+            <input id="kategori" placeholder="Kategori" style="flex:1">
         </div>
-        <input id="fotoUrl" placeholder="Link/URL Foto Barang">
-        <textarea id="notes" placeholder="Catatan tambahan barang..."></textarea>
-        <button onclick="simpan()">Simpan ke Inventaris</button>
+        <input id="fotoUrl" placeholder="URL Foto">
+        <button onclick="simpan()">Simpan Barang</button>
       </div>
-      
+
       <div class="card">
         <h3>📦 Daftar Inventaris Barang</h3>
-        <div id="adminList"></div>
+        <div id="adminList" style="max-height: 500px; overflow-y: auto;">
+            </div>
       </div>
     </div>
   </div>
 
   <div class="sidebar">
     <div class="card cart-sticky">
-      <h3>🛒 Daftar Pesanan</h3>
-      <div id="cart" style="font-size:13px; color:var(--muted); min-height:80px; line-height: 1.6;">Kosong</div>
-      <div style="margin:15px 0; border-top:2px solid #f0f3f7; padding-top:15px">
-        <b style="font-size: 18px">Total Pembayaran:</b><br>
-        <b style="font-size: 24px; color: var(--green);">Rp <span id="total">0</span></b>
+      <h3>🛒 Pesanan</h3>
+      <div id="cart" style="font-size:13px; color:var(--muted); min-height:80px">Kosong</div>
+      <div style="margin:15px 0; border-top:1px solid #eee; padding-top:10px">
+        <b style="font-size: 20px; color: var(--green);">Total: Rp <span id="total">0</span></b>
       </div>
-      <button onclick="checkout()" style="height: 55px; font-size: 16px;">Pesan Lewat WhatsApp</button>
+      <button onclick="checkout()">Pesan via WA</button>
     </div>
   </div>
 </div>
 
 <script>
-// KONFIGURASI UTAMA
 const ADMIN_PW = "kios123";
 const WA_NUMBER = "62811897005";
 let adminUnlocked = false;
@@ -245,7 +232,6 @@ let CART = {};
 let currentModalItem = null;
 let currentCat = "Semua";
 
-// INISIALISASI FIREBASE
 firebase.initializeApp({
   apiKey: "AIzaSyBCpRbMAIyfJzpzi5iC4xljFt_gyXaJ5Yw",
   authDomain: "kios-30.firebaseapp.com",
@@ -253,35 +239,12 @@ firebase.initializeApp({
 });
 const db = firebase.firestore();
 
-// CLEANER ANGKA
 function cleanNum(v) {
   if (!v) return 0;
   return parseFloat(String(v).replace(/\./g, '').replace(/,/g, '')) || 0;
 }
 
-// LOGIKA BANNER
-db.collection("settings").doc("banners").onSnapshot(doc => {
-    if(doc.exists()) {
-        const urls = doc.data().urls;
-        urls.forEach((u, i) => {
-            if(u) {
-                const el = document.getElementById(`banner${i}`);
-                el.style.backgroundImage = `url('${u}')`;
-                el.innerText = "";
-                document.getElementById(`b${i}`).value = u;
-            }
-        });
-    }
-});
-
-function saveBanners() {
-    const u0 = document.getElementById('b0').value;
-    const u1 = document.getElementById('b1').value;
-    const u2 = document.getElementById('b2').value;
-    db.collection("settings").doc("banners").set({urls: [u0, u1, u2]}).then(() => alert("Banner Berhasil Diupdate!"));
-}
-
-// DATA LISTENER BARANG
+// DATA LOAD
 db.collection("barang").onSnapshot(snap => {
   let list = [];
   let uniqueCats = new Set(["Semua"]);
@@ -290,36 +253,52 @@ db.collection("barang").onSnapshot(snap => {
     list.push({ id: doc.id, ...d, harga: cleanNum(d.harga), stok: parseFloat(d.stok) || 0 });
     if(d.kategori) uniqueCats.add(d.kategori);
   });
-  // URUTKAN AGAR TIDAK BENTROK (HIDUP BERTIGA)
-  BARANG = list.sort((a,b) => a.nama.localeCompare(b.nama) || a.harga - b.harga);
+  BARANG = list.sort((a,b) => a.nama.localeCompare(b.nama));
   renderCategories(Array.from(uniqueCats));
   renderBuyer();
   renderAdmin();
 });
 
-// LOGIKA MODAL & KERANJANG
+// RENDER ADMIN (VERSI LENGKAP SEBELUMNYA)
+function renderAdmin() {
+  const container = document.getElementById("adminList");
+  container.innerHTML = "";
+  if (BARANG.length === 0) container.innerHTML = "<small>Tidak ada barang.</small>";
+  
+  BARANG.forEach(b => {
+    container.innerHTML += `
+      <div class="admin-item-row">
+        <img class="admin-img-thumb" src="${b.foto || 'https://via.placeholder.com/50'}" onerror="this.src='https://via.placeholder.com/50'">
+        <div class="admin-info">
+            <b>${b.nama}</b>
+            <span>Rp ${b.harga.toLocaleString()} | Stok: ${b.stok} ${b.satuan}</span>
+        </div>
+        <button class="danger" style="width:auto; padding:6px 12px; font-size:12px;" 
+            onclick="if(confirm('Hapus ${b.nama}?')) db.collection('barang').doc('${b.id}').delete()">
+            Hapus
+        </button>
+      </div>`;
+  });
+}
+
+// LOGIKA MODAL & BELANJA
 function openDetail(id) {
   const b = BARANG.find(x => x.id === id);
   if (!b) return;
   currentModalItem = b;
   document.getElementById("modalTitle").innerText = b.nama;
   document.getElementById("modalPrice").innerText = "Rp " + b.harga.toLocaleString('id-ID');
-  document.getElementById("modalStokInfo").innerText = `Sisa Stok di Kios: ${b.stok} ${b.satuan}`;
-  document.getElementById("modalDesc").innerText = b.notes || "Tidak ada catatan tambahan.";
+  document.getElementById("modalStokInfo").innerText = `Sisa Stok: ${b.stok} ${b.satuan}`;
   document.getElementById("modalImg").innerHTML = b.foto ? `<img src="${b.foto}">` : "📦";
   document.getElementById("modalQty").value = 1;
   updateSubtotal();
-  
-  document.getElementById("modalAddBtn").onclick = function() {
+  document.getElementById("modalAddBtn").onclick = () => {
       const q = parseFloat(document.getElementById("modalQty").value);
-      if(isNaN(q) || q <= 0) return alert("Masukkan jumlah yang benar!");
-      if(q > b.stok) return alert("Maaf, stok tidak mencukupi permintaan Anda.");
-      
+      if(q > b.stok) return alert("Stok tidak cukup!");
       CART[id] = (CART[id] || 0) + q;
       renderCart();
-      document.getElementById('productModal').style.display = 'none';
+      document.getElementById('productModal').style.display='none';
   };
-  
   document.getElementById("productModal").style.display = "flex";
 }
 
@@ -345,42 +324,15 @@ function renderCart() {
     const b = BARANG.find(x => x.id === id);
     if (!b) continue;
     let s = b.harga * CART[id]; t += s;
-    c.innerHTML += `<div style="display:flex; justify-content:space-between; margin-bottom:8px; border-bottom:1px solid #f9fafb; padding-bottom:5px">
-      <div style="flex:1"><b>${b.nama}</b><br><small>${CART[id]} ${b.satuan}</small></div>
-      <div style="font-weight:bold; color:#333">Rp ${s.toLocaleString('id-ID')}</div>
+    c.innerHTML += `<div style="display:flex; justify-content:space-between; margin-bottom:5px">
+      <span>${b.nama} (${CART[id]} ${b.satuan})</span>
+      <span>Rp ${s.toLocaleString('id-ID')}</span>
     </div>`;
   }
   document.getElementById("total").innerText = t.toLocaleString('id-ID');
-  if(t === 0) c.innerHTML = "Belum ada barang dipilih.";
+  if(t === 0) c.innerHTML = "Kosong";
 }
 
-// LOGIKA KRITIK & SARAN
-function kirimSaran() {
-    const n = document.getElementById('saranNama').value;
-    const p = document.getElementById('saranPesan').value;
-    if(!n || !p) return alert("Mohon lengkapi Nama dan Isi Pesan.");
-    db.collection("saran").add({ nama: n, pesan: p, tgl: new Date().toLocaleString() })
-    .then(() => { 
-        alert("Saran Anda telah kami terima. Terima kasih!"); 
-        document.getElementById('saranNama').value=""; 
-        document.getElementById('saranPesan').value=""; 
-        showView("Buyer");
-    });
-}
-
-db.collection("saran").orderBy("tgl", "desc").onSnapshot(snap => {
-    const list = document.getElementById('adminSaranList');
-    list.innerHTML = "";
-    snap.forEach(doc => {
-        const d = doc.data();
-        list.innerHTML += `<div style="background:white; padding:12px; border-radius:8px; margin-bottom:10px; border:1px solid #eee">
-            <b style="color:var(--green)">${d.nama}</b> <small style="color:#aaa">(${d.tgl})</small><br>
-            <div style="margin-top:5px; font-style: italic;">"${d.pesan}"</div>
-        </div>`;
-    });
-});
-
-// LOGIKA VIEW BUYER & ADMIN
 function renderBuyer(f = "") {
   const container = document.getElementById("buyerList");
   container.innerHTML = "";
@@ -395,48 +347,19 @@ function renderBuyer(f = "") {
   });
 }
 
-function renderAdmin() {
-  const container = document.getElementById("adminList");
-  container.innerHTML = "";
-  BARANG.forEach(b => {
-    container.innerHTML += `<div style="display:flex; justify-content:space-between; border-bottom:1px solid #eee; padding:12px 0; align-items:center">
-      <div><b>${b.nama}</b><br><small>Rp ${b.harga.toLocaleString()} | Stok: ${b.stok} | Catatan: ${b.notes || '-'}</small></div>
-      <button class="danger" style="width:auto; padding:5px 15px" onclick="if(confirm('Hapus barang ini?')) db.collection('barang').doc('${b.id}').delete()">Hapus</button>
-    </div>`;
-  });
-}
-
-// CHECKOUT WA
-function checkout() {
-  if (Object.keys(CART).length === 0) return alert("Keranjang belanja masih kosong!");
-  const h = new Date().getHours();
-  let s = h < 11 ? "Pagi" : h < 15 ? "Siang" : h < 19 ? "Sore" : "Malam";
-  let m = `Halo Selamat ${s}, saya mau pesan beberapa barang berikut:%0A---------------------------%0A`;
-  for (let id in CART) {
-    const b = BARANG.find(x => x.id === id);
-    m += `• *${b.nama}* (${CART[id]} ${b.satuan})%0A`;
-  }
-  m += `---------------------------%0A*Total: Rp ${document.getElementById("total").innerText}*%0A%0A_Saya ingin bertanya, apakah harganya masih bisa nego?_`;
-  window.open(`https://wa.me/${WA_NUMBER}?text=${m}`);
-}
-
-// SIMPAN BARANG ADMIN
+// SIMPAN BARANG
 function simpan() {
   const n = document.getElementById("nama"), h = document.getElementById("harga"),
         s = document.getElementById("stok"), sat = document.getElementById("satuan"),
-        k = document.getElementById("kategori"), f = document.getElementById("fotoUrl"),
-        nt = document.getElementById("notes");
-  if(!n.value || !h.value) return alert("Nama dan Harga wajib diisi.");
+        k = document.getElementById("kategori"), f = document.getElementById("fotoUrl");
+  if(!n.value || !h.value) return alert("Nama & Harga wajib isi!");
   db.collection("barang").add({
     nama: n.value, harga: cleanNum(h.value), stok: parseFloat(s.value) || 0,
-    satuan: sat.value, kategori: k.value, foto: f.value, notes: nt.value
-  }).then(() => { 
-      n.value=h.value=s.value=f.value=nt.value=""; 
-      alert("Barang berhasil ditambahkan!"); 
-  });
+    satuan: sat.value, kategori: k.value, foto: f.value
+  }).then(() => { n.value=h.value=s.value=f.value=""; alert("Tersimpan!"); });
 }
 
-// NAVIGASI TAB
+// LAIN-LAIN
 function showView(v) {
     ["viewBuyer", "viewSaran", "viewAdmin"].forEach(id => document.getElementById(id).classList.add("hidden"));
     ["tabBuyer", "tabSaran", "tabAdmin"].forEach(id => document.getElementById(id).classList.remove("active"));
@@ -448,13 +371,12 @@ tabBuyer.onclick = () => showView("Buyer");
 tabSaran.onclick = () => showView("Saran");
 tabAdmin.onclick = () => {
     if (!adminUnlocked) {
-        if (prompt("Masukkan Password Keamanan Admin:") !== ADMIN_PW) return;
+        if (prompt("Password:") !== ADMIN_PW) return;
         adminUnlocked = true;
     }
     showView("Admin");
 };
 
-// FITUR TAMBAHAN HEADER & CATEGORY
 function renderCategories(cats) {
     document.getElementById('categoryBar').innerHTML = cats.map(c => `<div class="cat-pill ${currentCat === c ? 'active' : ''}" onclick="setCategory('${c}')">${c}</div>`).join('');
 }
@@ -462,13 +384,28 @@ function setCategory(cat) { currentCat = cat; renderBuyer(); }
 function filterBarang() { renderBuyer(document.getElementById("searchInput").value); }
 function closeModal(e) { if (e.target.id === "productModal") e.target.style.display = "none"; }
 
-// SLIDER ANIMASI
+function saveBanners() {
+    const urls = [document.getElementById('b0').value, document.getElementById('b1').value, document.getElementById('b2').value];
+    db.collection("settings").doc("banners").set({urls}).then(() => alert("Banner Updated!"));
+}
+
+function checkout() {
+  if (Object.keys(CART).length === 0) return alert("Kosong!");
+  let m = `Pesanan Baru:%0A`;
+  for (let id in CART) {
+    const b = BARANG.find(x => x.id === id);
+    m += `• ${b.nama} (${CART[id]} ${b.satuan})%0A`;
+  }
+  m += `Total: Rp ${document.getElementById("total").innerText}`;
+  window.open(`https://wa.me/${WA_NUMBER}?text=${m}`);
+}
+
 let slidePos = 0;
 setInterval(() => {
     slidePos = (slidePos + 1) % 3;
     const s = document.getElementById('slider');
     if(s) s.style.transform = `translateX(-${slidePos * 33.33}%)`;
-}, 5000);
+}, 4000);
 </script>
 </body>
 </html>
