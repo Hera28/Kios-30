@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Kios 30 – Firebase POS</title>
+<title>Kios 30 – Firebase FIX</title>
 
 <style>
 body{
@@ -62,6 +62,14 @@ main{
   border-radius:12px;
   padding:12px;
 }
+.error{
+  background:#fee2e2;
+  color:#991b1b;
+  padding:12px;
+  border-radius:10px;
+  margin:16px;
+  font-weight:600;
+}
 .hidden{display:none}
 </style>
 </head>
@@ -74,10 +82,12 @@ main{
   <button onclick="toggleAdmin()">Admin</button>
 </header>
 
+<div id="errorBox" class="error hidden"></div>
+
 <main>
   <div>
     <h3>Produk</h3>
-    <div id="produk" class="grid">Memuat...</div>
+    <div id="produk" class="grid"></div>
   </div>
 
   <div class="cart">
@@ -91,24 +101,31 @@ main{
   </div>
 </main>
 
-<!-- ADMIN -->
 <div id="admin" class="hidden" style="padding:16px">
   <h3>Admin – Tambah Produk</h3>
   <input id="aNama" placeholder="Nama">
   <input id="aHarga" placeholder="Harga" type="number">
   <select id="aSatuan">
-    <option>Kg</option><option>Ons</option><option>Gram</option>
-    <option>Liter</option><option>Mililiter</option>
-    <option>Botol</option><option>Sachet</option>
-    <option>Bungkus</option><option>Pack</option>
-    <option>Kardus</option><option>Renceng</option>
-    <option>Rak</option><option>Karung</option>
-    <option>Butir</option><option>Potong</option>
+    <option>Kilogram</option>
+    <option>Ons</option>
+    <option>Gram</option>
+    <option>Liter</option>
+    <option>Mililiter</option>
+    <option>Botol</option>
+    <option>Sachet</option>
+    <option>Bungkus</option>
+    <option>Pack</option>
+    <option>Kardus</option>
+    <option>Renceng</option>
+    <option>Rak</option>
+    <option>Karung</option>
+    <option>Butir</option>
+    <option>Potong</option>
   </select>
   <button onclick="tambahProduk()">Simpan</button>
 </div>
 
-<!-- FIREBASE CDN (WAJIB INI) -->
+<!-- FIREBASE CDN -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
@@ -124,46 +141,14 @@ firebase.initializeApp({
 });
 
 const db = firebase.firestore();
-
-/* ================= DATA ================= */
-let cart = [];
 const produkDiv = document.getElementById("produk");
-
-/* ================= SEED DATA ================= */
-async function seed(){
-  const snap = await db.collection("produk").get();
-  if(snap.empty){
-    const data = [
-      {nama:"Beras Ramos",harga:13000,satuan:"Kg"},
-      {nama:"Gula Pasir",harga:14000,satuan:"Kg"},
-      {nama:"Minyak Goreng",harga:17000,satuan:"Liter"},
-      {nama:"Telur Ayam",harga:28000,satuan:"Kg"},
-      {nama:"Mi Instan",harga:3500,satuan:"Pack"}
-    ];
-    data.forEach(d=>db.collection("produk").add(d));
-  }
-}
-
-/* ================= LOAD ================= */
-db.collection("produk").onSnapshot(snap=>{
-  produkDiv.innerHTML="";
-  snap.forEach(doc=>{
-    const p=doc.data();
-    const el=document.createElement("div");
-    el.className="card";
-    el.innerHTML=`
-      <b>${p.nama}</b>
-      <div>${p.satuan}</div>
-      <div>Rp ${p.harga}</div>
-      <button onclick='addCart("${doc.id}",${p.harga},"${p.nama}")'>Tambah</button>
-    `;
-    produkDiv.appendChild(el);
-  });
-});
+const errorBox = document.getElementById("errorBox");
 
 /* ================= CART ================= */
-function addCart(id,harga,nama){
-  cart.push({id,harga,nama});
+let cart = [];
+
+function addCart(nama,harga){
+  cart.push({nama,harga});
   renderCart();
 }
 function renderCart(){
@@ -194,12 +179,60 @@ function tambahProduk(){
     nama:aNama.value,
     harga:Number(aHarga.value),
     satuan:aSatuan.value
-  });
-  aNama.value=aHarga.value="";
+  }).then(loadProduk);
 }
 
-/* INIT */
-seed();
+/* ================= CORE: LOAD + SEED ================= */
+async function seedIfEmpty(){
+  const snap = await db.collection("produk").get();
+  if(snap.empty){
+    const seed = [
+      {nama:"Beras Ramos",harga:13000,satuan:"Kilogram"},
+      {nama:"Gula Pasir",harga:14000,satuan:"Kilogram"},
+      {nama:"Minyak Goreng",harga:17000,satuan:"Liter"},
+      {nama:"Telur Ayam",harga:28000,satuan:"Kilogram"},
+      {nama:"Mi Instan",harga:3500,satuan:"Pack"},
+      {nama:"Kopi Sachet",harga:2000,satuan:"Sachet"},
+      {nama:"Air Mineral",harga:4000,satuan:"Botol"}
+    ];
+    for(const p of seed){
+      await db.collection("produk").add(p);
+    }
+  }
+}
+
+async function loadProduk(){
+  try{
+    produkDiv.innerHTML="";
+    const snap = await db.collection("produk").get();
+    snap.forEach(doc=>{
+      const p = doc.data();
+      const el = document.createElement("div");
+      el.className="card";
+      el.innerHTML = `
+        <b>${p.nama}</b>
+        <div>${p.satuan}</div>
+        <div>Rp ${p.harga}</div>
+        <button onclick="addCart('${p.nama}',${p.harga})">Tambah</button>
+      `;
+      produkDiv.appendChild(el);
+    });
+  }catch(e){
+    errorBox.classList.remove("hidden");
+    errorBox.innerText = "FIRESTORE ERROR: " + e.message;
+  }
+}
+
+/* ================= INIT ================= */
+(async()=>{
+  try{
+    await seedIfEmpty();
+    await loadProduk();
+  }catch(e){
+    errorBox.classList.remove("hidden");
+    errorBox.innerText = "INIT ERROR: " + e.message;
+  }
+})();
 </script>
 
 </body>
