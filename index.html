@@ -3,69 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kios Bersama - Smart Catalog</title>
+    <title>Kios Bersama - Fix Version</title>
     
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
     <style>
-        :root {
-            --green: #00aa5b; --bg: #f0f3f7; --card: #ffffff;
-            --text: #2e3137; --muted: #6d7588; --border: #e5e7eb;
-        }
+        :root { --green: #00aa5b; --bg: #f0f3f7; --text: #2e3137; --border: #e5e7eb; }
         body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); }
         header { background: #fff; padding: 15px 20px; display: flex; align-items: center; gap: 15px; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-        .logo { color: var(--green); font-weight: 800; font-size: 24px; cursor: pointer; }
-        .search-box { flex: 1; padding: 10px 15px; border-radius: 10px; border: 1px solid var(--border); background: #f3f4f6; }
+        .logo { color: var(--green); font-weight: 800; font-size: 24px; display: flex; align-items: center; gap: 10px; }
+        .search-box { flex: 1; padding: 10px 15px; border-radius: 10px; border: 1px solid var(--border); background: #f3f4f6; outline: none; }
 
         .main-layout { max-width: 1200px; margin: 20px auto; padding: 0 20px; display: flex; gap: 25px; }
         .content { flex: 3; }
         .sidebar { flex: 1.2; position: sticky; top: 90px; }
 
-        /* TABS */
         .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
-        .tabs button { flex: 1; padding: 12px; border-radius: 12px; border: 1px solid var(--border); background: #fff; cursor: pointer; font-weight: bold; color: var(--muted); }
+        .tabs button { flex: 1; padding: 12px; border-radius: 12px; border: 1px solid var(--border); background: #fff; cursor: pointer; font-weight: bold; color: #666; }
         .tabs button.active { background: #e8faf1; color: var(--green); border-color: var(--green); }
 
-        /* GRID PRODUCT */
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 20px; }
-        .p-card { background: #fff; border: 1px solid var(--border); border-radius: 15px; padding: 12px; cursor: pointer; transition: 0.3s; }
+        .p-card { background: #fff; border: 1px solid var(--border); border-radius: 15px; padding: 12px; cursor: pointer; transition: 0.3s; position: relative; }
         .p-card:hover { transform: translateY(-5px); box-shadow: 0 8px 15px rgba(0,0,0,0.1); }
-        .p-img { width: 100%; aspect-ratio: 1/1; background: #f8f9fa; border-radius: 10px; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .p-img { width: 100%; aspect-ratio: 1/1; background: #f8f9fa; border-radius: 10px; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; overflow: hidden; font-size: 40px; }
         .p-img img { width: 100%; height: 100%; object-fit: cover; }
 
-        /* MODAL SYSTEM (TOKOPEDIA STYLE) */
+        /* MODAL STYLE (IMAGE INSPIRED) */
         .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 2000; backdrop-filter: blur(4px); }
-        .modal-content { background: #fff; width: 90%; max-width: 400px; border-radius: 20px; padding: 25px; position: relative; }
+        .modal-content { background: #fff; width: 90%; max-width: 400px; border-radius: 20px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
         
-        /* ATUR JUMLAH COUNTER */
-        .qty-control { display: flex; align-items: center; gap: 15px; border: 1px solid var(--border); border-radius: 10px; width: fit-content; padding: 5px 10px; margin: 15px 0; }
-        .qty-btn { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--green); background: #fff; color: var(--green); font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold; }
-        .qty-btn:disabled { border-color: #ccc; color: #ccc; }
-        #popQty { border: none; width: 40px; text-align: center; font-size: 18px; font-weight: bold; outline: none; background: transparent; }
+        .qty-box { border: 1px solid var(--border); border-radius: 12px; display: flex; align-items: center; width: fit-content; margin: 15px 0; overflow: hidden; }
+        .qty-btn { width: 40px; height: 40px; border: none; background: #fff; color: var(--green); font-size: 20px; cursor: pointer; font-weight: bold; }
+        .qty-btn:hover { background: #f0fdf4; }
+        #popQty { width: 50px; border: none; text-align: center; font-size: 18px; font-weight: bold; outline: none; }
 
-        /* BUTTONS */
-        button.primary { background: var(--green); color: #fff; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: 800; cursor: pointer; margin-top: 10px; font-size: 16px; }
-        button.outline { background: #fff; color: var(--green); border: 2px solid var(--green); padding: 13px; border-radius: 12px; width: 100%; font-weight: 800; cursor: pointer; margin-top: 10px; font-size: 16px; }
-        
-        .subtotal-box { display: flex; justify-content: space-between; align-items: center; margin: 15px 0; padding-top: 15px; border-top: 1px solid #eee; }
-        .admin-item { display: flex; align-items: center; gap: 15px; padding: 15px; background: #fff; border-radius: 12px; margin-bottom: 10px; border: 1px solid #eee; }
-        
+        .sub-row { display: flex; justify-content: space-between; align-items: center; margin: 15px 0; font-size: 14px; color: #666; }
+        .total-price { font-size: 24px; font-weight: 800; color: #2e3137; }
+
+        button.btn-green { background: var(--green); color: #fff; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 16px; transition: 0.2s; }
+        button.btn-outline { background: #fff; color: var(--green); border: 1.5px solid var(--green); padding: 13px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 16px; }
+        button:active { transform: scale(0.98); }
+
+        .admin-row { display: flex; align-items: center; gap: 15px; padding: 12px; background: #fff; border-radius: 12px; margin-bottom: 10px; border: 1px solid #eee; }
         .hidden { display: none; }
     </style>
 </head>
 <body>
 
 <header>
-    <div class="logo">🧺 Kios Bersama</div>
-    <input type="text" class="search-box" id="mainSearch" placeholder="Cari beras, tepung..." onkeyup="renderUI()">
+    <div class="logo"><span>🧺</span> Kios Bersama</div>
+    <input type="text" class="search-box" id="mainSearch" placeholder="Cari produk di kios kami..." onkeyup="renderUI()">
 </header>
 
 <div class="main-layout">
     <div class="content">
         <div class="tabs">
             <button id="tB" class="active" onclick="setView('B')">🛒 Belanja</button>
-            <button id="tA" onclick="setView('A')">🔐 Admin</button>
+            <button id="tA" onclick="setView('A')">🔐 Admin Panel</button>
         </div>
 
         <div id="vB">
@@ -74,195 +69,227 @@
 
         <div id="vA" class="hidden">
             <div style="background:#fff; padding:20px; border-radius:15px; margin-bottom:20px; border:1px solid #ddd;">
-                <h3>📦 Tambah Produk</h3>
-                <input id="inNama" placeholder="Nama Produk">
-                <input id="inHarga" type="number" placeholder="Harga (7000)">
-                <input id="inStok" type="number" step="0.01" placeholder="Stok">
-                <input id="inSatuan" placeholder="Satuan (Kg/Pack)">
-                <input id="inFoto" placeholder="URL Foto">
-                <button class="primary" onclick="addProduct()">Simpan Barang</button>
+                <h3 style="margin-top:0">Tambah Barang Baru</h3>
+                <input id="inNama" placeholder="Nama Barang">
+                <input id="inHarga" type="number" placeholder="Harga (Contoh: 7000)">
+                <input id="inStok" type="number" step="0.01" placeholder="Stok Tersedia">
+                <input id="inSatuan" placeholder="Satuan (Pack/Kg)">
+                <input id="inFoto" placeholder="URL Link Foto">
+                <button class="btn-green" onclick="addProduct()">Simpan Produk</button>
             </div>
+            <h3>Daftar Inventaris</h3>
             <div id="adminInventory"></div>
         </div>
     </div>
 
     <div class="sidebar">
-        <div style="background:#fff; padding:20px; border-radius:20px; border:1px solid #ddd;">
-            <h3 style="margin-top:0">Keranjang</h3>
-            <div id="cartList" style="font-size:14px; color:#666">Kosong</div>
-            <hr>
-            <b>Total: <span id="cartTotal" style="color:var(--green); font-size:20px">Rp 0</span></b>
-            <button class="primary" onclick="checkoutWA()">Pesan via WA</button>
+        <div style="background:#fff; padding:20px; border-radius:20px; border:1px solid #ddd; position: sticky; top: 90px;">
+            <h3 style="margin-top:0">Pesanan Anda</h3>
+            <div id="cartList" style="font-size:14px; color:#6d7588; min-height:50px">Belum ada barang dipilih.</div>
+            <div style="border-top: 1px solid #eee; margin-top:15px; padding-top:15px">
+                <div style="font-size:12px; color:#999">Estimasi Total:</div>
+                <div id="cartTotal" style="color:var(--green); font-size:24px; font-weight:900;">Rp 0</div>
+            </div>
+            <button class="btn-green" onclick="checkoutWA()">Pesan via WhatsApp</button>
         </div>
     </div>
 </div>
 
 <div id="itemModal" class="modal" onclick="closeModal()">
     <div class="modal-content" onclick="event.stopPropagation()">
-        <h3 id="popNama" style="margin-top:0"></h3>
-        <div style="display:flex; gap:15px">
-            <div id="popImg" style="width:100px; height:100px; border-radius:10px; background:#f0f0f0; overflow:hidden"></div>
+        <h3 style="margin-top:0">Atur jumlah dan catatan</h3>
+        
+        <div style="display:flex; gap:15px; align-items:center; margin-bottom:20px">
+            <div id="popImg" style="width:80px; height:80px; border-radius:10px; background:#f8f9fa; display:flex; align-items:center; justify-content:center; overflow:hidden"></div>
             <div>
-                <div id="popHarga" style="font-size:20px; font-weight:900; color:var(--green)"></div>
-                <div id="popStok" style="font-size:13px; color:#999"></div>
+                <div id="popNama" style="font-weight:bold; font-size:16px"></div>
+                <div id="popHarga" style="color:var(--green); font-weight:800"></div>
             </div>
         </div>
 
-        <div style="margin-top:20px">
-            <b style="font-size:14px">Atur jumlah dan catatan</b>
-            <div class="qty-control">
-                <button class="qty-btn" onclick="updateQty(-1)">−</button>
+        <div style="display:flex; justify-content:space-between; align-items:center">
+            <div class="qty-box">
+                <button class="qty-btn" onclick="changeQty(-1)">−</button>
                 <input type="number" id="popQty" value="1" readonly>
-                <button class="qty-btn" onclick="updateQty(1)">+</button>
-                <span id="popSatuan" style="font-size:14px; color:#666"></span>
+                <button class="qty-btn" onclick="changeQty(1)">+</button>
             </div>
+            <div style="font-size:13px; color:#666">Stok Total: <b id="popStok" style="color:#222"></b></div>
         </div>
 
-        <div class="subtotal-box">
-            <span style="color:#999">Subtotal</span>
-            <b id="popSub" style="font-size:18px">Rp 0</b>
+        <div class="sub-row">
+            <span>Subtotal</span>
+            <span class="total-price" id="popSub">Rp 0</span>
         </div>
 
-        <button class="primary" onclick="addCart()">+ Keranjang</button>
-        <button class="outline" onclick="buyNow()">Beli Langsung</button>
+        <button class="btn-green" onclick="addCart()">+ Keranjang</button>
+        <button class="btn-outline" onclick="buyNow()">Beli Langsung</button>
     </div>
 </div>
 
 <script>
-const FB_CONF = {
+// --- CONFIG FIREBASE ---
+const firebaseConfig = {
     apiKey: "AIzaSyBCpRbMAIyfJzpzi5iC4xljFt_gyXaJ5Yw",
     authDomain: "kios-30.firebaseapp.com",
     projectId: "kios-30"
 };
-firebase.initializeApp(FB_CONF);
+firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-let ITEMS = [];
-let CART = {};
+let DATA_BARANG = [];
+let KERANJANG = {};
 let currentId = null;
 
+// --- AMBIL DATA ---
 db.collection("barang").onSnapshot(snap => {
-    ITEMS = [];
+    DATA_BARANG = [];
     snap.forEach(doc => {
-        let d = doc.data();
-        ITEMS.push({ id: doc.id, ...d });
+        const d = doc.data();
+        // LOGIKA ANTI "TANPA NAMA": 
+        // Mengecek semua kemungkinan nama field (nama, Nama, NAMA)
+        const namaFix = d.nama || d.Nama || d.NAMA;
+        
+        // Hanya masukkan data jika minimal ada namanya
+        if (namaFix) {
+            DATA_BARANG.push({
+                id: doc.id,
+                nama: namaFix,
+                harga: parseFloat(d.harga) || 0,
+                stok: parseFloat(d.stok) || 0,
+                satuan: d.satuan || "pcs",
+                foto: d.foto || ""
+            });
+        }
     });
     renderUI();
 });
 
 function renderUI() {
     const grid = document.getElementById("productGrid");
-    const inv = document.getElementById("adminInventory");
-    const key = document.getElementById("mainSearch").value.toLowerCase();
-    grid.innerHTML = ""; inv.innerHTML = "";
+    const admin = document.getElementById("adminInventory");
+    const keyword = document.getElementById("mainSearch").value.toLowerCase();
+    
+    grid.innerHTML = ""; admin.innerHTML = "";
 
-    ITEMS.forEach(it => {
-        if(it.nama.toLowerCase().includes(key)) {
+    DATA_BARANG.forEach(it => {
+        if(it.nama.toLowerCase().includes(keyword)) {
+            // Card Pembeli
             grid.innerHTML += `
                 <div class="p-card" onclick="openModal('${it.id}')">
                     <div class="p-img">${it.foto ? `<img src="${it.foto}">` : '📦'}</div>
-                    <b>${it.nama}</b>
-                    <div style="color:var(--green); font-weight:900">Rp ${it.harga.toLocaleString()}</div>
-                    <div style="font-size:11px; color:#999">Stok: ${it.stok} ${it.satuan}</div>
+                    <b style="display:block; height:40px; overflow:hidden">${it.nama}</b>
+                    <div style="color:var(--green); font-weight:800; font-size:18px; margin:5px 0">Rp ${it.harga.toLocaleString()}</div>
+                    <div style="font-size:11px; color:#999">Tersedia: ${it.stok} ${it.satuan}</div>
                 </div>`;
             
-            inv.innerHTML += `
-                <div class="admin-item">
-                    <div style="flex:1"><b>${it.nama}</b><br><small>Rp ${it.harga} | Stok: ${it.stok}</small></div>
-                    <button style="width:auto; background:red; color:#fff; border:none; padding:5px 10px; border-radius:5px; cursor:pointer" onclick="deleteItem('${it.id}')">Hapus</button>
+            // Baris Admin
+            admin.innerHTML += `
+                <div class="admin-row">
+                    <div style="flex:1">
+                        <b>${it.nama}</b><br>
+                        <small>Rp ${it.harga.toLocaleString()} | Stok: ${it.stok}</small>
+                    </div>
+                    <button style="background:#fee2e2; color:#ef4444; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:bold" onclick="hapusBarang('${it.id}')">Hapus</button>
                 </div>`;
         }
     });
 }
 
+// --- FUNGSI MODAL ---
 function openModal(id) {
-    const it = ITEMS.find(x => x.id === id);
+    const it = DATA_BARANG.find(x => x.id === id);
     currentId = id;
     document.getElementById("popNama").innerText = it.nama;
     document.getElementById("popHarga").innerText = "Rp " + it.harga.toLocaleString();
-    document.getElementById("popStok").innerText = "Stok Total: " + it.stok;
-    document.getElementById("popSatuan").innerText = it.satuan;
+    document.getElementById("popStok").innerText = it.stok + " " + it.satuan;
     document.getElementById("popImg").innerHTML = it.foto ? `<img src="${it.foto}" style="width:100%; height:100%; object-fit:cover">` : "📦";
     document.getElementById("popQty").value = 1;
-    calcSub();
+    updateModalPrice();
     document.getElementById("itemModal").style.display = "flex";
 }
 
-function updateQty(val) {
+function changeQty(val) {
     let q = parseFloat(document.getElementById("popQty").value);
-    let it = ITEMS.find(x => x.id === currentId);
+    let it = DATA_BARANG.find(x => x.id === currentId);
     let newQ = q + val;
     if(newQ >= 1 && newQ <= it.stok) {
         document.getElementById("popQty").value = newQ;
-        calcSub();
+        updateModalPrice();
     }
 }
 
-function calcSub() {
-    const it = ITEMS.find(x => x.id === currentId);
+function updateModalPrice() {
+    const it = DATA_BARANG.find(x => x.id === currentId);
     const q = parseFloat(document.getElementById("popQty").value);
     document.getElementById("popSub").innerText = "Rp " + (it.harga * q).toLocaleString();
 }
 
+// --- KERANJANG ---
 function addCart() {
     const q = parseFloat(document.getElementById("popQty").value);
-    CART[currentId] = (CART[currentId] || 0) + q;
+    KERANJANG[currentId] = (KERANJANG[currentId] || 0) + q;
     renderCart();
     closeModal();
 }
 
-function buyNow() {
-    const q = parseFloat(document.getElementById("popQty").value);
-    const it = ITEMS.find(x => x.id === currentId);
-    const msg = `Halo Kios Bersama, saya mau beli langsung:%0A- *${it.nama}* (${q} ${it.satuan})%0ATotal: *Rp ${(it.harga * q).toLocaleString()}*`;
-    window.open(`https://wa.me/62811897005?text=${msg}`);
-}
-
 function renderCart() {
-    const box = document.getElementById("cartList");
-    let total = 0; box.innerHTML = "";
-    for(let id in CART) {
-        const it = ITEMS.find(x => x.id === id);
-        const sub = it.harga * CART[id];
+    const list = document.getElementById("cartList");
+    let total = 0; list.innerHTML = "";
+    for(let id in KERANJANG) {
+        const it = DATA_BARANG.find(x => x.id === id);
+        const sub = it.harga * KERANJANG[id];
         total += sub;
-        box.innerHTML += `<div style="display:flex; justify-content:space-between; margin-bottom:5px">
-            <span>${it.nama} (x${CART[id]})</span>
+        list.innerHTML += `<div style="display:flex; justify-content:space-between; margin-bottom:8px">
+            <span>${it.nama} (x${KERANJANG[id]})</span>
             <b>Rp ${sub.toLocaleString()}</b>
         </div>`;
     }
     document.getElementById("cartTotal").innerText = "Rp " + total.toLocaleString();
+    if(total === 0) list.innerHTML = "Belum ada barang dipilih.";
+}
+
+function buyNow() {
+    const q = parseFloat(document.getElementById("popQty").value);
+    const it = DATA_BARANG.find(x => x.id === currentId);
+    const text = `Halo Kios Bersama, saya mau beli langsung:%0A- *${it.nama}* (x${q} ${it.satuan})%0ATotal: *Rp ${(it.harga * q).toLocaleString()}*`;
+    window.open(`https://wa.me/62811897005?text=${text}`);
 }
 
 function checkoutWA() {
-    let msg = "Halo Kios Bersama, saya mau pesan:%0A";
-    for(let id in CART) {
-        const it = ITEMS.find(x => x.id === id);
-        msg += `- ${it.nama} (x${CART[id]})%0A`;
+    if(Object.keys(KERANJANG).length === 0) return alert("Keranjang masih kosong!");
+    let text = "Halo Kios Bersama, saya mau pesan:%0A";
+    for(let id in KERANJANG) {
+        const it = DATA_BARANG.find(x => x.id === id);
+        text += `- ${it.nama} (x${KERANJANG[id]} ${it.satuan})%0A`;
     }
-    msg += `%0ATotal: *${document.getElementById("cartTotal").innerText}*`;
-    window.open(`https://wa.me/62811897005?text=${msg}`);
+    text += `%0ATotal: *${document.getElementById("cartTotal").innerText}*`;
+    window.open(`https://wa.me/62811897005?text=${text}`);
 }
 
 function closeModal() { document.getElementById("itemModal").style.display = "none"; }
-function setView(v) {
-    document.getElementById("vB").className = v === 'B' ? '' : 'hidden';
-    document.getElementById("vA").className = v === 'A' ? '' : 'hidden';
-    document.getElementById("tB").className = v === 'B' ? 'active' : '';
-    document.getElementById("tA").className = v === 'A' ? 'active' : '';
-}
 
+// --- ADMIN ---
 function addProduct() {
     const n = document.getElementById("inNama").value;
     const h = document.getElementById("inHarga").value;
     const s = document.getElementById("inStok").value;
     const sat = document.getElementById("inSatuan").value;
     const f = document.getElementById("inFoto").value;
-    if(!n || !h) return alert("Isi Nama & Harga!");
+    if(!n || !h) return alert("Nama dan Harga wajib diisi!");
     db.collection("barang").add({ nama: n, harga: Number(h), stok: Number(s), satuan: sat, foto: f });
-    alert("Berhasil!");
+    alert("Berhasil disimpan!");
+    document.querySelectorAll("#vA input").forEach(i => i.value = "");
 }
 
-function deleteItem(id) { if(confirm("Hapus?")) db.collection("barang").doc(id).delete(); }
+function hapusBarang(id) { if(confirm("Hapus barang?")) db.collection("barang").doc(id).delete(); }
+
+function setView(v) {
+    document.getElementById("vB").className = v === 'B' ? '' : 'hidden';
+    document.getElementById("vA").className = v === 'A' ? '' : 'hidden';
+    document.getElementById("tB").className = v === 'B' ? 'active' : '';
+    document.getElementById("tA").className = v === 'A' ? 'active' : '';
+    if(v === 'A' && prompt("Password:") !== "kios123") setView('B');
+}
 </script>
 </body>
 </html>
