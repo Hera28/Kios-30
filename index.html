@@ -3,236 +3,246 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Kios 30 – Firebase FIX</title>
+<title>Kios 30</title>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
 <style>
-body{
-  margin:0;
-  font-family:system-ui,-apple-system,Segoe UI,Roboto;
-  background:#f4f6f8;
+* { box-sizing: border-box; }
+body {
+    margin: 0;
+    font-family: Inter, system-ui, sans-serif;
+    background: #f5f6f7;
+    color: #222;
 }
-header{
-  background:#fff;
-  padding:12px 16px;
-  display:flex;
-  gap:12px;
-  align-items:center;
-  border-bottom:1px solid #e5e7eb;
+
+/* HEADER */
+header {
+    background: #fff;
+    border-bottom: 1px solid #e5e7eb;
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
 }
-.logo{
-  width:42px;height:42px;
-  border-radius:12px;
-  background:#16a34a;
-  color:#fff;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-weight:800;
+
+.logo {
+    background: #16a34a;
+    color: white;
+    font-weight: 900;
+    padding: 8px 12px;
+    border-radius: 10px;
 }
-input,select,button{
-  padding:8px 10px;
-  border-radius:8px;
-  border:1px solid #d1d5db;
+
+.search {
+    flex: 1;
 }
-button{
-  cursor:pointer;
-  background:#16a34a;
-  color:#fff;
-  border:none;
+
+.search input {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1px solid #ddd;
 }
-main{
-  display:grid;
-  grid-template-columns:1fr 360px;
-  gap:16px;
-  padding:16px;
+
+.admin-btn {
+    background: #16a34a;
+    color: white;
+    border: none;
+    padding: 10px 14px;
+    border-radius: 10px;
+    cursor: pointer;
 }
-.grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
-  gap:12px;
+
+/* LAYOUT */
+main {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 20px;
+    padding: 20px;
 }
-.card{
-  background:#fff;
-  border-radius:12px;
-  padding:12px;
-  box-shadow:0 6px 14px rgba(0,0,0,.06);
+
+/* PRODUK */
+.products {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 16px;
 }
-.cart{
-  background:#fff;
-  border-radius:12px;
-  padding:12px;
+
+.card {
+    background: white;
+    border-radius: 14px;
+    padding: 14px;
+    border: 1px solid #e5e7eb;
 }
-.error{
-  background:#fee2e2;
-  color:#991b1b;
-  padding:12px;
-  border-radius:10px;
-  margin:16px;
-  font-weight:600;
+
+.card h4 {
+    margin: 0 0 6px;
 }
-.hidden{display:none}
+
+.card small {
+    color: #6b7280;
+}
+
+.card button {
+    margin-top: 10px;
+    width: 100%;
+    padding: 8px;
+    background: #16a34a;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+/* KERANJANG */
+.cart {
+    background: white;
+    border-radius: 16px;
+    padding: 16px;
+    border: 1px solid #e5e7eb;
+    height: fit-content;
+}
+
+.cart h3 {
+    margin-top: 0;
+}
+
+.cart-item {
+    font-size: 14px;
+    margin-bottom: 6px;
+}
+
+.cart-total {
+    font-weight: 800;
+    margin-top: 10px;
+}
+
+.cart button {
+    width: 100%;
+    margin-top: 8px;
+    padding: 10px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+}
+
+.checkout {
+    background: #16a34a;
+    color: white;
+}
+
+.reset {
+    background: #ef4444;
+    color: white;
+}
 </style>
 </head>
 
 <body>
 
 <header>
-  <div class="logo">KB</div>
-  <input id="search" placeholder="Cari produk..." style="flex:1">
-  <button onclick="toggleAdmin()">Admin</button>
+    <div class="logo">KB</div>
+    <div class="search">
+        <input type="text" id="search" placeholder="Cari produk..." onkeyup="filterProduk()">
+    </div>
+    <button class="admin-btn" onclick="adminLogin()">Admin</button>
 </header>
 
-<div id="errorBox" class="error hidden"></div>
-
 <main>
-  <div>
-    <h3>Produk</h3>
-    <div id="produk" class="grid"></div>
-  </div>
+    <div class="products" id="produkList"></div>
 
-  <div class="cart">
-    <h3>Keranjang</h3>
-    <div id="cart"></div>
-    <hr>
-    <b>Total: Rp <span id="total">0</span></b>
-    <br><br>
-    <button onclick="checkout()">Checkout</button>
-    <button style="background:#ef4444" onclick="resetCart()">Reset</button>
-  </div>
+    <div class="cart">
+        <h3>Keranjang</h3>
+        <div id="cartItems"></div>
+        <div class="cart-total" id="cartTotal">Total: Rp 0</div>
+        <button class="checkout" onclick="checkout()">Checkout</button>
+        <button class="reset" onclick="resetCart()">Reset</button>
+    </div>
 </main>
 
-<div id="admin" class="hidden" style="padding:16px">
-  <h3>Admin – Tambah Produk</h3>
-  <input id="aNama" placeholder="Nama">
-  <input id="aHarga" placeholder="Harga" type="number">
-  <select id="aSatuan">
-    <option>Kilogram</option>
-    <option>Ons</option>
-    <option>Gram</option>
-    <option>Liter</option>
-    <option>Mililiter</option>
-    <option>Botol</option>
-    <option>Sachet</option>
-    <option>Bungkus</option>
-    <option>Pack</option>
-    <option>Kardus</option>
-    <option>Renceng</option>
-    <option>Rak</option>
-    <option>Karung</option>
-    <option>Butir</option>
-    <option>Potong</option>
-  </select>
-  <button onclick="tambahProduk()">Simpan</button>
-</div>
-
-<!-- FIREBASE CDN -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-
 <script>
-/* ================= FIREBASE INIT ================= */
+/* FIREBASE – PROJECT KIOS 30 */
 firebase.initializeApp({
-  apiKey: "AIzaSyBCpRbMAIyfJzpzi5iC4xljFt_gyXaJ5Yw",
-  authDomain: "kios-30.firebaseapp.com",
-  projectId: "kios-30",
-  storageBucket: "kios-30.firebasestorage.app",
-  messagingSenderId: "253251437301",
-  appId: "1:253251437301:web:310e2495d742aa2dd63bbc"
+    apiKey: "AIzaSyBCpRbMAIyfJzpzi5iC4xljFt_gyXaJ5Yw",
+    authDomain: "kios-30.firebaseapp.com",
+    projectId: "kios-30"
 });
 
 const db = firebase.firestore();
-const produkDiv = document.getElementById("produk");
-const errorBox = document.getElementById("errorBox");
 
-/* ================= CART ================= */
-let cart = [];
+let semuaProduk = [];
+let cart = {};
 
-function addCart(nama,harga){
-  cart.push({nama,harga});
-  renderCart();
-}
-function renderCart(){
-  const c=document.getElementById("cart");
-  c.innerHTML="";
-  let total=0;
-  cart.forEach(i=>{
-    total+=i.harga;
-    c.innerHTML+=`<div>${i.nama} - Rp ${i.harga}</div>`;
-  });
-  document.getElementById("total").innerText=total;
-}
-function resetCart(){
-  cart=[];
-  renderCart();
-}
-function checkout(){
-  alert("Total Rp "+document.getElementById("total").innerText);
-  resetCart();
-}
+/* LOAD PRODUK */
+db.collection("barang").onSnapshot(snap => {
+    semuaProduk = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderProduk(semuaProduk);
+});
 
-/* ================= ADMIN ================= */
-function toggleAdmin(){
-  document.getElementById("admin").classList.toggle("hidden");
-}
-function tambahProduk(){
-  db.collection("produk").add({
-    nama:aNama.value,
-    harga:Number(aHarga.value),
-    satuan:aSatuan.value
-  }).then(loadProduk);
-}
-
-/* ================= CORE: LOAD + SEED ================= */
-async function seedIfEmpty(){
-  const snap = await db.collection("produk").get();
-  if(snap.empty){
-    const seed = [
-      {nama:"Beras Ramos",harga:13000,satuan:"Kilogram"},
-      {nama:"Gula Pasir",harga:14000,satuan:"Kilogram"},
-      {nama:"Minyak Goreng",harga:17000,satuan:"Liter"},
-      {nama:"Telur Ayam",harga:28000,satuan:"Kilogram"},
-      {nama:"Mi Instan",harga:3500,satuan:"Pack"},
-      {nama:"Kopi Sachet",harga:2000,satuan:"Sachet"},
-      {nama:"Air Mineral",harga:4000,satuan:"Botol"}
-    ];
-    for(const p of seed){
-      await db.collection("produk").add(p);
-    }
-  }
-}
-
-async function loadProduk(){
-  try{
-    produkDiv.innerHTML="";
-    const snap = await db.collection("produk").get();
-    snap.forEach(doc=>{
-      const p = doc.data();
-      const el = document.createElement("div");
-      el.className="card";
-      el.innerHTML = `
-        <b>${p.nama}</b>
-        <div>${p.satuan}</div>
-        <div>Rp ${p.harga}</div>
-        <button onclick="addCart('${p.nama}',${p.harga})">Tambah</button>
-      `;
-      produkDiv.appendChild(el);
+/* RENDER */
+function renderProduk(data) {
+    const list = document.getElementById("produkList");
+    list.innerHTML = "";
+    data.forEach(p => {
+        list.innerHTML += `
+        <div class="card">
+            <h4>${p.nama}</h4>
+            <small>${p.satuan}</small>
+            <div><b>Rp ${p.harga.toLocaleString()}</b></div>
+            <button onclick="addCart('${p.id}')">Tambah</button>
+        </div>`;
     });
-  }catch(e){
-    errorBox.classList.remove("hidden");
-    errorBox.innerText = "FIRESTORE ERROR: " + e.message;
-  }
 }
 
-/* ================= INIT ================= */
-(async()=>{
-  try{
-    await seedIfEmpty();
-    await loadProduk();
-  }catch(e){
-    errorBox.classList.remove("hidden");
-    errorBox.innerText = "INIT ERROR: " + e.message;
-  }
-})();
+/* SEARCH */
+function filterProduk() {
+    const q = document.getElementById("search").value.toLowerCase();
+    renderProduk(semuaProduk.filter(p => p.nama.toLowerCase().includes(q)));
+}
+
+/* CART */
+function addCart(id) {
+    cart[id] = (cart[id] || 0) + 1;
+    renderCart();
+}
+
+function renderCart() {
+    const el = document.getElementById("cartItems");
+    const totalEl = document.getElementById("cartTotal");
+    let total = 0;
+    el.innerHTML = "";
+
+    for (let id in cart) {
+        const p = semuaProduk.find(x => x.id === id);
+        const sub = p.harga * cart[id];
+        total += sub;
+        el.innerHTML += `<div class="cart-item">${p.nama} x${cart[id]}</div>`;
+    }
+    totalEl.innerText = "Total: Rp " + total.toLocaleString();
+}
+
+function resetCart() {
+    cart = {};
+    renderCart();
+}
+
+/* CHECKOUT */
+function checkout() {
+    if (Object.keys(cart).length === 0) return alert("Keranjang kosong");
+    alert("Checkout siap (bisa sambung WA / stok)");
+}
+
+/* ADMIN */
+function adminLogin() {
+    const pin = prompt("PIN Admin:");
+    if (pin === "kios123") alert("Admin mode OK (bisa dikembangkan)");
+}
 </script>
 
 </body>
