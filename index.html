@@ -26,7 +26,6 @@ header{
   background:#f3f4f6; outline:none; box-sizing:border-box; transition: 0.3s;
 }
 
-/* FITUR BANNER SLIDER */
 .banner-slider{
   width: 100%; max-width: 1100px; margin: 15px auto; height: 180px;
   border-radius: 12px; overflow: hidden; position: relative; background: #ddd;
@@ -37,7 +36,6 @@ header{
   display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 24px;
 }
 
-/* FITUR KATEGORI */
 .cat-container{
   max-width: 1100px; margin: 10px auto; display: flex; gap: 10px; overflow-x: auto; padding: 5px 20px;
 }
@@ -72,12 +70,13 @@ header{
 .item-produk .price{color:var(--green); font-weight:800; font-size:16px}
 .item-produk .stok-tag{font-size:12px; color:var(--muted); margin-top:5px; background:#f8fafc; padding:2px 6px; border-radius:4px; width:fit-content}
 
+/* Updated Qty Control for Custom Decimal */
 .qty-control{
-  display: flex; align-items: center; gap: 15px; border: 1px solid var(--border); 
-  width: fit-content; padding: 5px 15px; border-radius: 10px; margin: 15px 0;
+  display: flex; align-items: center; gap: 10px; border: 1px solid var(--border); 
+  width: fit-content; padding: 5px 10px; border-radius: 10px; margin: 15px 0;
 }
 .qty-btn{ background: none; color: var(--green); font-size: 20px; width: 30px; padding: 0; cursor: pointer;}
-.qty-input{ width: 40px; text-align: center; border: none; margin: 0; font-weight: bold; background: none;}
+.qty-input{ width: 60px; text-align: center; border: 1px solid #eee; margin: 0; font-weight: bold; background: white; border-radius: 5px; padding: 5px 0;}
 
 .modal{
   position: fixed; top:0; left:0; width:100%; height:100%; 
@@ -119,11 +118,11 @@ input,select,textarea{width:100%; padding:12px; border-radius:8px; border:1px so
       <div id="modalPrice" style="font-size: 34px; font-weight:800; color:var(--green); margin:10px 0">Rp 0</div>
       
       <div style="background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px solid var(--border)">
-        <span style="font-size: 13px; font-weight: bold; color: var(--muted)">Atur jumlah dan catatan</span>
+        <span style="font-size: 13px; font-weight: bold; color: var(--muted)">Atur jumlah (bisa pakai koma, misal: 0.5)</span>
         <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 10px;">
            <div class="qty-control">
              <button class="qty-btn" onclick="updateQty(-1)">-</button>
-             <input id="modalQty" class="qty-input" value="1" readonly>
+             <input id="modalQty" class="qty-input" type="number" step="0.1" value="1" oninput="updateSubtotal()">
              <button class="qty-btn" onclick="updateQty(1)">+</button>
            </div>
            <div style="text-align: right">
@@ -158,9 +157,9 @@ input,select,textarea{width:100%; padding:12px; border-radius:8px; border:1px so
 
 <div class="banner-slider">
   <div class="slide-track" id="slider">
-    <div class="slide-img" style="background-color: #8D6E63;">Promo Beras Premium</div>
-    <div class="slide-img" style="background-color: #00897B;">Diskon Minyak Goreng</div>
-    <div class="slide-img" style="background-color: #F4511E;">Paket Sembako Murah</div>
+    <div class="slide-img" style="background-color: #8D6E63;">Pusat Sembako Murah</div>
+    <div class="slide-img" style="background-color: #00897B;">Bisa Beli Eceran (Koma)</div>
+    <div class="slide-img" style="background-color: #F4511E;">Kualitas Terjamin</div>
   </div>
 </div>
 
@@ -181,36 +180,20 @@ input,select,textarea{width:100%; padding:12px; border-radius:8px; border:1px so
 
     <div id="admin" class="hidden">
       <div class="card">
-        <h3>🤖 Asisten Stok</h3>
-        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:10px">
-          <button class="gray" onclick="asisten('daftar')">📦 Daftar</button>
-          <button class="danger" onclick="asisten('menipis')">⚠️ Menipis</button>
-          <button style="background:#0ea5e9" onclick="asisten('total')">📊 Total</button>
-        </div>
-        <textarea id="aiInput" placeholder="Contoh: stok beras berapa?"></textarea>
-        <button onclick="asisten('tanya')">Tanya Asisten</button>
-        <div id="aiOutput" style="font-size:13px; margin-top:10px; padding:10px; background:#f9fafb; border-radius:8px; display:none; border-left:4px solid var(--green)"></div>
-      </div>
-
-      <div class="card">
         <h3>Tambah Barang Baru</h3>
         <input id="nama" placeholder="Nama Barang">
-        <input id="harga" type="text" placeholder="Harga Jual (contoh: 90000)">
-        <input id="stok" type="number" placeholder="Jumlah Stok">
-        
+        <input id="harga" type="text" placeholder="Harga Jual">
+        <input id="stok" type="number" step="0.1" placeholder="Jumlah Stok (kg/pcs)">
         <div style="display: flex; gap: 5px;">
             <select id="satuan" style="flex:1">
-              <option value="">Pilih Satuan</option>
-              <option>Bungkus</option><option>Botol</option><option>Kg</option><option>Liter</option><option>Pcs</option><option>Kardus</option>
+              <option>Kg</option><option>Bungkus</option><option>Botol</option><option>Liter</option><option>Pcs</option>
             </select>
-            <input id="kategori" placeholder="Kategori (Baru/Lama)" style="flex:1">
+            <input id="kategori" placeholder="Kategori" style="flex:1">
         </div>
-
-        <input id="fotoUrl" placeholder="Link Foto (Opsional)">
-        <textarea id="notes" placeholder="Catatan (Contoh: Expired Jan 2026)"></textarea>
-        <button onclick="simpan()">Simpan ke Database</button>
+        <input id="fotoUrl" placeholder="Link Foto">
+        <textarea id="notes" placeholder="Catatan"></textarea>
+        <button onclick="simpan()">Simpan</button>
       </div>
-
       <div class="card">
         <h3>Data Inventaris</h3>
         <div id="adminList"></div>
@@ -246,19 +229,18 @@ firebase.initializeApp({
 });
 const db = firebase.firestore();
 
-// PEMBERSIH ANGKA (FIX Harga Rp 90 - Anti Digit Pendek)
 function cleanNum(v) {
   if (!v) return 0;
-  // Menghapus titik dan koma, memastikan hasil adalah angka murni
   let num = String(v).replace(/\./g, '').replace(/,/g, '');
-  return parseInt(num) || 0;
+  return parseFloat(num) || 0;
 }
 
-// AUTO SLIDER LOGIC
+// Auto slider
 let slidePos = 0;
 setInterval(() => {
     slidePos = (slidePos + 1) % 3;
-    document.getElementById('slider').style.transform = `translateX(-${slidePos * 33.33}%)`;
+    const s = document.getElementById('slider');
+    if(s) s.style.transform = `translateX(-${slidePos * 33.33}%)`;
 }, 4000);
 
 db.collection("barang").onSnapshot(snap => {
@@ -266,12 +248,12 @@ db.collection("barang").onSnapshot(snap => {
   let uniqueCats = new Set(["Semua"]);
   snap.forEach(doc => {
     const d = doc.data();
-    if (d.nama && d.nama.trim() !== "") {
+    if (d.nama) {
       list.push({
         id: doc.id,
         nama: d.nama,
         harga: cleanNum(d.harga),
-        stok: cleanNum(d.stok),
+        stok: parseFloat(d.stok) || 0,
         satuan: d.satuan || "pcs",
         kategori: d.kategori || "Umum",
         foto: d.foto || "",
@@ -280,7 +262,8 @@ db.collection("barang").onSnapshot(snap => {
       if(d.kategori) uniqueCats.add(d.kategori);
     }
   });
-  BARANG = list.sort((a,b) => a.nama.localeCompare(b.nama));
+  // Logic "Hidup Bertiga": Urutkan berdasarkan nama, lalu harga agar tidak bentrok secara visual
+  BARANG = list.sort((a,b) => a.nama.localeCompare(b.nama) || a.harga - b.harga);
   renderCategories(Array.from(uniqueCats));
   renderBuyer();
   renderAdmin();
@@ -294,61 +277,41 @@ function renderCategories(cats) {
 function setCategory(cat) {
     currentCat = cat;
     renderBuyer();
-    document.querySelectorAll('.cat-pill').forEach(p => {
-        p.classList.remove('active');
-        if(p.innerText === cat) p.classList.add('active');
-    });
 }
 
 function openDetail(id) {
   const b = BARANG.find(x => x.id === id);
   if (!b) return;
   currentModalItem = b;
-  
   document.getElementById("modalTitle").innerText = b.nama;
   document.getElementById("modalPrice").innerText = "Rp " + b.harga.toLocaleString('id-ID');
-  document.getElementById("modalStokInfo").innerText = `Stok Total: ${b.stok} ${b.satuan}`;
-  document.getElementById("modalDesc").innerText = getSmartDesc(b.nama);
+  document.getElementById("modalStokInfo").innerText = `Sisa Stok: ${b.stok} ${b.satuan}`;
   document.getElementById("modalImg").innerHTML = b.foto ? `<img src="${b.foto}">` : "📦";
-  
   document.getElementById("modalQty").value = 1;
   updateSubtotal();
-
-  const nb = document.getElementById("generalNoteBox");
-  if (b.notes) {
-    nb.style.display = "block";
-    document.getElementById("generalNoteText").innerText = b.notes;
-  } else { nb.style.display = "none"; }
-  
-  document.getElementById("modalAddBtn").onclick = () => { 
-    addCart(id, parseInt(document.getElementById("modalQty").value)); 
-    document.getElementById('productModal').style.display = 'none'; 
-  };
   document.getElementById("productModal").style.display = "flex";
 }
 
 function updateQty(delta) {
   const input = document.getElementById("modalQty");
-  let val = parseInt(input.value) + delta;
-  if (val < 1) val = 1;
-  if (val > currentModalItem.stok) {
-    alert("Maaf, stok hanya tersedia " + currentModalItem.stok);
-    val = currentModalItem.stok;
-  }
-  input.value = val;
+  let val = parseFloat(input.value) + delta;
+  if (val < 0.1) val = 0.1; 
+  if (val > currentModalItem.stok) val = currentModalItem.stok;
+  input.value = val.toFixed(1);
   updateSubtotal();
 }
 
 function updateSubtotal() {
-  const qty = parseInt(document.getElementById("modalQty").value);
+  const qty = parseFloat(document.getElementById("modalQty").value) || 0;
   const sub = qty * currentModalItem.harga;
   document.getElementById("modalSubtotal").innerText = "Rp " + sub.toLocaleString('id-ID');
 }
 
-function addCart(id, qty = 1) {
+function addCart(id, qty) {
   const b = BARANG.find(x => x.id === id);
   if (!b) return;
-  if ((CART[id] || 0) + qty > b.stok) return alert("Stok tidak mencukupi!");
+  qty = parseFloat(qty);
+  if ((CART[id] || 0) + qty > b.stok) return alert("Stok kurang!");
   CART[id] = (CART[id] || 0) + qty;
   renderCart();
 }
@@ -362,7 +325,7 @@ function renderCart() {
     if (!b) continue;
     total += b.harga * CART[id];
     c.innerHTML += `<div style="display:flex; justify-content:space-between; margin-bottom:5px">
-                      <span>${b.nama} (x${CART[id]})</span>
+                      <span>${b.nama} (${CART[id]} ${b.satuan})</span>
                       <span>Rp ${(b.harga * CART[id]).toLocaleString('id-ID')}</span>
                     </div>`;
   }
@@ -373,19 +336,12 @@ function renderBuyer(f = "") {
   const container = document.getElementById("buyerList");
   container.innerHTML = "";
   let filtered = BARANG.filter(b => b.nama.toLowerCase().includes(f.toLowerCase()));
+  if(currentCat !== "Semua") filtered = filtered.filter(b => b.kategori === currentCat);
   
-  if(currentCat !== "Semua") {
-      filtered = filtered.filter(b => b.kategori === currentCat);
-  }
-
-  if (filtered.length === 0) {
-    container.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:50px; color:gray">Barang tidak ditemukan...</div>`;
-    return;
-  }
   filtered.forEach(b => {
     container.innerHTML += `
       <div class="item-produk" onclick="openDetail('${b.id}')">
-        <div class="img-box">${b.foto ? `<img src="${b.foto}" loading="lazy">` : '📦'}</div>
+        <div class="img-box">${b.foto ? `<img src="${b.foto}">` : '📦'}</div>
         <b>${b.nama}</b>
         <div class="price">Rp ${b.harga.toLocaleString('id-ID')}</div>
         <div class="stok-tag">Stok: ${b.stok} ${b.satuan}</div>
@@ -397,80 +353,40 @@ function renderAdmin() {
   const container = document.getElementById("adminList");
   container.innerHTML = "";
   BARANG.forEach(b => {
-    container.innerHTML += `
-      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding:12px 0">
-        <div><b>${b.nama}</b><br><small>Rp ${b.harga.toLocaleString('id-ID')} | Stok: ${b.stok} | Kat: ${b.kategori}</small></div>
-        <div style="display:flex; gap:5px">
-             <button style="width:auto; padding:5px 12px; font-size:12px; background:#0ea5e9" onclick="editFoto('${b.id}')">Foto</button>
-             <button class="danger" style="width:auto; padding:5px 12px; font-size:12px" onclick="if(confirm('Hapus?')) db.collection('barang').doc('${b.id}').delete()">Hapus</button>
-        </div>
-      </div>`;
+    container.innerHTML += `<div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #eee">
+      <div><b>${b.nama}</b><br><small>Rp ${b.harga.toLocaleString()} | Stok: ${b.stok}</small></div>
+      <button class="danger" style="width:auto; padding:5px" onclick="db.collection('barang').doc('${b.id}').delete()">Hapus</button>
+    </div>`;
   });
 }
 
-// FITUR EDIT FOTO ADMIN
-function editFoto(id) {
-    let newUrl = prompt("Masukkan Link Foto Baru:");
-    if(newUrl !== null) {
-        db.collection("barang").doc(id).update({ foto: newUrl })
-        .then(() => alert("Foto diperbarui!"));
-    }
-}
-
 function checkout() {
-  if (Object.keys(CART).length === 0) return alert("Keranjang kosong!");
-  let msg = "*PESANAN KIOS BERSAMA*%0A---------------------------%0A";
+  if (Object.keys(CART).length === 0) return alert("Kosong!");
+  
+  // LOGIC WAKTU
+  const jam = new Date().getHours();
+  let salam = "Halo, Selamat Malam";
+  if (jam < 11) salam = "Halo, Selamat Pagi";
+  else if (jam < 15) salam = "Halo, Selamat Siang";
+  else if (jam < 19) salam = "Halo, Selamat Sore";
+
+  let msg = `${salam}, saya mau pesan barang berikut:%0A---------------------------%0A`;
   for (let id in CART) {
     const b = BARANG.find(x => x.id === id);
-    msg += `• ${b.nama} (x${CART[id]})%0A`;
+    msg += `• *${b.nama}* (${CART[id]} ${b.satuan})%0A`;
   }
-  msg += `---------------------------%0A*Total: Rp ${document.getElementById("total").innerText}*`;
+  msg += `---------------------------%0A*Total: Rp ${document.getElementById("total").innerText}*%0A%0A_Kira-kira harganya masih bisa nego dikit ga ya?_`;
   window.open(`https://wa.me/${WA_NUMBER}?text=${msg}`);
 }
 
 function simpan() {
   const n = document.getElementById("nama"), h = document.getElementById("harga"),
         s = document.getElementById("stok"), sat = document.getElementById("satuan"),
-        kat = document.getElementById("kategori"),
-        nt = document.getElementById("notes"), f = document.getElementById("fotoUrl");
-  
-  if (!n.value || !h.value || !s.value) return alert("Lengkapi data!");
-  
+        kat = document.getElementById("kategori"), f = document.getElementById("fotoUrl");
   db.collection("barang").add({
-    nama: n.value.trim(), 
-    harga: cleanNum(h.value), // Menggunakan cleanNum agar harga aman
-    stok: Number(s.value), 
-    satuan: sat.value || "pcs", 
-    kategori: kat.value.trim() || "Umum",
-    notes: nt.value, 
-    foto: f.value
-  }).then(() => {
-    n.value = h.value = s.value = nt.value = f.value = kat.value = "";
-    alert("Berhasil!");
-  });
-}
-
-function asisten(mode) {
-  const out = document.getElementById("aiOutput");
-  out.style.display = "block";
-  if (mode === 'daftar') out.innerHTML = BARANG.map(b => `• ${b.nama} (${b.stok})`).join("<br>");
-  if (mode === 'menipis') {
-    const low = BARANG.filter(b => b.stok <= 5);
-    out.innerHTML = low.length ? low.map(b => `⚠️ ${b.nama} sisa ${b.stok}`).join("<br>") : "✅ Stok aman";
-  }
-  if (mode === 'total') out.innerText = `Total: ${BARANG.length} jenis.`;
-  if (mode === 'tanya') {
-    const q = document.getElementById("aiInput").value.toLowerCase();
-    const b = BARANG.find(x => q.includes(x.nama.toLowerCase()));
-    out.innerText = b ? `🤖 ${b.nama} ada ${b.stok} ${b.satuan}.` : "🤖 Tidak ditemukan.";
-  }
-}
-
-function getSmartDesc(n) {
-  n = n.toLowerCase();
-  if (n.includes("mie")) return "Mie instan lezat, praktis untuk stok di rumah.";
-  if (n.includes("beras")) return "Beras pulen kualitas premium, bersih dan sehat.";
-  return "Produk pilihan terbaik untuk kebutuhan harian keluarga Anda.";
+    nama: n.value, harga: cleanNum(h.value), stok: parseFloat(s.value),
+    satuan: sat.value, kategori: kat.value, foto: f.value
+  }).then(() => location.reload());
 }
 
 function filterBarang() { renderBuyer(document.getElementById("searchInput").value); }
@@ -483,7 +399,7 @@ tabBuyer.onclick = () => {
 };
 tabAdmin.onclick = () => {
   if (!adminUnlocked) {
-    if (prompt("Password Admin:") !== ADMIN_PW) return;
+    if (prompt("Password:") !== ADMIN_PW) return;
     adminUnlocked = true;
   }
   document.getElementById("admin").classList.remove("hidden");
