@@ -96,7 +96,6 @@ header{
 button{padding:12px; border:none; border-radius:10px; background:var(--green); color:white; cursor:pointer; font-weight:700; width:100%; transition: 0.2s}
 button:active{transform: scale(0.98)}
 button.danger{background:#ef4444}
-button.gray{background:#64748b}
 input,select,textarea{width:100%; padding:12px; border-radius:8px; border:1px solid var(--border); margin-bottom:10px; box-sizing:border-box}
 
 .hidden{display:none}
@@ -117,7 +116,7 @@ input,select,textarea{width:100%; padding:12px; border-radius:8px; border:1px so
       <div id="modalPrice" style="font-size: 34px; font-weight:800; color:var(--green); margin:10px 0">Rp 0</div>
       
       <div style="background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px solid var(--border)">
-        <span style="font-size: 13px; font-weight: bold; color: var(--muted)">Atur jumlah (Bisa ketik 0.25 atau 0.5)</span>
+        <span style="font-size: 13px; font-weight: bold; color: var(--muted)">Atur jumlah (Bisa 0.5, 0.25 dll)</span>
         <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 10px;">
            <div class="qty-control">
              <button class="qty-btn" onclick="updateQty(-0.5)">-</button>
@@ -159,30 +158,36 @@ input,select,textarea{width:100%; padding:12px; border-radius:8px; border:1px so
   <div class="main-content">
     <div class="tabs">
       <button id="tabBuyer" class="active">🛒 Belanja</button>
+      <button id="tabSaran">💡 Saran</button>
       <button id="tabAdmin">🔐 Admin</button>
     </div>
 
-    <div id="buyer">
+    <div id="viewBuyer">
       <div class="grid-produk" id="buyerList"></div>
-      
-      <div class="card" style="margin-top: 40px; border-top: 4px solid var(--green);">
-        <h3>💡 Kritik & Saran</h3>
-        <p style="font-size: 13px; color: var(--muted);">Masukan Anda sangat berarti bagi perkembangan kios kami.</p>
+    </div>
+
+    <div id="viewSaran" class="hidden">
+      <div class="card">
+        <h3>💡 Kirim Kritik & Saran</h3>
+        <p style="font-size: 13px; color: var(--muted);">Masukan Anda membantu kami menjadi lebih baik.</p>
         <input id="saranNama" placeholder="Nama Anda">
-        <textarea id="saranPesan" placeholder="Tulis saran atau kritik di sini..." style="height: 100px;"></textarea>
-        <button onclick="kirimSaran()">Kirim Masukan</button>
+        <textarea id="saranPesan" placeholder="Tulis masukan di sini..." style="height: 120px;"></textarea>
+        <button onclick="kirimSaran()">Kirim Sekarang</button>
       </div>
     </div>
 
-    <div id="admin" class="hidden">
+    <div id="viewAdmin" class="hidden">
       <div class="card">
-        <h3>🖼️ Atur Banner Iklan (URL)</h3>
-        <input id="b0" placeholder="Link Gambar 1"><input id="b1" placeholder="Link Gambar 2"><input id="b2" placeholder="Link Gambar 3">
+        <h3>🖼️ Banner Iklan</h3>
+        <input id="b0" placeholder="Link Banner 1"><input id="b1" placeholder="Link Banner 2"><input id="b2" placeholder="Link Banner 3">
         <button onclick="saveBanners()">Update Banner</button>
       </div>
-
       <div class="card">
-        <h3>Tambah Barang Baru</h3>
+        <h3>💬 Pesan Masuk</h3>
+        <div id="adminSaranList" style="font-size: 13px; max-height: 200px; overflow-y: auto;"></div>
+      </div>
+      <div class="card">
+        <h3>Tambah Barang</h3>
         <input id="nama" placeholder="Nama Barang">
         <input id="harga" type="text" placeholder="Harga Jual">
         <input id="stok" type="number" step="0.01" placeholder="Stok">
@@ -193,12 +198,6 @@ input,select,textarea{width:100%; padding:12px; border-radius:8px; border:1px so
         <input id="fotoUrl" placeholder="Link Foto">
         <button onclick="simpan()">Simpan Barang</button>
       </div>
-      
-      <div class="card">
-        <h3>💬 Pesan & Saran Masuk</h3>
-        <div id="saranList" style="font-size: 13px;">Belum ada pesan.</div>
-      </div>
-
       <div class="card">
         <h3>📦 Inventaris</h3>
         <div id="adminList"></div>
@@ -239,16 +238,10 @@ function cleanNum(v) {
   return parseFloat(String(v).replace(/\./g, '').replace(/,/g, '')) || 0;
 }
 
-// LOGIKA BANNER
-function saveBanners() {
-    const urls = [document.getElementById('b0').value, document.getElementById('b1').value, document.getElementById('b2').value];
-    db.collection("settings").doc("banners").set({urls}).then(() => alert("Banner Updated!"));
-}
-
+// DATA & BANNER
 db.collection("settings").doc("banners").onSnapshot(doc => {
     if(doc.exists()) {
-        const urls = doc.data().urls;
-        urls.forEach((u, i) => {
+        doc.data().urls.forEach((u, i) => {
             if(u) {
                 const el = document.getElementById(`banner${i}`);
                 el.style.backgroundImage = `url('${u}')`;
@@ -259,15 +252,11 @@ db.collection("settings").doc("banners").onSnapshot(doc => {
     }
 });
 
-// AUTO SLIDER
-let slidePos = 0;
-setInterval(() => {
-    slidePos = (slidePos + 1) % 3;
-    const s = document.getElementById('slider');
-    if(s) s.style.transform = `translateX(-${slidePos * 33.33}%)`;
-}, 4000);
+function saveBanners() {
+    const urls = [document.getElementById('b0').value, document.getElementById('b1').value, document.getElementById('b2').value];
+    db.collection("settings").doc("banners").set({urls}).then(() => alert("Banner Updated!"));
+}
 
-// DATA BARANG
 db.collection("barang").onSnapshot(snap => {
   let list = [];
   let uniqueCats = new Set(["Semua"]);
@@ -282,37 +271,7 @@ db.collection("barang").onSnapshot(snap => {
   renderAdmin();
 });
 
-// KRITIK & SARAN
-function kirimSaran() {
-    const nama = document.getElementById('saranNama').value;
-    const pesan = document.getElementById('saranPesan').value;
-    if(!nama || !pesan) return alert("Isi nama dan pesan ya!");
-    db.collection("saran").add({ nama, pesan, tgl: new Date().toLocaleString() })
-    .then(() => {
-        alert("Terima kasih! Saran Anda sudah terkirim.");
-        document.getElementById('saranNama').value = "";
-        document.getElementById('saranPesan').value = "";
-    });
-}
-
-db.collection("saran").orderBy("tgl", "desc").onSnapshot(snap => {
-    const list = document.getElementById('saranList');
-    list.innerHTML = "";
-    snap.forEach(doc => {
-        const d = doc.data();
-        list.innerHTML += `<div style="background:#f3f4f6; padding:10px; border-radius:8px; margin-bottom:8px">
-            <b>${d.nama}</b> <small>(${d.tgl})</small><br>${d.pesan}
-        </div>`;
-    });
-});
-
-function renderCategories(cats) {
-    const bar = document.getElementById('categoryBar');
-    bar.innerHTML = cats.map(c => `<div class="cat-pill ${currentCat === c ? 'active' : ''}" onclick="setCategory('${c}')">${c}</div>`).join('');
-}
-
-function setCategory(cat) { currentCat = cat; renderBuyer(); }
-
+// KERANJANG & MODAL
 function openDetail(id) {
   const b = BARANG.find(x => x.id === id);
   if (!b) return;
@@ -323,54 +282,66 @@ function openDetail(id) {
   document.getElementById("modalImg").innerHTML = b.foto ? `<img src="${b.foto}">` : "📦";
   document.getElementById("modalQty").value = 1;
   updateSubtotal();
-  
-  // RE-BIND TOMBOL (FIX MASALAH KERANJANG GAK KEDETEC)
-  const btn = document.getElementById("modalAddBtn");
-  btn.onclick = function() {
+  document.getElementById("modalAddBtn").onclick = () => {
       const q = parseFloat(document.getElementById("modalQty").value);
-      if(isNaN(q) || q <= 0) return alert("Jumlah tidak valid!");
-      if(q > b.stok) return alert("Stok tidak mencukupi!");
-      
+      if(q > b.stok) return alert("Stok kurang!");
       CART[id] = (CART[id] || 0) + q;
       renderCart();
-      document.getElementById('productModal').style.display = 'none';
+      document.getElementById('productModal').style.display='none';
   };
-  
   document.getElementById("productModal").style.display = "flex";
 }
 
 function updateQty(delta) {
-  const input = document.getElementById("modalQty");
-  let val = (parseFloat(input.value) || 0) + delta;
-  if (val < 0.01) val = 0.01;
-  if (val > currentModalItem.stok) val = currentModalItem.stok;
-  input.value = val.toFixed(2);
+  const i = document.getElementById("modalQty");
+  let v = (parseFloat(i.value) || 0) + delta;
+  if (v < 0.01) v = 0.01;
+  if (v > currentModalItem.stok) v = currentModalItem.stok;
+  i.value = v.toFixed(2);
   updateSubtotal();
 }
 
 function updateSubtotal() {
-  const qty = parseFloat(document.getElementById("modalQty").value) || 0;
-  const sub = qty * (currentModalItem ? currentModalItem.harga : 0);
-  document.getElementById("modalSubtotal").innerText = "Rp " + sub.toLocaleString('id-ID');
+  const q = parseFloat(document.getElementById("modalQty").value) || 0;
+  const p = currentModalItem ? currentModalItem.harga : 0;
+  document.getElementById("modalSubtotal").innerText = "Rp " + (q * p).toLocaleString('id-ID');
 }
 
 function renderCart() {
   const c = document.getElementById("cart");
-  c.innerHTML = "";
-  let total = 0;
+  c.innerHTML = ""; let t = 0;
   for (let id in CART) {
     const b = BARANG.find(x => x.id === id);
     if (!b) continue;
-    let sub = b.harga * CART[id];
-    total += sub;
+    let s = b.harga * CART[id]; t += s;
     c.innerHTML += `<div style="display:flex; justify-content:space-between; margin-bottom:5px">
-                      <span>${b.nama} (${CART[id]} ${b.satuan})</span>
-                      <span>Rp ${sub.toLocaleString('id-ID')}</span>
-                    </div>`;
+      <span>${b.nama} (${CART[id]} ${b.satuan})</span>
+      <span>Rp ${s.toLocaleString('id-ID')}</span>
+    </div>`;
   }
-  document.getElementById("total").innerText = total.toLocaleString('id-ID');
-  if(total === 0) c.innerHTML = "Kosong";
+  document.getElementById("total").innerText = t.toLocaleString('id-ID');
+  if(t === 0) c.innerHTML = "Kosong";
 }
+
+// SARAN
+function kirimSaran() {
+    const n = document.getElementById('saranNama').value;
+    const p = document.getElementById('saranPesan').value;
+    if(!n || !p) return alert("Lengkapi data!");
+    db.collection("saran").add({ nama: n, pesan: p, tgl: new Date().toLocaleString() })
+    .then(() => { alert("Terkirim!"); document.getElementById('saranNama').value=""; document.getElementById('saranPesan').value=""; });
+}
+
+db.collection("saran").orderBy("tgl", "desc").onSnapshot(snap => {
+    const list = document.getElementById('adminSaranList');
+    list.innerHTML = "";
+    snap.forEach(doc => {
+        const d = doc.data();
+        list.innerHTML += `<div style="background:#f3f4f6; padding:8px; border-radius:8px; margin-bottom:5px">
+            <b>${d.nama}</b>: ${d.pesan} <br><small>${d.tgl}</small>
+        </div>`;
+    });
+});
 
 function renderBuyer(f = "") {
   const container = document.getElementById("buyerList");
@@ -380,10 +351,9 @@ function renderBuyer(f = "") {
   filtered.forEach(b => {
     container.innerHTML += `<div class="item-produk" onclick="openDetail('${b.id}')">
         <div class="img-box">${b.foto ? `<img src="${b.foto}">` : '📦'}</div>
-        <b>${b.nama}</b>
-        <div class="price">Rp ${b.harga.toLocaleString('id-ID')}</div>
+        <b>${b.nama}</b><div class="price">Rp ${b.harga.toLocaleString('id-ID')}</div>
         <div class="stok-tag">Stok: ${b.stok} ${b.satuan}</div>
-      </div>`;
+    </div>`;
   });
 }
 
@@ -391,54 +361,67 @@ function renderAdmin() {
   const container = document.getElementById("adminList");
   container.innerHTML = "";
   BARANG.forEach(b => {
-    container.innerHTML += `<div style="display:flex; justify-content:space-between; border-bottom:1px solid #eee; padding:10px 0; align-items:center">
-      <div><b>${b.nama}</b><br><small>Rp ${b.harga.toLocaleString()} | Stok: ${b.stok}</small></div>
+    container.innerHTML += `<div style="display:flex; justify-content:space-between; border-bottom:1px solid #eee; padding:8px 0; align-items:center">
+      <div><b>${b.nama}</b><br><small>Rp ${b.harga.toLocaleString()} | Sisa: ${b.stok}</small></div>
       <button class="danger" style="width:auto; padding:5px 10px" onclick="if(confirm('Hapus?')) db.collection('barang').doc('${b.id}').delete()">Hapus</button>
     </div>`;
   });
 }
 
 function checkout() {
-  if (Object.keys(CART).length === 0) return alert("Keranjang kosong!");
-  const jam = new Date().getHours();
-  let salam = jam < 11 ? "Pagi" : jam < 15 ? "Siang" : jam < 19 ? "Sore" : "Malam";
-  let msg = `Halo Selamat ${salam}, saya mau pesan:%0A---------------------------%0A`;
+  if (Object.keys(CART).length === 0) return alert("Kosong!");
+  const h = new Date().getHours();
+  let s = h < 11 ? "Pagi" : h < 15 ? "Siang" : h < 19 ? "Sore" : "Malam";
+  let m = `Halo Selamat ${s}, saya mau pesan:%0A---------------------------%0A`;
   for (let id in CART) {
     const b = BARANG.find(x => x.id === id);
-    msg += `• *${b.nama}* (${CART[id]} ${b.satuan})%0A`;
+    m += `• *${b.nama}* (${CART[id]} ${b.satuan})%0A`;
   }
-  msg += `---------------------------%0A*Total: Rp ${document.getElementById("total").innerText}*%0A%0A_Bisa nego dikit harganya?_`;
-  window.open(`https://wa.me/${WA_NUMBER}?text=${msg}`);
+  m += `---------------------------%0A*Total: Rp ${document.getElementById("total").innerText}*%0A%0A_Bisa nego dikit harganya?_`;
+  window.open(`https://wa.me/${WA_NUMBER}?text=${m}`);
 }
 
 function simpan() {
   const n = document.getElementById("nama"), h = document.getElementById("harga"),
         s = document.getElementById("stok"), sat = document.getElementById("satuan"),
-        kat = document.getElementById("kategori"), f = document.getElementById("fotoUrl");
-  if(!n.value || !h.value) return alert("Nama dan Harga wajib isi!");
+        k = document.getElementById("kategori"), f = document.getElementById("fotoUrl");
   db.collection("barang").add({
     nama: n.value, harga: cleanNum(h.value), stok: parseFloat(s.value) || 0,
-    satuan: sat.value, kategori: kat.value, foto: f.value
+    satuan: sat.value, kategori: k.value, foto: f.value
   }).then(() => { n.value=h.value=s.value=f.value=""; alert("Berhasil!"); });
 }
 
+// NAVIGATION
+function showView(v) {
+    ["viewBuyer", "viewSaran", "viewAdmin"].forEach(id => document.getElementById(id).classList.add("hidden"));
+    ["tabBuyer", "tabSaran", "tabAdmin"].forEach(id => document.getElementById(id).classList.remove("active"));
+    document.getElementById("view" + v).classList.remove("hidden");
+    document.getElementById("tab" + v).classList.add("active");
+}
+
+tabBuyer.onclick = () => showView("Buyer");
+tabSaran.onclick = () => showView("Saran");
+tabAdmin.onclick = () => {
+    if (!adminUnlocked) {
+        if (prompt("Password Admin:") !== ADMIN_PW) return;
+        adminUnlocked = true;
+    }
+    showView("Admin");
+};
+
+function renderCategories(cats) {
+    document.getElementById('categoryBar').innerHTML = cats.map(c => `<div class="cat-pill ${currentCat === c ? 'active' : ''}" onclick="setCategory('${c}')">${c}</div>`).join('');
+}
+function setCategory(cat) { currentCat = cat; renderBuyer(); }
 function filterBarang() { renderBuyer(document.getElementById("searchInput").value); }
 function closeModal(e) { if (e.target.id === "productModal") e.target.style.display = "none"; }
 
-tabBuyer.onclick = () => {
-  document.getElementById("buyer").classList.remove("hidden");
-  document.getElementById("admin").classList.add("hidden");
-  tabBuyer.classList.add("active"); tabAdmin.classList.remove("active");
-};
-tabAdmin.onclick = () => {
-  if (!adminUnlocked) {
-    if (prompt("Password Admin:") !== ADMIN_PW) return;
-    adminUnlocked = true;
-  }
-  document.getElementById("admin").classList.remove("hidden");
-  document.getElementById("buyer").classList.add("hidden");
-  tabAdmin.classList.add("active"); tabBuyer.classList.remove("active");
-};
+let slidePos = 0;
+setInterval(() => {
+    slidePos = (slidePos + 1) % 3;
+    const s = document.getElementById('slider');
+    if(s) s.style.transform = `translateX(-${slidePos * 33.33}%)`;
+}, 4000);
 </script>
 </body>
 </html>
