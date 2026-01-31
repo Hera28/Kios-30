@@ -1,411 +1,809 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Kios Bersama - Smart Catalog</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kios Bersama - Pro Version</title>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <style>
+        /* =========================================
+           1. CSS VARIABLES & RESET
+           ========================================= */
+        :root {
+            --primary: #00aa5b;
+            --primary-dark: #00894a;
+            --bg-body: #f0f3f7;
+            --white: #ffffff;
+            --text-main: #2e3137;
+            --text-muted: #6d7588;
+            --border-color: #e5e7eb;
+            --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+            --radius-lg: 16px;
+            --radius-md: 12px;
+        }
 
-<style>
-:root{
-  --bg:#f0f3f7; --card:#ffffff; --border:#e5e7eb;
-  --text:#2e3137; --muted:#6d7588; --green:#00aa5b;
-}
-body{margin:0;font-family:system-ui, -apple-system, sans-serif;background:var(--bg);color:var(--text); scroll-behavior: smooth;}
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
 
-header{
-  background:var(--card); padding:12px 20px; display:flex; align-items:center; gap:20px;
-  position:sticky; top:0; z-index:100; box-shadow:0 1px 6px rgba(0,0,0,0.1);
-}
-.logo{color:var(--green); font-weight:800; font-size:22px; cursor:pointer; white-space:nowrap}
-.search-wrapper{flex:1; position:relative}
-.search-wrapper input{
-  width:100%; padding:10px 15px; border-radius:8px; border:1px solid var(--border);
-  background:#f3f4f6; outline:none; box-sizing:border-box; transition: 0.3s;
-}
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            line-height: 1.5;
+        }
 
-.banner-slider{
-  width: 100%; max-width: 1100px; margin: 15px auto; height: 180px;
-  border-radius: 12px; overflow: hidden; position: relative; background: #ddd;
-}
-.slide-track{display: flex; width: 300%; height: 100%; transition: 0.5s;}
-.slide-img{
-  width: 100%; height: 100%; background-size: cover; background-position: center;
-  display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 24px;
-}
+        /* =========================================
+           2. HEADER & NAVIGATION
+           ========================================= */
+        header {
+            background: var(--white);
+            padding: 12px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+        }
 
-.cat-container{
-  max-width: 1100px; margin: 10px auto; display: flex; gap: 10px; overflow-x: auto; padding: 5px 20px;
-}
-.cat-pill{
-  padding: 8px 18px; background: white; border: 1px solid var(--border); border-radius: 20px;
-  white-space: nowrap; cursor: pointer; font-size: 14px; font-weight: 600;
-}
-.cat-pill.active{ background: var(--green); color: white; border-color: var(--green); }
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
 
-.container{max-width:1150px; margin:20px auto; padding:0 20px; display:flex; gap:20px; flex-wrap:wrap}
+        .brand-logo {
+            width: 35px;
+            height: 35px;
+            background: var(--primary);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 20px;
+        }
 
-.tabs{display:flex; gap:10px; margin-bottom:16px}
-.tabs button{
-  padding:8px 20px; border-radius:20px; border:1px solid var(--border);
-  background:var(--card); cursor:pointer; font-weight:600; color:var(--muted); transition: 0.2s;
-}
-.tabs button.active{background:#e8faf1; color:var(--green); border-color:var(--green)}
+        .brand-name {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--primary);
+            letter-spacing: -0.5px;
+        }
 
-.main-content{flex:3; min-width:300px}
-.card{background:var(--card); border:1px solid var(--border); border-radius:12px; padding:16px; margin-bottom:16px; box-shadow:0 1px 4px rgba(0,0,0,0.05)}
+        .search-container {
+            flex: 1;
+            max-width: 600px;
+            position: relative;
+        }
 
-.grid-produk{display:grid; grid-template-columns:repeat(auto-fill, minmax(170px, 1fr)); gap:15px}
-.item-produk{
-  background:var(--card); border:1px solid var(--border); border-radius:10px; 
-  overflow:hidden; transition:0.3s; display:flex; flex-direction:column; padding:12px; cursor: pointer;
-}
-.item-produk:hover{transform:translateY(-5px); box-shadow:0 8px 15px rgba(0,0,0,0.1)}
-.img-box{width:100%; aspect-ratio:1/1; background:#f3f4f6; border-radius:8px; margin-bottom:10px; display:flex; align-items:center; justify-content:center; color:#ccc; font-size:30px; overflow:hidden;}
-.img-box img{width:100%; height:100%; object-fit:cover;}
+        .search-input {
+            width: 100%;
+            padding: 12px 15px 12px 45px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+            background: #f3f4f6;
+            font-size: 15px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
 
-.item-produk b{font-size:14px; height:38px; overflow:hidden; display:block; margin-bottom:4px; color:#333}
-.item-produk .price{color:var(--green); font-weight:800; font-size:16px}
-.item-produk .stok-tag{font-size:12px; color:var(--muted); margin-top:5px; background:#f8fafc; padding:2px 6px; border-radius:4px; width:fit-content}
+        .search-input:focus {
+            background: var(--white);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(0, 170, 91, 0.1);
+        }
 
-/* Updated Qty Control for Custom Decimal */
-.qty-control{
-  display: flex; align-items: center; gap: 10px; border: 1px solid var(--border); 
-  width: fit-content; padding: 5px 10px; border-radius: 10px; margin: 15px 0;
-}
-.qty-btn{ background: none; color: var(--green); font-size: 20px; width: 30px; padding: 0; cursor: pointer;}
-.qty-input{ width: 60px; text-align: center; border: 1px solid #eee; margin: 0; font-weight: bold; background: white; border-radius: 5px; padding: 5px 0;}
+        .search-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+        }
 
-.modal{
-  position: fixed; top:0; left:0; width:100%; height:100%; 
-  background:rgba(0,0,0,0.6); display:none; justify-content:center; align-items:center; z-index:1000; backdrop-filter: blur(4px);
-}
-.modal-content{
-  background:white; width:95%; max-width:850px; border-radius:20px; display:flex; position:relative; max-height: 90vh; overflow:hidden; animation: slideUp 0.3s ease-out;
-}
-@keyframes slideUp { from{transform:translateY(20px); opacity:0} to{transform:translateY(0); opacity:1} }
+        /* =========================================
+           3. MAIN LAYOUT
+           ========================================= */
+        .wrapper {
+            max-width: 1300px;
+            margin: 20px auto;
+            padding: 0 20px;
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 25px;
+        }
 
-.close-modal{position:absolute; right:20px; top:15px; font-size:30px; cursor:pointer; color:var(--muted); z-index:11}
-.modal-left{flex:1; background:#f9fafb; display:flex; align-items:center; justify-content:center; padding:40px}
-.modal-right{flex:1.2; padding:30px; overflow-y: auto; display:flex; flex-direction:column}
+        @media (max-width: 1024px) {
+            .wrapper {
+                grid-template-columns: 1fr;
+            }
+            .sidebar {
+                position: static !important;
+            }
+        }
 
-.sidebar{flex:1; min-width:280px}
-.cart-sticky{position:sticky; top:90px}
+        /* =========================================
+           4. TABS SYSTEM
+           ========================================= */
+        .tabs-nav {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            background: #e5e7eb;
+            padding: 5px;
+            border-radius: var(--radius-md);
+            width: fit-content;
+        }
 
-button{padding:12px; border:none; border-radius:10px; background:var(--green); color:white; cursor:pointer; font-weight:700; width:100%; transition: 0.2s}
-button:active{transform: scale(0.98)}
-button.danger{background:#ef4444}
-button.gray{background:#64748b}
-input,select,textarea{width:100%; padding:12px; border-radius:8px; border:1px solid var(--border); margin-bottom:10px; box-sizing:border-box}
+        .tab-btn {
+            padding: 10px 24px;
+            border: none;
+            border-radius: 10px;
+            background: transparent;
+            font-weight: 700;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: 0.2s;
+        }
 
-.hidden{display:none}
-@media (max-width: 750px) { .modal-content{flex-direction:column} .modal-left{padding:20px} .modal-left img{height:200px} }
-</style>
+        .tab-btn.active {
+            background: var(--white);
+            color: var(--primary);
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* =========================================
+           5. PRODUCT GRID
+           ========================================= */
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 20px;
+        }
+
+        .product-card {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--primary);
+        }
+
+        .img-container {
+            width: 100%;
+            aspect-ratio: 1/1;
+            background: #f9fafb;
+            border-radius: var(--radius-md);
+            margin-bottom: 12px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .img-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .product-info b {
+            display: block;
+            font-size: 15px;
+            color: var(--text-main);
+            margin-bottom: 4px;
+            height: 40px;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+
+        .product-price {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .product-stock {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* =========================================
+           6. SIDEBAR & CART
+           ========================================= */
+        .sidebar {
+            position: sticky;
+            top: 90px;
+            height: fit-content;
+        }
+
+        .cart-card {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .cart-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .cart-items {
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+
+        .cart-item-info {
+            flex: 1;
+        }
+
+        .cart-item-price {
+            font-weight: bold;
+        }
+
+        .cart-empty {
+            text-align: center;
+            padding: 30px 0;
+            color: var(--text-muted);
+        }
+
+        .cart-total {
+            background: #f9fafb;
+            padding: 15px;
+            border-radius: var(--radius-md);
+            margin-bottom: 20px;
+        }
+
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .total-label {
+            font-size: 12px;
+            font-weight: bold;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .total-amount {
+            font-size: 24px;
+            font-weight: 900;
+            color: var(--primary);
+        }
+
+        /* =========================================
+           7. BUTTONS
+           ========================================= */
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+            text-align: center;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: var(--white);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            margin-top: 10px;
+        }
+
+        /* =========================================
+           8. MODAL SYSTEM
+           ========================================= */
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-content {
+            background: var(--white);
+            width: 90%;
+            max-width: 450px;
+            border-radius: 24px;
+            padding: 30px;
+            position: relative;
+            animation: modalSlide 0.3s ease-out;
+        }
+
+        @keyframes modalSlide {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .qty-control {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            margin: 25px 0;
+        }
+
+        .qty-btn {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            border: 2px solid var(--primary);
+            background: white;
+            color: var(--primary);
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #displayQty {
+            font-size: 28px;
+            font-weight: 800;
+            min-width: 50px;
+            text-align: center;
+        }
+
+        /* =========================================
+           9. ADMIN PANEL
+           ========================================= */
+        .admin-section {
+            background: var(--white);
+            padding: 25px;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+            margin-bottom: 25px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            outline: none;
+        }
+
+        .admin-list-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            background: var(--white);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            margin-bottom: 10px;
+            gap: 15px;
+        }
+
+        .admin-list-img {
+            width: 50px;
+            height: 50px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+
+        .hidden { display: none !important; }
+
+    </style>
 </head>
-
 <body>
 
-<div id="productModal" class="modal" onclick="closeModal(event)">
-  <div class="modal-content" onclick="event.stopPropagation()">
-    <span class="close-modal" onclick="document.getElementById('productModal').style.display='none'">&times;</span>
-    <div class="modal-left">
-      <div id="modalImg" class="img-box" style="width:100%; height: 300px;">📦</div>
-    </div>
-    <div class="modal-right">
-      <h1 id="modalTitle" style="margin:0; font-size: 26px;">Nama Produk</h1>
-      <div id="modalPrice" style="font-size: 34px; font-weight:800; color:var(--green); margin:10px 0">Rp 0</div>
-      
-      <div style="background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px solid var(--border)">
-        <span style="font-size: 13px; font-weight: bold; color: var(--muted)">Atur jumlah (bisa pakai koma, misal: 0.5)</span>
-        <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 10px;">
-           <div class="qty-control">
-             <button class="qty-btn" onclick="updateQty(-1)">-</button>
-             <input id="modalQty" class="qty-input" type="number" step="0.1" value="1" oninput="updateSubtotal()">
-             <button class="qty-btn" onclick="updateQty(1)">+</button>
-           </div>
-           <div style="text-align: right">
-             <small style="color: var(--muted)">Subtotal</small><br>
-             <b id="modalSubtotal" style="font-size: 18px; color: #333">Rp 0</b>
-           </div>
+    <header>
+        <div class="brand" onclick="location.reload()">
+            <div class="brand-logo">K</div>
+            <div class="brand-name">Kios Bersama</div>
         </div>
-        <div id="modalStokInfo" style="font-size: 12px; color: var(--muted); margin-top: 5px;">Stok Total: 0</div>
-      </div>
-
-      <div style="border-top: 1px solid var(--border); margin-top: 20px; padding-top: 15px;">
-        <span style="font-weight:800; color:var(--green)">Detail Produk</span>
-        <div id="modalDesc" style="font-size:14px; margin-top:5px; line-height:1.6"></div>
-      </div>
-      
-      <div id="generalNoteBox" style="margin-top:20px; padding:15px; background:#fff9e6; border:1px solid #ffeeba; border-radius:12px; display:none">
-        <b style="color:#856404; font-size:13px">📝 Catatan Toko:</b>
-        <div id="generalNoteText" style="font-size:14px; margin-top:5px; color:#856404"></div>
-      </div>
-      
-      <button id="modalAddBtn" style="margin-top:30px">+ Tambah ke Keranjang</button>
-    </div>
-  </div>
-</div>
-
-<header>
-  <div class="logo" onclick="location.reload()">🧺 Kios Bersama</div>
-  <div class="search-wrapper">
-    <input type="text" id="searchInput" placeholder="Cari barang di kios..." onkeyup="filterBarang()">
-  </div>
-</header>
-
-<div class="banner-slider">
-  <div class="slide-track" id="slider">
-    <div class="slide-img" style="background-color: #8D6E63;">Pusat Sembako Murah</div>
-    <div class="slide-img" style="background-color: #00897B;">Bisa Beli Eceran (Koma)</div>
-    <div class="slide-img" style="background-color: #F4511E;">Kualitas Terjamin</div>
-  </div>
-</div>
-
-<div class="cat-container" id="categoryBar">
-  <div class="cat-pill active" onclick="setCategory('Semua')">Semua</div>
-</div>
-
-<div class="container">
-  <div class="main-content">
-    <div class="tabs">
-      <button id="tabBuyer" class="active">🛒 Belanja</button>
-      <button id="tabAdmin">🔐 Admin</button>
-    </div>
-
-    <div id="buyer">
-      <div class="grid-produk" id="buyerList"></div>
-    </div>
-
-    <div id="admin" class="hidden">
-      <div class="card">
-        <h3>Tambah Barang Baru</h3>
-        <input id="nama" placeholder="Nama Barang">
-        <input id="harga" type="text" placeholder="Harga Jual">
-        <input id="stok" type="number" step="0.1" placeholder="Jumlah Stok (kg/pcs)">
-        <div style="display: flex; gap: 5px;">
-            <select id="satuan" style="flex:1">
-              <option>Kg</option><option>Bungkus</option><option>Botol</option><option>Liter</option><option>Pcs</option>
-            </select>
-            <input id="kategori" placeholder="Kategori" style="flex:1">
+        
+        <div class="search-container">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="searchInput" class="search-input" placeholder="Cari di antara 300+ produk..." onkeyup="renderAll()">
         </div>
-        <input id="fotoUrl" placeholder="Link Foto">
-        <textarea id="notes" placeholder="Catatan"></textarea>
-        <button onclick="simpan()">Simpan</button>
-      </div>
-      <div class="card">
-        <h3>Data Inventaris</h3>
-        <div id="adminList"></div>
-      </div>
+    </header>
+
+    <div class="wrapper">
+        <main>
+            <div class="tabs-nav">
+                <button id="tabB" class="tab-btn active" onclick="switchTab('B')">🛒 Belanja</button>
+                <button id="tabA" class="tab-btn" onclick="switchTab('A')">🔐 Panel Admin</button>
+            </div>
+
+            <div id="viewB">
+                <div class="product-grid" id="buyerGrid">
+                    </div>
+            </div>
+
+            <div id="viewA" class="hidden">
+                <div class="admin-section">
+                    <h3 style="margin-top:0">Tambah Produk Baru</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div class="form-group" style="grid-column: span 2;">
+                            <label>Nama Barang</label>
+                            <input type="text" id="addNama" class="form-control" placeholder="Contoh: Tepung Tapioka">
+                        </div>
+                        <div class="form-group">
+                            <label>Harga (Rp)</label>
+                            <input type="number" id="addHarga" class="form-control" placeholder="7000">
+                        </div>
+                        <div class="form-group">
+                            <label>Stok</label>
+                            <input type="number" id="addStok" class="form-control" placeholder="12">
+                        </div>
+                        <div class="form-group">
+                            <label>Satuan</label>
+                            <input type="text" id="addSatuan" class="form-control" placeholder="Pack / Kg / Botol">
+                        </div>
+                        <div class="form-group">
+                            <label>Link Foto</label>
+                            <input type="text" id="addFoto" class="form-control" placeholder="https://...">
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" onclick="handleSave()">Simpan ke Firebase</button>
+                </div>
+
+                <div id="adminInventory">
+                    </div>
+            </div>
+        </main>
+
+        <aside class="sidebar">
+            <div class="cart-card">
+                <div class="cart-header">
+                    <span style="font-size: 20px;">🛒</span>
+                    <h3 style="margin:0">Keranjang</h3>
+                </div>
+                
+                <div id="cartItems" class="cart-items">
+                    <div class="cart-empty">Keranjang masih kosong</div>
+                </div>
+
+                <div class="cart-total">
+                    <div class="total-row">
+                        <span class="total-label">Total Pembayaran</span>
+                    </div>
+                    <div id="totalDisplay" class="total-amount">Rp 0</div>
+                </div>
+
+                <button class="btn btn-primary" onclick="checkoutWA()">
+                    Pesan via WhatsApp
+                </button>
+            </div>
+        </aside>
     </div>
-  </div>
 
-  <div class="sidebar">
-    <div class="card cart-sticky">
-      <h3>🛒 Pesanan</h3>
-      <div id="cart" style="font-size:13px; color:var(--muted); min-height:50px">Kosong</div>
-      <div style="margin:15px 0; border-top:1px solid #eee; padding-top:10px">
-        <b style="font-size: 18px">Total: Rp <span id="total">0</span></b>
-      </div>
-      <button onclick="checkout()">Pesan via WA</button>
+    <div id="productModal" class="modal-backdrop" onclick="closeModal()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div id="modalImg" class="img-container" style="height: 200px; margin-bottom: 20px;"></div>
+            <h2 id="modalTitle" style="margin: 0 0 5px 0;"></h2>
+            <div id="modalPrice" class="product-price" style="font-size: 24px; margin-bottom: 10px;"></div>
+            <div id="modalStock" style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px;"></div>
+
+            <div style="border-top: 1px solid #eee; padding-top: 20px;">
+                <label style="font-weight: bold; font-size: 14px; color: var(--text-muted);">JUMLAH PESANAN</label>
+                <div class="qty-control">
+                    <button class="qty-btn" onclick="updateQty(-1)">−</button>
+                    <div id="displayQty">1</div>
+                    <button class="qty-btn" onclick="updateQty(1)">+</button>
+                </div>
+            </div>
+
+            <div class="total-row" style="margin: 20px 0; padding: 15px; background: #f8fafc; border-radius: 12px;">
+                <span style="font-weight: bold;">Subtotal:</span>
+                <span id="modalSubtotal" style="font-weight: 900; font-size: 20px; color: var(--primary);">Rp 0</span>
+            </div>
+
+            <button class="btn btn-primary" onclick="addToCart()">+ Tambahkan ke Keranjang</button>
+            <button class="btn btn-outline" onclick="buyNow()">Beli Langsung</button>
+        </div>
     </div>
-  </div>
-</div>
 
-<script>
-const ADMIN_PW = "kios123";
-const WA_NUMBER = "62811897005";
-let adminUnlocked = false;
-let BARANG = [];
-let CART = {};
-let currentModalItem = null;
-let currentCat = "Semua";
+    <script>
+        // 1. DATABASE CONFIG
+        const firebaseConfig = {
+            apiKey: "AIzaSyBCpRbMAIyfJzpzi5iC4xljFt_gyXaJ5Yw",
+            authDomain: "kios-30.firebaseapp.com",
+            projectId: "kios-30"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
 
-firebase.initializeApp({
-  apiKey: "AIzaSyBCpRbMAIyfJzpzi5iC4xljFt_gyXaJ5Yw",
-  authDomain: "kios-30.firebaseapp.com",
-  projectId: "kios-30"
-});
-const db = firebase.firestore();
+        // 2. STATE MANAGEMENT
+        let PRODUCTS = [];
+        let CART = {};
+        let selectedId = null;
+        let currentQty = 1;
 
-function cleanNum(v) {
-  if (!v) return 0;
-  let num = String(v).replace(/\./g, '').replace(/,/g, '');
-  return parseFloat(num) || 0;
-}
+        // 3. FETCH DATA (REALTIME)
+        db.collection("barang").onSnapshot(snapshot => {
+            PRODUCTS = [];
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                // Tetap menggunakan field murni dari database kamu
+                if (data.nama) {
+                    PRODUCTS.push({
+                        id: doc.id,
+                        nama: data.nama,
+                        harga: parseInt(data.harga) || 0,
+                        stok: parseFloat(data.stok) || 0,
+                        satuan: data.satuan || "pcs",
+                        foto: data.foto || ""
+                    });
+                }
+            });
+            renderAll();
+        });
 
-// Auto slider
-let slidePos = 0;
-setInterval(() => {
-    slidePos = (slidePos + 1) % 3;
-    const s = document.getElementById('slider');
-    if(s) s.style.transform = `translateX(-${slidePos * 33.33}%)`;
-}, 4000);
+        // 4. RENDERING FUNCTIONS
+        function renderAll() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const bGrid = document.getElementById('buyerGrid');
+            const aList = document.getElementById('adminInventory');
+            
+            bGrid.innerHTML = '';
+            aList.innerHTML = '<h3>Daftar Inventaris</h3>';
 
-db.collection("barang").onSnapshot(snap => {
-  let list = [];
-  let uniqueCats = new Set(["Semua"]);
-  snap.forEach(doc => {
-    const d = doc.data();
-    if (d.nama) {
-      list.push({
-        id: doc.id,
-        nama: d.nama,
-        harga: cleanNum(d.harga),
-        stok: parseFloat(d.stok) || 0,
-        satuan: d.satuan || "pcs",
-        kategori: d.kategori || "Umum",
-        foto: d.foto || "",
-        notes: d.notes || ""
-      });
-      if(d.kategori) uniqueCats.add(d.kategori);
-    }
-  });
-  // Logic "Hidup Bertiga": Urutkan berdasarkan nama, lalu harga agar tidak bentrok secara visual
-  BARANG = list.sort((a,b) => a.nama.localeCompare(b.nama) || a.harga - b.harga);
-  renderCategories(Array.from(uniqueCats));
-  renderBuyer();
-  renderAdmin();
-});
+            // Urutkan alfabetis
+            const filtered = PRODUCTS.sort((a, b) => a.nama.localeCompare(b.nama));
 
-function renderCategories(cats) {
-    const bar = document.getElementById('categoryBar');
-    bar.innerHTML = cats.map(c => `<div class="cat-pill ${currentCat === c ? 'active' : ''}" onclick="setCategory('${c}')">${c}</div>`).join('');
-}
+            filtered.forEach(p => {
+                if (p.nama.toLowerCase().includes(query)) {
+                    // Render Buyer Card
+                    bGrid.innerHTML += `
+                        <div class="product-card" onclick="openModal('${p.id}')">
+                            <div class="img-container">
+                                <img src="${p.foto || 'https://via.placeholder.com/150'}" onerror="this.src='https://via.placeholder.com/150'">
+                            </div>
+                            <div class="product-info">
+                                <b>${p.nama}</b>
+                                <div class="product-price">Rp ${p.harga.toLocaleString('id-ID')}</div>
+                                <div class="product-stock">
+                                    <span>Stok: ${p.stok}</span>
+                                    <span>${p.satuan}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
 
-function setCategory(cat) {
-    currentCat = cat;
-    renderBuyer();
-}
+                    // Render Admin Row
+                    aList.innerHTML += `
+                        <div class="admin-list-item">
+                            <img src="${p.foto}" class="admin-list-img" onerror="this.src='https://via.placeholder.com/50'">
+                            <div style="flex:1">
+                                <b>${p.nama}</b><br>
+                                <small>Rp ${p.harga.toLocaleString()} | Stok: ${p.stok}</small>
+                            </div>
+                            <button onclick="handleDelete('${p.id}')" style="background:#fee2e2; color:#ef4444; border:none; padding:8px 12px; border-radius:8px; font-weight:bold; cursor:pointer">Hapus</button>
+                        </div>
+                    `;
+                }
+            });
+        }
 
-function openDetail(id) {
-  const b = BARANG.find(x => x.id === id);
-  if (!b) return;
-  currentModalItem = b;
-  document.getElementById("modalTitle").innerText = b.nama;
-  document.getElementById("modalPrice").innerText = "Rp " + b.harga.toLocaleString('id-ID');
-  document.getElementById("modalStokInfo").innerText = `Sisa Stok: ${b.stok} ${b.satuan}`;
-  document.getElementById("modalImg").innerHTML = b.foto ? `<img src="${b.foto}">` : "📦";
-  document.getElementById("modalQty").value = 1;
-  updateSubtotal();
-  document.getElementById("productModal").style.display = "flex";
-}
+        // 5. MODAL LOGIC
+        function openModal(id) {
+            const p = PRODUCTS.find(x => x.id === id);
+            selectedId = id;
+            currentQty = 1;
+            
+            document.getElementById('modalTitle').innerText = p.nama;
+            document.getElementById('modalPrice').innerText = 'Rp ' + p.harga.toLocaleString('id-ID');
+            document.getElementById('modalStock').innerText = `Tersedia: ${p.stok} ${p.satuan}`;
+            document.getElementById('modalImg').innerHTML = `<img src="${p.foto}" onerror="this.src='https://via.placeholder.com/150'">`;
+            document.getElementById('displayQty').innerText = currentQty;
+            
+            updateSubtotal();
+            document.getElementById('productModal').style.display = 'flex';
+        }
 
-function updateQty(delta) {
-  const input = document.getElementById("modalQty");
-  let val = parseFloat(input.value) + delta;
-  if (val < 0.1) val = 0.1; 
-  if (val > currentModalItem.stok) val = currentModalItem.stok;
-  input.value = val.toFixed(1);
-  updateSubtotal();
-}
+        function updateQty(val) {
+            const p = PRODUCTS.find(x => x.id === selectedId);
+            const next = currentQty + val;
+            if (next >= 1 && next <= p.stok) {
+                currentQty = next;
+                document.getElementById('displayQty').innerText = currentQty;
+                updateSubtotal();
+            }
+        }
 
-function updateSubtotal() {
-  const qty = parseFloat(document.getElementById("modalQty").value) || 0;
-  const sub = qty * currentModalItem.harga;
-  document.getElementById("modalSubtotal").innerText = "Rp " + sub.toLocaleString('id-ID');
-}
+        function updateSubtotal() {
+            const p = PRODUCTS.find(x => x.id === selectedId);
+            const total = p.harga * currentQty;
+            document.getElementById('modalSubtotal').innerText = 'Rp ' + total.toLocaleString('id-ID');
+        }
 
-function addCart(id, qty) {
-  const b = BARANG.find(x => x.id === id);
-  if (!b) return;
-  qty = parseFloat(qty);
-  if ((CART[id] || 0) + qty > b.stok) return alert("Stok kurang!");
-  CART[id] = (CART[id] || 0) + qty;
-  renderCart();
-}
+        // 6. CART LOGIC
+        function addToCart() {
+            CART[selectedId] = (CART[selectedId] || 0) + currentQty;
+            renderCart();
+            closeModal();
+        }
 
-function renderCart() {
-  const c = document.getElementById("cart");
-  c.innerHTML = "";
-  let total = 0;
-  for (let id in CART) {
-    const b = BARANG.find(x => x.id === id);
-    if (!b) continue;
-    total += b.harga * CART[id];
-    c.innerHTML += `<div style="display:flex; justify-content:space-between; margin-bottom:5px">
-                      <span>${b.nama} (${CART[id]} ${b.satuan})</span>
-                      <span>Rp ${(b.harga * CART[id]).toLocaleString('id-ID')}</span>
-                    </div>`;
-  }
-  document.getElementById("total").innerText = total.toLocaleString('id-ID');
-}
+        function renderCart() {
+            const container = document.getElementById('cartItems');
+            const totalDisplay = document.getElementById('totalDisplay');
+            let grandTotal = 0;
+            
+            container.innerHTML = '';
+            
+            const keys = Object.keys(CART);
+            if (keys.length === 0) {
+                container.innerHTML = '<div class="cart-empty">Keranjang masih kosong</div>';
+                totalDisplay.innerText = 'Rp 0';
+                return;
+            }
 
-function renderBuyer(f = "") {
-  const container = document.getElementById("buyerList");
-  container.innerHTML = "";
-  let filtered = BARANG.filter(b => b.nama.toLowerCase().includes(f.toLowerCase()));
-  if(currentCat !== "Semua") filtered = filtered.filter(b => b.kategori === currentCat);
-  
-  filtered.forEach(b => {
-    container.innerHTML += `
-      <div class="item-produk" onclick="openDetail('${b.id}')">
-        <div class="img-box">${b.foto ? `<img src="${b.foto}">` : '📦'}</div>
-        <b>${b.nama}</b>
-        <div class="price">Rp ${b.harga.toLocaleString('id-ID')}</div>
-        <div class="stok-tag">Stok: ${b.stok} ${b.satuan}</div>
-      </div>`;
-  });
-}
+            keys.forEach(id => {
+                const p = PRODUCTS.find(x => x.id === id);
+                if (!p) return;
+                
+                const sub = p.harga * CART[id];
+                grandTotal += sub;
+                
+                container.innerHTML += `
+                    <div class="cart-item">
+                        <div class="cart-item-info">
+                            <b>${p.nama}</b><br>
+                            <small>${CART[id]} x Rp ${p.harga.toLocaleString()}</small>
+                        </div>
+                        <div class="cart-item-price">Rp ${sub.toLocaleString()}</div>
+                        <button onclick="removeItem('${id}')" style="background:none; border:none; color:red; margin-left:10px; cursor:pointer">×</button>
+                    </div>
+                `;
+            });
 
-function renderAdmin() {
-  const container = document.getElementById("adminList");
-  container.innerHTML = "";
-  BARANG.forEach(b => {
-    container.innerHTML += `<div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #eee">
-      <div><b>${b.nama}</b><br><small>Rp ${b.harga.toLocaleString()} | Stok: ${b.stok}</small></div>
-      <button class="danger" style="width:auto; padding:5px" onclick="db.collection('barang').doc('${b.id}').delete()">Hapus</button>
-    </div>`;
-  });
-}
+            totalDisplay.innerText = 'Rp ' + grandTotal.toLocaleString('id-ID');
+        }
 
-function checkout() {
-  if (Object.keys(CART).length === 0) return alert("Kosong!");
-  
-  // LOGIC WAKTU
-  const jam = new Date().getHours();
-  let salam = "Halo, Selamat Malam";
-  if (jam < 11) salam = "Halo, Selamat Pagi";
-  else if (jam < 15) salam = "Halo, Selamat Siang";
-  else if (jam < 19) salam = "Halo, Selamat Sore";
+        function removeItem(id) {
+            delete CART[id];
+            renderCart();
+        }
 
-  let msg = `${salam}, saya mau pesan barang berikut:%0A---------------------------%0A`;
-  for (let id in CART) {
-    const b = BARANG.find(x => x.id === id);
-    msg += `• *${b.nama}* (${CART[id]} ${b.satuan})%0A`;
-  }
-  msg += `---------------------------%0A*Total: Rp ${document.getElementById("total").innerText}*%0A%0A_Kira-kira harganya masih bisa nego dikit ga ya?_`;
-  window.open(`https://wa.me/${WA_NUMBER}?text=${msg}`);
-}
+        // 7. CHECKOUT
+        function checkoutWA() {
+            if (Object.keys(CART).length === 0) return alert('Keranjang kosong!');
+            
+            let text = "Halo Kios Bersama, saya ingin memesan:\n\n";
+            let grandTotal = 0;
+            
+            Object.keys(CART).forEach(id => {
+                const p = PRODUCTS.find(x => x.id === id);
+                const sub = p.harga * CART[id];
+                grandTotal += sub;
+                text += `• ${p.nama} (${CART[id]} ${p.satuan}) - Rp ${sub.toLocaleString()}\n`;
+            });
+            
+            text += `\n*TOTAL: Rp ${grandTotal.toLocaleString()}*`;
+            window.open(`https://wa.me/62811897005?text=${encodeURIComponent(text)}`);
+        }
 
-function simpan() {
-  const n = document.getElementById("nama"), h = document.getElementById("harga"),
-        s = document.getElementById("stok"), sat = document.getElementById("satuan"),
-        kat = document.getElementById("kategori"), f = document.getElementById("fotoUrl");
-  db.collection("barang").add({
-    nama: n.value, harga: cleanNum(h.value), stok: parseFloat(s.value),
-    satuan: sat.value, kategori: kat.value, foto: f.value
-  }).then(() => location.reload());
-}
+        function buyNow() {
+            const p = PRODUCTS.find(x => x.id === selectedId);
+            const sub = p.harga * currentQty;
+            const text = `Halo Kios Bersama, saya ingin beli langsung:\n• *${p.nama}* (${currentQty} ${p.satuan})\n*Total: Rp ${sub.toLocaleString()}*`;
+            window.open(`https://wa.me/62811897005?text=${encodeURIComponent(text)}`);
+        }
 
-function filterBarang() { renderBuyer(document.getElementById("searchInput").value); }
-function closeModal(e) { if (e.target.id === "productModal") e.target.style.display = "none"; }
+        // 8. ADMIN ACTIONS
+        function handleSave() {
+            const n = document.getElementById('addNama').value;
+            const h = document.getElementById('addHarga').value;
+            const s = document.getElementById('addStok').value;
+            const sat = document.getElementById('addSatuan').value;
+            const f = document.getElementById('addFoto').value;
 
-tabBuyer.onclick = () => {
-  document.getElementById("buyer").classList.remove("hidden");
-  document.getElementById("admin").classList.add("hidden");
-  tabBuyer.classList.add("active"); tabAdmin.classList.remove("active");
-};
-tabAdmin.onclick = () => {
-  if (!adminUnlocked) {
-    if (prompt("Password:") !== ADMIN_PW) return;
-    adminUnlocked = true;
-  }
-  document.getElementById("admin").classList.remove("hidden");
-  document.getElementById("buyer").classList.add("hidden");
-  tabAdmin.classList.add("active"); tabBuyer.classList.remove("active");
-};
-</script>
+            if (!n || !h) return alert('Nama dan Harga wajib diisi!');
+
+            db.collection("barang").add({
+                nama: n,
+                harga: parseInt(h),
+                stok: parseFloat(s) || 0,
+                satuan: sat || "pcs",
+                foto: f || ""
+            }).then(() => {
+                alert('Produk berhasil disimpan!');
+                document.querySelectorAll('.form-control').forEach(i => i.value = '');
+            });
+        }
+
+        function handleDelete(id) {
+            if (confirm('Yakin ingin menghapus produk ini?')) {
+                db.collection("barang").doc(id).delete();
+            }
+        }
+
+        // 9. UTILS
+        function closeModal() { document.getElementById('productModal').style.display = 'none'; }
+        
+        function switchTab(v) {
+            document.getElementById('viewB').classList.toggle('hidden', v !== 'B');
+            document.getElementById('viewA').classList.toggle('hidden', v !== 'A');
+            document.getElementById('tabB').classList.toggle('active', v === 'B');
+            document.getElementById('tabA').classList.toggle('active', v === 'A');
+            
+            if (v === 'A') {
+                const pass = prompt("Masukkan Password Admin:");
+                if (pass !== "kios123") {
+                    alert("Password Salah!");
+                    switchTab('B');
+                }
+            }
+        }
+    </script>
 </body>
 </html>
