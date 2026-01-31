@@ -26,6 +26,7 @@ header{
   background:#f3f4f6; outline:none; box-sizing:border-box; transition: 0.3s;
 }
 
+/* BANNER SLIDER */
 .banner-slider{
   width: 100%; max-width: 1100px; margin: 15px auto; height: 180px;
   border-radius: 12px; overflow: hidden; position: relative; background: #ddd;
@@ -33,7 +34,7 @@ header{
 .slide-track{display: flex; width: 300%; height: 100%; transition: 0.5s;}
 .slide-img{
   width: 100%; height: 100%; background-size: cover; background-position: center;
-  display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 24px;
+  display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 24px; text-shadow: 0 2px 4px rgba(0,0,0,0.5);
 }
 
 .cat-container{
@@ -70,13 +71,12 @@ header{
 .item-produk .price{color:var(--green); font-weight:800; font-size:16px}
 .item-produk .stok-tag{font-size:12px; color:var(--muted); margin-top:5px; background:#f8fafc; padding:2px 6px; border-radius:4px; width:fit-content}
 
-/* Updated Qty Control for Custom Decimal */
 .qty-control{
   display: flex; align-items: center; gap: 10px; border: 1px solid var(--border); 
   width: fit-content; padding: 5px 10px; border-radius: 10px; margin: 15px 0;
 }
 .qty-btn{ background: none; color: var(--green); font-size: 20px; width: 30px; padding: 0; cursor: pointer;}
-.qty-input{ width: 60px; text-align: center; border: 1px solid #eee; margin: 0; font-weight: bold; background: white; border-radius: 5px; padding: 5px 0;}
+.qty-input{ width: 65px; text-align: center; border: 1px solid #eee; margin: 0; font-weight: bold; background: white; border-radius: 5px; padding: 5px 0;}
 
 .modal{
   position: fixed; top:0; left:0; width:100%; height:100%; 
@@ -118,29 +118,24 @@ input,select,textarea{width:100%; padding:12px; border-radius:8px; border:1px so
       <div id="modalPrice" style="font-size: 34px; font-weight:800; color:var(--green); margin:10px 0">Rp 0</div>
       
       <div style="background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px solid var(--border)">
-        <span style="font-size: 13px; font-weight: bold; color: var(--muted)">Atur jumlah (bisa pakai koma, misal: 0.5)</span>
+        <span style="font-size: 13px; font-weight: bold; color: var(--muted)">Atur jumlah (Bisa 0.25 atau 0.5)</span>
         <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 10px;">
            <div class="qty-control">
-             <button class="qty-btn" onclick="updateQty(-1)">-</button>
-             <input id="modalQty" class="qty-input" type="number" step="0.1" value="1" oninput="updateSubtotal()">
-             <button class="qty-btn" onclick="updateQty(1)">+</button>
+             <button class="qty-btn" onclick="updateQty(-0.5)">-</button>
+             <input id="modalQty" class="qty-input" type="number" step="0.01" value="1" oninput="updateSubtotal()">
+             <button class="qty-btn" onclick="updateQty(0.5)">+</button>
            </div>
            <div style="text-align: right">
              <small style="color: var(--muted)">Subtotal</small><br>
              <b id="modalSubtotal" style="font-size: 18px; color: #333">Rp 0</b>
            </div>
         </div>
-        <div id="modalStokInfo" style="font-size: 12px; color: var(--muted); margin-top: 5px;">Stok Total: 0</div>
+        <div id="modalStokInfo" style="font-size: 12px; color: var(--muted); margin-top: 5px;">Stok: 0</div>
       </div>
 
       <div style="border-top: 1px solid var(--border); margin-top: 20px; padding-top: 15px;">
-        <span style="font-weight:800; color:var(--green)">Detail Produk</span>
+        <span style="font-weight:800; color:var(--green)">Detail</span>
         <div id="modalDesc" style="font-size:14px; margin-top:5px; line-height:1.6"></div>
-      </div>
-      
-      <div id="generalNoteBox" style="margin-top:20px; padding:15px; background:#fff9e6; border:1px solid #ffeeba; border-radius:12px; display:none">
-        <b style="color:#856404; font-size:13px">📝 Catatan Toko:</b>
-        <div id="generalNoteText" style="font-size:14px; margin-top:5px; color:#856404"></div>
       </div>
       
       <button id="modalAddBtn" style="margin-top:30px">+ Tambah ke Keranjang</button>
@@ -151,15 +146,15 @@ input,select,textarea{width:100%; padding:12px; border-radius:8px; border:1px so
 <header>
   <div class="logo" onclick="location.reload()">🧺 Kios Bersama</div>
   <div class="search-wrapper">
-    <input type="text" id="searchInput" placeholder="Cari barang di kios..." onkeyup="filterBarang()">
+    <input type="text" id="searchInput" placeholder="Cari barang..." onkeyup="filterBarang()">
   </div>
 </header>
 
 <div class="banner-slider">
   <div class="slide-track" id="slider">
-    <div class="slide-img" style="background-color: #8D6E63;">Pusat Sembako Murah</div>
-    <div class="slide-img" style="background-color: #00897B;">Bisa Beli Eceran (Koma)</div>
-    <div class="slide-img" style="background-color: #F4511E;">Kualitas Terjamin</div>
+    <div class="slide-img" id="banner0" style="background-color: #8D6E63;">Banner 1</div>
+    <div class="slide-img" id="banner1" style="background-color: #00897B;">Banner 2</div>
+    <div class="slide-img" id="banner2" style="background-color: #F4511E;">Banner 3</div>
   </div>
 </div>
 
@@ -180,19 +175,27 @@ input,select,textarea{width:100%; padding:12px; border-radius:8px; border:1px so
 
     <div id="admin" class="hidden">
       <div class="card">
+        <h3>🖼️ Atur Banner Iklan (URL Gambar)</h3>
+        <input id="b0" placeholder="Link Gambar Banner 1">
+        <input id="b1" placeholder="Link Gambar Banner 2">
+        <input id="b2" placeholder="Link Gambar Banner 3">
+        <button onclick="saveBanners()">Update Banner</button>
+      </div>
+
+      <div class="card">
         <h3>Tambah Barang Baru</h3>
         <input id="nama" placeholder="Nama Barang">
         <input id="harga" type="text" placeholder="Harga Jual">
-        <input id="stok" type="number" step="0.1" placeholder="Jumlah Stok (kg/pcs)">
+        <input id="stok" type="number" step="0.01" placeholder="Jumlah Stok">
         <div style="display: flex; gap: 5px;">
             <select id="satuan" style="flex:1">
-              <option>Kg</option><option>Bungkus</option><option>Botol</option><option>Liter</option><option>Pcs</option>
+              <option>Kg</option><option>Bungkus</option><option>Botol</option><option>Pcs</option>
             </select>
             <input id="kategori" placeholder="Kategori" style="flex:1">
         </div>
-        <input id="fotoUrl" placeholder="Link Foto">
+        <input id="fotoUrl" placeholder="Link Foto Produk">
         <textarea id="notes" placeholder="Catatan"></textarea>
-        <button onclick="simpan()">Simpan</button>
+        <button onclick="simpan()">Simpan Barang</button>
       </div>
       <div class="card">
         <h3>Data Inventaris</h3>
@@ -231,11 +234,30 @@ const db = firebase.firestore();
 
 function cleanNum(v) {
   if (!v) return 0;
-  let num = String(v).replace(/\./g, '').replace(/,/g, '');
-  return parseFloat(num) || 0;
+  let s = String(v).replace(/\./g, '').replace(/,/g, '');
+  return parseFloat(s) || 0;
 }
 
-// Auto slider
+// Banner logic
+function saveBanners() {
+    const urls = [document.getElementById('b0').value, document.getElementById('b1').value, document.getElementById('b2').value];
+    db.collection("settings").doc("banners").set({urls});
+    alert("Banner Diupdate!");
+}
+
+db.collection("settings").doc("banners").onSnapshot(doc => {
+    if(doc.exists()) {
+        const urls = doc.data().urls;
+        urls.forEach((u, i) => {
+            if(u) {
+                document.getElementById(`banner${i}`).style.backgroundImage = `url('${u}')`;
+                document.getElementById(`banner${i}`).innerText = "";
+                document.getElementById(`b${i}`).value = u;
+            }
+        });
+    }
+});
+
 let slidePos = 0;
 setInterval(() => {
     slidePos = (slidePos + 1) % 3;
@@ -243,26 +265,24 @@ setInterval(() => {
     if(s) s.style.transform = `translateX(-${slidePos * 33.33}%)`;
 }, 4000);
 
+// Data Listener
 db.collection("barang").onSnapshot(snap => {
   let list = [];
   let uniqueCats = new Set(["Semua"]);
   snap.forEach(doc => {
     const d = doc.data();
-    if (d.nama) {
-      list.push({
-        id: doc.id,
-        nama: d.nama,
-        harga: cleanNum(d.harga),
-        stok: parseFloat(d.stok) || 0,
-        satuan: d.satuan || "pcs",
-        kategori: d.kategori || "Umum",
-        foto: d.foto || "",
-        notes: d.notes || ""
-      });
-      if(d.kategori) uniqueCats.add(d.kategori);
-    }
+    list.push({
+      id: doc.id,
+      nama: d.nama,
+      harga: cleanNum(d.harga),
+      stok: parseFloat(d.stok) || 0,
+      satuan: d.satuan || "pcs",
+      kategori: d.kategori || "Umum",
+      foto: d.foto || "",
+      notes: d.notes || ""
+    });
+    if(d.kategori) uniqueCats.add(d.kategori);
   });
-  // Logic "Hidup Bertiga": Urutkan berdasarkan nama, lalu harga agar tidak bentrok secara visual
   BARANG = list.sort((a,b) => a.nama.localeCompare(b.nama) || a.harga - b.harga);
   renderCategories(Array.from(uniqueCats));
   renderBuyer();
@@ -289,15 +309,24 @@ function openDetail(id) {
   document.getElementById("modalImg").innerHTML = b.foto ? `<img src="${b.foto}">` : "📦";
   document.getElementById("modalQty").value = 1;
   updateSubtotal();
+  
+  // FIX: Reset event listener agar tidak menumpuk
+  const btn = document.getElementById("modalAddBtn");
+  btn.onclick = () => {
+      const q = parseFloat(document.getElementById("modalQty").value);
+      addCart(b.id, q);
+      document.getElementById('productModal').style.display = 'none';
+  };
+  
   document.getElementById("productModal").style.display = "flex";
 }
 
 function updateQty(delta) {
   const input = document.getElementById("modalQty");
-  let val = parseFloat(input.value) + delta;
-  if (val < 0.1) val = 0.1; 
+  let val = (parseFloat(input.value) || 0) + delta;
+  if (val < 0.01) val = 0.01;
   if (val > currentModalItem.stok) val = currentModalItem.stok;
-  input.value = val.toFixed(1);
+  input.value = val.toFixed(2);
   updateSubtotal();
 }
 
@@ -310,9 +339,9 @@ function updateSubtotal() {
 function addCart(id, qty) {
   const b = BARANG.find(x => x.id === id);
   if (!b) return;
-  qty = parseFloat(qty);
-  if ((CART[id] || 0) + qty > b.stok) return alert("Stok kurang!");
-  CART[id] = (CART[id] || 0) + qty;
+  let targetQty = (CART[id] || 0) + qty;
+  if (targetQty > b.stok) return alert("Stok tidak cukup!");
+  CART[id] = targetQty;
   renderCart();
 }
 
@@ -323,10 +352,11 @@ function renderCart() {
   for (let id in CART) {
     const b = BARANG.find(x => x.id === id);
     if (!b) continue;
-    total += b.harga * CART[id];
+    let sub = b.harga * CART[id];
+    total += sub;
     c.innerHTML += `<div style="display:flex; justify-content:space-between; margin-bottom:5px">
                       <span>${b.nama} (${CART[id]} ${b.satuan})</span>
-                      <span>Rp ${(b.harga * CART[id]).toLocaleString('id-ID')}</span>
+                      <span>Rp ${sub.toLocaleString('id-ID')}</span>
                     </div>`;
   }
   document.getElementById("total").innerText = total.toLocaleString('id-ID');
@@ -353,24 +383,18 @@ function renderAdmin() {
   const container = document.getElementById("adminList");
   container.innerHTML = "";
   BARANG.forEach(b => {
-    container.innerHTML += `<div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #eee">
+    container.innerHTML += `<div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #eee; align-items:center">
       <div><b>${b.nama}</b><br><small>Rp ${b.harga.toLocaleString()} | Stok: ${b.stok}</small></div>
-      <button class="danger" style="width:auto; padding:5px" onclick="db.collection('barang').doc('${b.id}').delete()">Hapus</button>
+      <button class="danger" style="width:auto; padding:5px 12px" onclick="if(confirm('Hapus?')) db.collection('barang').doc('${b.id}').delete()">Hapus</button>
     </div>`;
   });
 }
 
 function checkout() {
-  if (Object.keys(CART).length === 0) return alert("Kosong!");
-  
-  // LOGIC WAKTU
+  if (Object.keys(CART).length === 0) return alert("Keranjang masih kosong!");
   const jam = new Date().getHours();
-  let salam = "Halo, Selamat Malam";
-  if (jam < 11) salam = "Halo, Selamat Pagi";
-  else if (jam < 15) salam = "Halo, Selamat Siang";
-  else if (jam < 19) salam = "Halo, Selamat Sore";
-
-  let msg = `${salam}, saya mau pesan barang berikut:%0A---------------------------%0A`;
+  let salam = jam < 11 ? "Pagi" : jam < 15 ? "Siang" : jam < 19 ? "Sore" : "Malam";
+  let msg = `Halo Selamat ${salam}, saya mau pesan barang berikut:%0A---------------------------%0A`;
   for (let id in CART) {
     const b = BARANG.find(x => x.id === id);
     msg += `• *${b.nama}* (${CART[id]} ${b.satuan})%0A`;
@@ -382,11 +406,16 @@ function checkout() {
 function simpan() {
   const n = document.getElementById("nama"), h = document.getElementById("harga"),
         s = document.getElementById("stok"), sat = document.getElementById("satuan"),
-        kat = document.getElementById("kategori"), f = document.getElementById("fotoUrl");
+        kat = document.getElementById("kategori"), f = document.getElementById("fotoUrl"),
+        nt = document.getElementById("notes");
+  if(!n.value || !h.value) return alert("Lengkapi Nama & Harga!");
   db.collection("barang").add({
-    nama: n.value, harga: cleanNum(h.value), stok: parseFloat(s.value),
-    satuan: sat.value, kategori: kat.value, foto: f.value
-  }).then(() => location.reload());
+    nama: n.value, harga: cleanNum(h.value), stok: parseFloat(s.value) || 0,
+    satuan: sat.value, kategori: kat.value, foto: f.value, notes: nt.value
+  }).then(() => {
+    n.value=h.value=s.value=f.value=nt.value="";
+    alert("Barang Disimpan!");
+  });
 }
 
 function filterBarang() { renderBuyer(document.getElementById("searchInput").value); }
@@ -399,7 +428,7 @@ tabBuyer.onclick = () => {
 };
 tabAdmin.onclick = () => {
   if (!adminUnlocked) {
-    if (prompt("Password:") !== ADMIN_PW) return;
+    if (prompt("Password Admin:") !== ADMIN_PW) return;
     adminUnlocked = true;
   }
   document.getElementById("admin").classList.remove("hidden");
