@@ -3,807 +3,223 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kios Bersama - Pro Version</title>
+    <title>Kios Bersama</title>
     
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
     <style>
-        /* =========================================
-           1. CSS VARIABLES & RESET
-           ========================================= */
-        :root {
-            --primary: #00aa5b;
-            --primary-dark: #00894a;
-            --bg-body: #f0f3f7;
-            --white: #ffffff;
-            --text-main: #2e3137;
-            --text-muted: #6d7588;
-            --border-color: #e5e7eb;
-            --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
-            --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
-            --radius-lg: 16px;
-            --radius-md: 12px;
-        }
+        :root { --green: #00aa5b; }
+        body { margin: 0; font-family: sans-serif; background: #f4f7f6; }
+        
+        header { background: #fff; padding: 15px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; gap: 10px; align-items: center; }
+        .search-box { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #ddd; outline: none; }
 
-        * {
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
+        .main { max-width: 1200px; margin: 20px auto; padding: 0 15px; display: flex; gap: 20px; }
+        .product-area { flex: 3; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; }
+        
+        .card { background: #fff; padding: 10px; border-radius: 12px; border: 1px solid #eee; cursor: pointer; }
+        .card img { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 8px; background: #f9f9f9; }
+        .card b { display: block; margin-top: 8px; font-size: 14px; height: 34px; overflow: hidden; }
+        .card .p { color: var(--green); font-weight: bold; font-size: 16px; margin: 5px 0; }
+        .card .s { font-size: 11px; color: #888; }
 
-        body {
-            margin: 0;
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-body);
-            color: var(--text-main);
-            line-height: 1.5;
-        }
+        .sidebar { flex: 1; background: #fff; padding: 20px; border-radius: 15px; border: 1px solid #ddd; height: fit-content; position: sticky; top: 80px; }
+        .btn-wa { background: var(--green); color: #fff; border: none; width: 100%; padding: 12px; border-radius: 10px; font-weight: bold; cursor: pointer; }
 
-        /* =========================================
-           2. HEADER & NAVIGATION
-           ========================================= */
-        header {
-            background: var(--white);
-            padding: 12px 20px;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            box-shadow: var(--shadow-sm);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 20px;
-        }
-
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            cursor: pointer;
-        }
-
-        .brand-logo {
-            width: 35px;
-            height: 35px;
-            background: var(--primary);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-            font-size: 20px;
-        }
-
-        .brand-name {
-            font-size: 22px;
-            font-weight: 800;
-            color: var(--primary);
-            letter-spacing: -0.5px;
-        }
-
-        .search-container {
-            flex: 1;
-            max-width: 600px;
-            position: relative;
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 12px 15px 12px 45px;
-            border-radius: var(--radius-md);
-            border: 1px solid var(--border-color);
-            background: #f3f4f6;
-            font-size: 15px;
-            outline: none;
-            transition: all 0.3s ease;
-        }
-
-        .search-input:focus {
-            background: var(--white);
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(0, 170, 91, 0.1);
-        }
-
-        .search-icon {
-            position: absolute;
-            left: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-muted);
-        }
-
-        /* =========================================
-           3. MAIN LAYOUT
-           ========================================= */
-        .wrapper {
-            max-width: 1300px;
-            margin: 20px auto;
-            padding: 0 20px;
-            display: grid;
-            grid-template-columns: 1fr 320px;
-            gap: 25px;
-        }
-
-        @media (max-width: 1024px) {
-            .wrapper {
-                grid-template-columns: 1fr;
-            }
-            .sidebar {
-                position: static !important;
-            }
-        }
-
-        /* =========================================
-           4. TABS SYSTEM
-           ========================================= */
-        .tabs-nav {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 25px;
-            background: #e5e7eb;
-            padding: 5px;
-            border-radius: var(--radius-md);
-            width: fit-content;
-        }
-
-        .tab-btn {
-            padding: 10px 24px;
-            border: none;
-            border-radius: 10px;
-            background: transparent;
-            font-weight: 700;
-            color: var(--text-muted);
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-        .tab-btn.active {
-            background: var(--white);
-            color: var(--primary);
-            box-shadow: var(--shadow-sm);
-        }
-
-        /* =========================================
-           5. PRODUCT GRID
-           ========================================= */
-        .product-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 20px;
-        }
-
-        .product-card {
-            background: var(--white);
-            border-radius: var(--radius-lg);
-            padding: 12px;
-            border: 1px solid var(--border-color);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-        }
-
-        .product-card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-md);
-            border-color: var(--primary);
-        }
-
-        .img-container {
-            width: 100%;
-            aspect-ratio: 1/1;
-            background: #f9fafb;
-            border-radius: var(--radius-md);
-            margin-bottom: 12px;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .img-container img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .product-info b {
-            display: block;
-            font-size: 15px;
-            color: var(--text-main);
-            margin-bottom: 4px;
-            height: 40px;
-            overflow: hidden;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-        }
-
-        .product-price {
-            font-size: 18px;
-            font-weight: 800;
-            color: var(--primary);
-        }
-
-        .product-stock {
-            font-size: 12px;
-            color: var(--text-muted);
-            margin-top: 8px;
-            display: flex;
-            justify-content: space-between;
-        }
-
-        /* =========================================
-           6. SIDEBAR & CART
-           ========================================= */
-        .sidebar {
-            position: sticky;
-            top: 90px;
-            height: fit-content;
-        }
-
-        .cart-card {
-            background: var(--white);
-            border-radius: var(--radius-lg);
-            border: 1px solid var(--border-color);
-            padding: 20px;
-            box-shadow: var(--shadow-sm);
-        }
-
-        .cart-header {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #f3f4f6;
-        }
-
-        .cart-items {
-            max-height: 400px;
-            overflow-y: auto;
-            margin-bottom: 20px;
-        }
-
-        .cart-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-            font-size: 14px;
-        }
-
-        .cart-item-info {
-            flex: 1;
-        }
-
-        .cart-item-price {
-            font-weight: bold;
-        }
-
-        .cart-empty {
-            text-align: center;
-            padding: 30px 0;
-            color: var(--text-muted);
-        }
-
-        .cart-total {
-            background: #f9fafb;
-            padding: 15px;
-            border-radius: var(--radius-md);
-            margin-bottom: 20px;
-        }
-
-        .total-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .total-label {
-            font-size: 12px;
-            font-weight: bold;
-            color: var(--text-muted);
-            text-transform: uppercase;
-        }
-
-        .total-amount {
-            font-size: 24px;
-            font-weight: 900;
-            color: var(--primary);
-        }
-
-        /* =========================================
-           7. BUTTONS
-           ========================================= */
-        .btn {
-            display: block;
-            width: 100%;
-            padding: 14px;
-            border: none;
-            border-radius: var(--radius-md);
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.2s;
-            text-align: center;
-            text-decoration: none;
-        }
-
-        .btn-primary {
-            background: var(--primary);
-            color: var(--white);
-        }
-
-        .btn-primary:hover {
-            background: var(--primary-dark);
-        }
-
-        .btn-outline {
-            background: transparent;
-            border: 2px solid var(--primary);
-            color: var(--primary);
-            margin-top: 10px;
-        }
-
-        /* =========================================
-           8. MODAL SYSTEM
-           ========================================= */
-        .modal-backdrop {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.6);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 2000;
-            backdrop-filter: blur(4px);
-        }
-
-        .modal-content {
-            background: var(--white);
-            width: 90%;
-            max-width: 450px;
-            border-radius: 24px;
-            padding: 30px;
-            position: relative;
-            animation: modalSlide 0.3s ease-out;
-        }
-
-        @keyframes modalSlide {
-            from { transform: translateY(20px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-
-        .qty-control {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 20px;
-            margin: 25px 0;
-        }
-
-        .qty-btn {
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            border: 2px solid var(--primary);
-            background: white;
-            color: var(--primary);
-            font-size: 24px;
-            font-weight: bold;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        #displayQty {
-            font-size: 28px;
-            font-weight: 800;
-            min-width: 50px;
-            text-align: center;
-        }
-
-        /* =========================================
-           9. ADMIN PANEL
-           ========================================= */
-        .admin-section {
-            background: var(--white);
-            padding: 25px;
-            border-radius: var(--radius-lg);
-            border: 1px solid var(--border-color);
-            margin-bottom: 25px;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        .form-group label {
-            display: block;
-            font-size: 14px;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-
-        .form-control {
-            width: 100%;
-            padding: 10px;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-            outline: none;
-        }
-
-        .admin-list-item {
-            display: flex;
-            align-items: center;
-            padding: 15px;
-            background: var(--white);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
-            margin-bottom: 10px;
-            gap: 15px;
-        }
-
-        .admin-list-img {
-            width: 50px;
-            height: 50px;
-            border-radius: 8px;
-            object-fit: cover;
-        }
-
-        .hidden { display: none !important; }
-
+        .modal { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); display:none; justify-content:center; align-items:center; z-index: 1000; }
+        .modal-content { background:#fff; width:90%; max-width:400px; padding:25px; border-radius:20px; }
+        
+        .counter { display: flex; align-items: center; gap: 15px; margin: 20px 0; justify-content: center; }
+        .c-btn { width: 35px; height: 35px; border-radius: 50%; border: 1px solid var(--green); background: #fff; color: var(--green); font-weight: bold; cursor: pointer; }
+        
+        .subtotal { display: flex; justify-content: space-between; font-size: 18px; font-weight: bold; border-top: 1px solid #eee; padding-top: 15px; }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
 
-    <header>
-        <div class="brand" onclick="location.reload()">
-            <div class="brand-logo">K</div>
-            <div class="brand-name">Kios Bersama</div>
+<header>
+    <div style="font-weight: 900; color: var(--green); font-size: 20px;">KIOS BERSAMA</div>
+    <input type="text" class="search-box" id="cari" placeholder="Cari produk..." onkeyup="tampil()">
+</header>
+
+<div class="main">
+    <div class="product-area">
+        <div style="margin-bottom: 15px;">
+            <button onclick="pindah('B')" style="padding:8px 15px; cursor:pointer">Belanja</button>
+            <button onclick="pindah('A')" style="padding:8px 15px; cursor:pointer">Admin</button>
         </div>
         
-        <div class="search-container">
-            <span class="search-icon">🔍</span>
-            <input type="text" id="searchInput" class="search-input" placeholder="Cari di antara 300+ produk..." onkeyup="renderAll()">
+        <div id="viewB">
+            <div class="grid" id="gridB"></div>
         </div>
-    </header>
 
-    <div class="wrapper">
-        <main>
-            <div class="tabs-nav">
-                <button id="tabB" class="tab-btn active" onclick="switchTab('B')">🛒 Belanja</button>
-                <button id="tabA" class="tab-btn" onclick="switchTab('A')">🔐 Panel Admin</button>
+        <div id="viewA" class="hidden">
+            <div style="background:#fff; padding:15px; border-radius:10px; margin-bottom:20px; border:1px solid #ddd">
+                <h3>Tambah Barang</h3>
+                <input id="inN" placeholder="Nama Produk" style="width:100%; margin-bottom:10px; padding:8px">
+                <input id="inH" type="number" placeholder="Harga" style="width:48%; padding:8px">
+                <input id="inS" type="number" placeholder="Stok" style="width:48%; padding:8px">
+                <input id="inSat" placeholder="Satuan" style="width:100%; margin:10px 0; padding:8px">
+                <input id="inF" placeholder="Link Foto" style="width:100%; margin-bottom:10px; padding:8px">
+                <button onclick="simpan()" style="width:100%; padding:10px; background:var(--green); color:#fff; border:none; border-radius:8px">Simpan</button>
             </div>
-
-            <div id="viewB">
-                <div class="product-grid" id="buyerGrid">
-                    </div>
-            </div>
-
-            <div id="viewA" class="hidden">
-                <div class="admin-section">
-                    <h3 style="margin-top:0">Tambah Produk Baru</h3>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                        <div class="form-group" style="grid-column: span 2;">
-                            <label>Nama Barang</label>
-                            <input type="text" id="addNama" class="form-control" placeholder="Contoh: Tepung Tapioka">
-                        </div>
-                        <div class="form-group">
-                            <label>Harga (Rp)</label>
-                            <input type="number" id="addHarga" class="form-control" placeholder="7000">
-                        </div>
-                        <div class="form-group">
-                            <label>Stok</label>
-                            <input type="number" id="addStok" class="form-control" placeholder="12">
-                        </div>
-                        <div class="form-group">
-                            <label>Satuan</label>
-                            <input type="text" id="addSatuan" class="form-control" placeholder="Pack / Kg / Botol">
-                        </div>
-                        <div class="form-group">
-                            <label>Link Foto</label>
-                            <input type="text" id="addFoto" class="form-control" placeholder="https://...">
-                        </div>
-                    </div>
-                    <button class="btn btn-primary" onclick="handleSave()">Simpan ke Firebase</button>
-                </div>
-
-                <div id="adminInventory">
-                    </div>
-            </div>
-        </main>
-
-        <aside class="sidebar">
-            <div class="cart-card">
-                <div class="cart-header">
-                    <span style="font-size: 20px;">🛒</span>
-                    <h3 style="margin:0">Keranjang</h3>
-                </div>
-                
-                <div id="cartItems" class="cart-items">
-                    <div class="cart-empty">Keranjang masih kosong</div>
-                </div>
-
-                <div class="cart-total">
-                    <div class="total-row">
-                        <span class="total-label">Total Pembayaran</span>
-                    </div>
-                    <div id="totalDisplay" class="total-amount">Rp 0</div>
-                </div>
-
-                <button class="btn btn-primary" onclick="checkoutWA()">
-                    Pesan via WhatsApp
-                </button>
-            </div>
-        </aside>
-    </div>
-
-    <div id="productModal" class="modal-backdrop" onclick="closeModal()">
-        <div class="modal-content" onclick="event.stopPropagation()">
-            <div id="modalImg" class="img-container" style="height: 200px; margin-bottom: 20px;"></div>
-            <h2 id="modalTitle" style="margin: 0 0 5px 0;"></h2>
-            <div id="modalPrice" class="product-price" style="font-size: 24px; margin-bottom: 10px;"></div>
-            <div id="modalStock" style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px;"></div>
-
-            <div style="border-top: 1px solid #eee; padding-top: 20px;">
-                <label style="font-weight: bold; font-size: 14px; color: var(--text-muted);">JUMLAH PESANAN</label>
-                <div class="qty-control">
-                    <button class="qty-btn" onclick="updateQty(-1)">−</button>
-                    <div id="displayQty">1</div>
-                    <button class="qty-btn" onclick="updateQty(1)">+</button>
-                </div>
-            </div>
-
-            <div class="total-row" style="margin: 20px 0; padding: 15px; background: #f8fafc; border-radius: 12px;">
-                <span style="font-weight: bold;">Subtotal:</span>
-                <span id="modalSubtotal" style="font-weight: 900; font-size: 20px; color: var(--primary);">Rp 0</span>
-            </div>
-
-            <button class="btn btn-primary" onclick="addToCart()">+ Tambahkan ke Keranjang</button>
-            <button class="btn btn-outline" onclick="buyNow()">Beli Langsung</button>
+            <div id="gridA"></div>
         </div>
     </div>
 
-    <script>
-        // 1. DATABASE CONFIG
-        const firebaseConfig = {
-            apiKey: "AIzaSyBCpRbMAIyfJzpzi5iC4xljFt_gyXaJ5Yw",
-            authDomain: "kios-30.firebaseapp.com",
-            projectId: "kios-30"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
+    <div class="sidebar">
+        <h3>Keranjang</h3>
+        <div id="list-keranjang">Kosong</div>
+        <hr>
+        <div style="display:flex; justify-content:space-between">
+            <span>Total:</span>
+            <b id="total-harga">Rp 0</b>
+        </div>
+        <button class="btn-wa" onclick="checkout()">Pesan ke WA</button>
+    </div>
+</div>
 
-        // 2. STATE MANAGEMENT
-        let PRODUCTS = [];
-        let CART = {};
-        let selectedId = null;
-        let currentQty = 1;
+<div id="myModal" class="modal" onclick="tutup()">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <h3 id="popNama"></h3>
+        <p id="popStok"></p>
+        <div class="counter">
+            <button class="c-btn" onclick="ubahQty(-1)">-</button>
+            <div id="qVal" style="font-weight:bold; font-size:20px">1</div>
+            <button class="c-btn" onclick="ubahQty(1)">+</button>
+        </div>
+        <div class="subtotal">
+            <span>Subtotal</span>
+            <span id="popSub">Rp 0</span>
+        </div>
+        <button class="btn-wa" style="margin-top:20px" onclick="keKeranjang()">+ Keranjang</button>
+    </div>
+</div>
 
-        // 3. FETCH DATA (REALTIME)
-        db.collection("barang").onSnapshot(snapshot => {
-            PRODUCTS = [];
-            snapshot.forEach(doc => {
-                const data = doc.data();
-                // Tetap menggunakan field murni dari database kamu
-                if (data.nama) {
-                    PRODUCTS.push({
-                        id: doc.id,
-                        nama: data.nama,
-                        harga: parseInt(data.harga) || 0,
-                        stok: parseFloat(data.stok) || 0,
-                        satuan: data.satuan || "pcs",
-                        foto: data.foto || ""
-                    });
-                }
-            });
-            renderAll();
-        });
+<script>
+const firebaseConfig = {
+    apiKey: "AIzaSyBCpRbMAIyfJzpzi5iC4xljFt_gyXaJ5Yw",
+    authDomain: "kios-30.firebaseapp.com",
+    projectId: "kios-30"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 
-        // 4. RENDERING FUNCTIONS
-        function renderAll() {
-            const query = document.getElementById('searchInput').value.toLowerCase();
-            const bGrid = document.getElementById('buyerGrid');
-            const aList = document.getElementById('adminInventory');
-            
-            bGrid.innerHTML = '';
-            aList.innerHTML = '<h3>Daftar Inventaris</h3>';
+let SEMUA_BARANG = [];
+let KERANJANG = {};
+let idSkrg = null;
 
-            // Urutkan alfabetis
-            const filtered = PRODUCTS.sort((a, b) => a.nama.localeCompare(b.nama));
-
-            filtered.forEach(p => {
-                if (p.nama.toLowerCase().includes(query)) {
-                    // Render Buyer Card
-                    bGrid.innerHTML += `
-                        <div class="product-card" onclick="openModal('${p.id}')">
-                            <div class="img-container">
-                                <img src="${p.foto || 'https://via.placeholder.com/150'}" onerror="this.src='https://via.placeholder.com/150'">
-                            </div>
-                            <div class="product-info">
-                                <b>${p.nama}</b>
-                                <div class="product-price">Rp ${p.harga.toLocaleString('id-ID')}</div>
-                                <div class="product-stock">
-                                    <span>Stok: ${p.stok}</span>
-                                    <span>${p.satuan}</span>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-
-                    // Render Admin Row
-                    aList.innerHTML += `
-                        <div class="admin-list-item">
-                            <img src="${p.foto}" class="admin-list-img" onerror="this.src='https://via.placeholder.com/50'">
-                            <div style="flex:1">
-                                <b>${p.nama}</b><br>
-                                <small>Rp ${p.harga.toLocaleString()} | Stok: ${p.stok}</small>
-                            </div>
-                            <button onclick="handleDelete('${p.id}')" style="background:#fee2e2; color:#ef4444; border:none; padding:8px 12px; border-radius:8px; font-weight:bold; cursor:pointer">Hapus</button>
-                        </div>
-                    `;
-                }
+// Ambil data murni sesuai field Firebase: nama, harga, stok, satuan, foto
+db.collection("barang").onSnapshot(snap => {
+    SEMUA_BARANG = [];
+    snap.forEach(doc => {
+        let d = doc.data();
+        if(d.nama) {
+            SEMUA_BARANG.push({
+                id: doc.id,
+                nama: d.nama,
+                harga: d.harga || 0,
+                stok: d.stok || 0,
+                satuan: d.satuan || "pcs",
+                foto: d.foto || ""
             });
         }
+    });
+    tampil();
+});
 
-        // 5. MODAL LOGIC
-        function openModal(id) {
-            const p = PRODUCTS.find(x => x.id === id);
-            selectedId = id;
-            currentQty = 1;
-            
-            document.getElementById('modalTitle').innerText = p.nama;
-            document.getElementById('modalPrice').innerText = 'Rp ' + p.harga.toLocaleString('id-ID');
-            document.getElementById('modalStock').innerText = `Tersedia: ${p.stok} ${p.satuan}`;
-            document.getElementById('modalImg').innerHTML = `<img src="${p.foto}" onerror="this.src='https://via.placeholder.com/150'">`;
-            document.getElementById('displayQty').innerText = currentQty;
-            
-            updateSubtotal();
-            document.getElementById('productModal').style.display = 'flex';
+function tampil() {
+    const gb = document.getElementById("gridB");
+    const ga = document.getElementById("gridA");
+    const cari = document.getElementById("cari").value.toLowerCase();
+    gb.innerHTML = ""; ga.innerHTML = "";
+
+    SEMUA_BARANG.forEach(it => {
+        if(it.nama.toLowerCase().includes(cari)) {
+            gb.innerHTML += `
+                <div class="card" onclick="bukaModal('${it.id}')">
+                    <img src="${it.foto || ''}" onerror="this.src='https://via.placeholder.com/150'">
+                    <b>${it.nama}</b>
+                    <div class="p">Rp ${it.harga.toLocaleString()}</div>
+                    <div class="s">Stok: ${it.stok} ${it.satuan}</div>
+                </div>`;
+            ga.innerHTML += `<div style="padding:10px; border-bottom:1px solid #eee">${it.nama} <button onclick="hapus('${it.id}')" style="color:red; float:right">Hapus</button></div>`;
         }
+    });
+}
 
-        function updateQty(val) {
-            const p = PRODUCTS.find(x => x.id === selectedId);
-            const next = currentQty + val;
-            if (next >= 1 && next <= p.stok) {
-                currentQty = next;
-                document.getElementById('displayQty').innerText = currentQty;
-                updateSubtotal();
-            }
-        }
+function bukaModal(id) {
+    idSkrg = id;
+    let it = SEMUA_BARANG.find(x => x.id === id);
+    document.getElementById("popNama").innerText = it.nama;
+    document.getElementById("popStok").innerText = "Tersedia: " + it.stok;
+    document.getElementById("qVal").innerText = 1;
+    hitungSub();
+    document.getElementById("myModal").style.display = "flex";
+}
 
-        function updateSubtotal() {
-            const p = PRODUCTS.find(x => x.id === selectedId);
-            const total = p.harga * currentQty;
-            document.getElementById('modalSubtotal').innerText = 'Rp ' + total.toLocaleString('id-ID');
-        }
+function ubahQty(n) {
+    let q = parseInt(document.getElementById("qVal").innerText);
+    let it = SEMUA_BARANG.find(x => x.id === idSkrg);
+    let baru = q + n;
+    if(baru >= 1 && baru <= it.stok) {
+        document.getElementById("qVal").innerText = baru;
+        hitungSub();
+    }
+}
 
-        // 6. CART LOGIC
-        function addToCart() {
-            CART[selectedId] = (CART[selectedId] || 0) + currentQty;
-            renderCart();
-            closeModal();
-        }
+function hitungSub() {
+    let it = SEMUA_BARANG.find(x => x.id === idSkrg);
+    let q = parseInt(document.getElementById("qVal").innerText);
+    document.getElementById("popSub").innerText = "Rp " + (it.harga * q).toLocaleString();
+}
 
-        function renderCart() {
-            const container = document.getElementById('cartItems');
-            const totalDisplay = document.getElementById('totalDisplay');
-            let grandTotal = 0;
-            
-            container.innerHTML = '';
-            
-            const keys = Object.keys(CART);
-            if (keys.length === 0) {
-                container.innerHTML = '<div class="cart-empty">Keranjang masih kosong</div>';
-                totalDisplay.innerText = 'Rp 0';
-                return;
-            }
+function keKeranjang() {
+    let q = parseInt(document.getElementById("qVal").innerText);
+    KERANJANG[idSkrg] = (KERANJANG[idSkrg] || 0) + q;
+    updateSide();
+    tutup();
+}
 
-            keys.forEach(id => {
-                const p = PRODUCTS.find(x => x.id === id);
-                if (!p) return;
-                
-                const sub = p.harga * CART[id];
-                grandTotal += sub;
-                
-                container.innerHTML += `
-                    <div class="cart-item">
-                        <div class="cart-item-info">
-                            <b>${p.nama}</b><br>
-                            <small>${CART[id]} x Rp ${p.harga.toLocaleString()}</small>
-                        </div>
-                        <div class="cart-item-price">Rp ${sub.toLocaleString()}</div>
-                        <button onclick="removeItem('${id}')" style="background:none; border:none; color:red; margin-left:10px; cursor:pointer">×</button>
-                    </div>
-                `;
-            });
+function updateSide() {
+    let list = document.getElementById("list-keranjang");
+    let tot = 0; list.innerHTML = "";
+    for(let id in KERANJANG) {
+        let it = SEMUA_BARANG.find(x => x.id === id);
+        tot += it.harga * KERANJANG[id];
+        list.innerHTML += `<div>${it.nama} (x${KERANJANG[id]})</div>`;
+    }
+    document.getElementById("total-harga").innerText = "Rp " + tot.toLocaleString();
+}
 
-            totalDisplay.innerText = 'Rp ' + grandTotal.toLocaleString('id-ID');
-        }
+function checkout() {
+    let text = "Halo Kios Bersama, saya mau pesan:\n";
+    for(let id in KERANJANG) {
+        let it = SEMUA_BARANG.find(x => x.id === id);
+        text += `- ${it.nama} (x${KERANJANG[id]})\n`;
+    }
+    window.open("https://wa.me/62811897005?text=" + encodeURIComponent(text));
+}
 
-        function removeItem(id) {
-            delete CART[id];
-            renderCart();
-        }
+function simpan() {
+    let n = document.getElementById("inN").value;
+    let h = Number(document.getElementById("inH").value);
+    let s = Number(document.getElementById("inS").value);
+    let sat = document.getElementById("inSat").value;
+    let f = document.getElementById("inF").value;
+    db.collection("barang").add({ nama:n, harga:h, stok:s, satuan:sat, foto:f });
+    alert("Ok!");
+}
 
-        // 7. CHECKOUT
-        function checkoutWA() {
-            if (Object.keys(CART).length === 0) return alert('Keranjang kosong!');
-            
-            let text = "Halo Kios Bersama, saya ingin memesan:\n\n";
-            let grandTotal = 0;
-            
-            Object.keys(CART).forEach(id => {
-                const p = PRODUCTS.find(x => x.id === id);
-                const sub = p.harga * CART[id];
-                grandTotal += sub;
-                text += `• ${p.nama} (${CART[id]} ${p.satuan}) - Rp ${sub.toLocaleString()}\n`;
-            });
-            
-            text += `\n*TOTAL: Rp ${grandTotal.toLocaleString()}*`;
-            window.open(`https://wa.me/62811897005?text=${encodeURIComponent(text)}`);
-        }
-
-        function buyNow() {
-            const p = PRODUCTS.find(x => x.id === selectedId);
-            const sub = p.harga * currentQty;
-            const text = `Halo Kios Bersama, saya ingin beli langsung:\n• *${p.nama}* (${currentQty} ${p.satuan})\n*Total: Rp ${sub.toLocaleString()}*`;
-            window.open(`https://wa.me/62811897005?text=${encodeURIComponent(text)}`);
-        }
-
-        // 8. ADMIN ACTIONS
-        function handleSave() {
-            const n = document.getElementById('addNama').value;
-            const h = document.getElementById('addHarga').value;
-            const s = document.getElementById('addStok').value;
-            const sat = document.getElementById('addSatuan').value;
-            const f = document.getElementById('addFoto').value;
-
-            if (!n || !h) return alert('Nama dan Harga wajib diisi!');
-
-            db.collection("barang").add({
-                nama: n,
-                harga: parseInt(h),
-                stok: parseFloat(s) || 0,
-                satuan: sat || "pcs",
-                foto: f || ""
-            }).then(() => {
-                alert('Produk berhasil disimpan!');
-                document.querySelectorAll('.form-control').forEach(i => i.value = '');
-            });
-        }
-
-        function handleDelete(id) {
-            if (confirm('Yakin ingin menghapus produk ini?')) {
-                db.collection("barang").doc(id).delete();
-            }
-        }
-
-        // 9. UTILS
-        function closeModal() { document.getElementById('productModal').style.display = 'none'; }
-        
-        function switchTab(v) {
-            document.getElementById('viewB').classList.toggle('hidden', v !== 'B');
-            document.getElementById('viewA').classList.toggle('hidden', v !== 'A');
-            document.getElementById('tabB').classList.toggle('active', v === 'B');
-            document.getElementById('tabA').classList.toggle('active', v === 'A');
-            
-            if (v === 'A') {
-                const pass = prompt("Masukkan Password Admin:");
-                if (pass !== "kios123") {
-                    alert("Password Salah!");
-                    switchTab('B');
-                }
-            }
-        }
-    </script>
+function hapus(id) { if(confirm("Hapus?")) db.collection("barang").doc(id).delete(); }
+function tutup() { document.getElementById("myModal").style.display = "none"; }
+function pindah(v) {
+    document.getElementById("viewB").className = v=='B' ? '' : 'hidden';
+    document.getElementById("viewA").className = v=='A' ? '' : 'hidden';
+}
+</script>
 </body>
 </html>
