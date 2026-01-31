@@ -51,6 +51,14 @@ header{
 .item-produk .price{color:var(--green); font-weight:800; font-size:16px}
 .item-produk .stok-tag{font-size:12px; color:var(--muted); margin-top:5px; background:#f8fafc; padding:2px 6px; border-radius:4px; width:fit-content}
 
+/* CSS Fitur Atur Jumlah (Qty Selector) */
+.qty-control{
+  display: flex; align-items: center; gap: 15px; border: 1px solid var(--border); 
+  width: fit-content; padding: 5px 15px; border-radius: 10px; margin: 15px 0;
+}
+.qty-btn{ background: none; color: var(--green); font-size: 20px; width: 30px; padding: 0; cursor: pointer;}
+.qty-input{ width: 40px; text-align: center; border: none; margin: 0; font-weight: bold; background: none;}
+
 .modal{
   position: fixed; top:0; left:0; width:100%; height:100%; 
   background:rgba(0,0,0,0.6); display:none; justify-content:center; align-items:center; z-index:1000; backdrop-filter: blur(4px);
@@ -89,16 +97,31 @@ input,select,textarea{width:100%; padding:12px; border-radius:8px; border:1px so
     <div class="modal-right">
       <h1 id="modalTitle" style="margin:0; font-size: 26px;">Nama Produk</h1>
       <div id="modalPrice" style="font-size: 34px; font-weight:800; color:var(--green); margin:10px 0">Rp 0</div>
-      <div id="modalStok" style="background:#fff0e6; color:#ff6600; padding:6px 12px; border-radius:8px; font-weight:700; width:fit-content">Sisa 0</div>
       
+      <div style="background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px solid var(--border)">
+        <span style="font-size: 13px; font-weight: bold; color: var(--muted)">Atur jumlah dan catatan</span>
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 10px;">
+           <div class="qty-control">
+             <button class="qty-btn" onclick="updateQty(-1)">-</button>
+             <input id="modalQty" class="qty-input" value="1" readonly>
+             <button class="qty-btn" onclick="updateQty(1)">+</button>
+           </div>
+           <div style="text-align: right">
+             <small style="color: var(--muted)">Subtotal</small><br>
+             <b id="modalSubtotal" style="font-size: 18px; color: #333">Rp 0</b>
+           </div>
+        </div>
+        <div id="modalStokInfo" style="font-size: 12px; color: var(--muted); margin-top: 5px;">Stok Total: 0</div>
+      </div>
+
       <div style="border-top: 1px solid var(--border); margin-top: 20px; padding-top: 15px;">
         <span style="font-weight:800; color:var(--green)">Detail Produk</span>
         <div id="modalDesc" style="font-size:14px; margin-top:5px; line-height:1.6"></div>
       </div>
       
-      <div id="generalNoteBox" style="margin-top:20px; padding:15px; background:#f8fafc; border:1px solid #cbd5e1; border-radius:12px; display:none">
-        <b style="color:#475569; font-size:13px">📝 Catatan Toko:</b>
-        <div id="generalNoteText" style="font-size:14px; margin-top:5px; color:#334155"></div>
+      <div id="generalNoteBox" style="margin-top:20px; padding:15px; background:#fff9e6; border:1px solid #ffeeba; border-radius:12px; display:none">
+        <b style="color:#856404; font-size:13px">📝 Catatan Toko:</b>
+        <div id="generalNoteText" style="font-size:14px; margin-top:5px; color:#856404"></div>
       </div>
       
       <button id="modalAddBtn" style="margin-top:30px">+ Tambah ke Keranjang</button>
@@ -109,7 +132,7 @@ input,select,textarea{width:100%; padding:12px; border-radius:8px; border:1px so
 <header>
   <div class="logo" onclick="location.reload()">🧺 Kios Bersama</div>
   <div class="search-wrapper">
-    <input type="text" id="searchInput" placeholder="Cari barang (Beras, Mie, Botol...)" onkeyup="filterBarang()">
+    <input type="text" id="searchInput" placeholder="Cari barang di kios..." onkeyup="filterBarang()">
   </div>
 </header>
 
@@ -140,14 +163,14 @@ input,select,textarea{width:100%; padding:12px; border-radius:8px; border:1px so
       <div class="card">
         <h3>Tambah Barang Baru</h3>
         <input id="nama" placeholder="Nama Barang">
-        <input id="harga" type="number" placeholder="Harga Jual (Tanpa titik)">
+        <input id="harga" type="number" placeholder="Harga Jual">
         <input id="stok" type="number" placeholder="Jumlah Stok">
         <select id="satuan">
           <option value="">Pilih Satuan</option>
           <option>Bungkus</option><option>Botol</option><option>Kg</option><option>Liter</option><option>Pcs</option><option>Kardus</option>
         </select>
         <input id="fotoUrl" placeholder="Link Foto (Opsional)">
-        <textarea id="notes" placeholder="Catatan Toko"></textarea>
+        <textarea id="notes" placeholder="Catatan (Contoh: Expired Jan 2026)"></textarea>
         <button onclick="simpan()">Simpan ke Database</button>
       </div>
 
@@ -176,6 +199,7 @@ const WA_NUMBER = "62811897005";
 let adminUnlocked = false;
 let BARANG = [];
 let CART = {};
+let currentModalItem = null;
 
 firebase.initializeApp({
   apiKey: "AIzaSyBCpRbMAIyfJzpzi5iC4xljFt_gyXaJ5Yw",
@@ -184,15 +208,12 @@ firebase.initializeApp({
 });
 const db = firebase.firestore();
 
-// FUNGSI PEMBERSIH ANGKA (PENTING!)
-function formatAngka(val) {
-  if(!val) return 0;
-  // Jika input adalah string dengan titik (misal "90.000"), hilangkan titiknya dulu
-  let s = String(val).replace(/\./g, '');
-  return Number(s) || 0;
+// PEMBERSIH ANGKA (FIX Harga Rp 90)
+function cleanNum(v) {
+  if (!v) return 0;
+  return Number(String(v).replace(/\./g, '').replace(/,/g, '')) || 0;
 }
 
-/* REALTIME ENGINE */
 db.collection("barang").onSnapshot(snap => {
   let list = [];
   snap.forEach(doc => {
@@ -201,9 +222,8 @@ db.collection("barang").onSnapshot(snap => {
       list.push({
         id: doc.id,
         nama: d.nama,
-        // Gunakan pembersih harga di sini
-        harga: formatAngka(d.harga),
-        stok: formatAngka(d.stok),
+        harga: cleanNum(d.harga),
+        stok: cleanNum(d.stok),
         satuan: d.satuan || "pcs",
         foto: d.foto || "",
         notes: d.notes || ""
@@ -215,67 +235,57 @@ db.collection("barang").onSnapshot(snap => {
   renderAdmin();
 });
 
-function renderBuyer(f = "") {
-  const container = document.getElementById("buyerList");
-  container.innerHTML = "";
-  const filtered = BARANG.filter(b => b.nama.toLowerCase().includes(f.toLowerCase()));
-
-  if (filtered.length === 0) {
-    container.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:50px; color:gray">Barang tidak ditemukan...</div>`;
-    return;
-  }
-
-  filtered.forEach(b => {
-    container.innerHTML += `
-      <div class="item-produk" onclick="openDetail('${b.id}')">
-        <div class="img-box">${b.foto ? `<img src="${b.foto}" loading="lazy">` : '📦'}</div>
-        <b>${b.nama}</b>
-        <div class="price">Rp ${b.harga.toLocaleString('id-ID')}</div>
-        <div class="stok-tag">Stok: ${b.stok} ${b.satuan}</div>
-      </div>`;
-  });
-}
-
-function renderAdmin() {
-  const container = document.getElementById("adminList");
-  container.innerHTML = "";
-  BARANG.forEach(b => {
-    container.innerHTML += `
-      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding:12px 0">
-        <div>
-          <b style="color:var(--green)">${b.nama}</b><br>
-          <small>${b.stok} ${b.satuan} | Rp ${b.harga.toLocaleString('id-ID')}</small>
-        </div>
-        <button class="danger" style="width:auto; padding:5px 12px; font-size:12px" 
-                onclick="if(confirm('Hapus ${b.nama}?')) db.collection('barang').doc('${b.id}').delete()">Hapus</button>
-      </div>`;
-  });
-}
-
 function openDetail(id) {
   const b = BARANG.find(x => x.id === id);
   if (!b) return;
+  currentModalItem = b;
+  
   document.getElementById("modalTitle").innerText = b.nama;
   document.getElementById("modalPrice").innerText = "Rp " + b.harga.toLocaleString('id-ID');
-  document.getElementById("modalStok").innerText = `Sisa: ${b.stok} ${b.satuan}`;
+  document.getElementById("modalStokInfo").innerText = `Stok Total: ${b.stok} ${b.satuan}`;
   document.getElementById("modalDesc").innerText = getSmartDesc(b.nama);
   document.getElementById("modalImg").innerHTML = b.foto ? `<img src="${b.foto}">` : "📦";
   
+  // Reset Qty
+  document.getElementById("modalQty").value = 1;
+  updateSubtotal();
+
   const nb = document.getElementById("generalNoteBox");
   if (b.notes) {
     nb.style.display = "block";
     document.getElementById("generalNoteText").innerText = b.notes;
   } else { nb.style.display = "none"; }
   
-  document.getElementById("modalAddBtn").onclick = () => { addCart(id); document.getElementById('productModal').style.display = 'none'; };
+  document.getElementById("modalAddBtn").onclick = () => { 
+    addCart(id, parseInt(document.getElementById("modalQty").value)); 
+    document.getElementById('productModal').style.display = 'none'; 
+  };
   document.getElementById("productModal").style.display = "flex";
 }
 
-function addCart(id) {
+function updateQty(delta) {
+  const input = document.getElementById("modalQty");
+  let val = parseInt(input.value) + delta;
+  if (val < 1) val = 1;
+  if (val > currentModalItem.stok) {
+    alert("Maaf, stok hanya tersedia " + currentModalItem.stok);
+    val = currentModalItem.stok;
+  }
+  input.value = val;
+  updateSubtotal();
+}
+
+function updateSubtotal() {
+  const qty = parseInt(document.getElementById("modalQty").value);
+  const sub = qty * currentModalItem.harga;
+  document.getElementById("modalSubtotal").innerText = "Rp " + sub.toLocaleString('id-ID');
+}
+
+function addCart(id, qty = 1) {
   const b = BARANG.find(x => x.id === id);
   if (!b) return;
-  if ((CART[id] || 0) + 1 > b.stok) return alert("Stok tidak mencukupi!");
-  CART[id] = (CART[id] || 0) + 1;
+  if ((CART[id] || 0) + qty > b.stok) return alert("Stok tidak mencukupi!");
+  CART[id] = (CART[id] || 0) + qty;
   renderCart();
 }
 
@@ -295,8 +305,39 @@ function renderCart() {
   document.getElementById("total").innerText = total.toLocaleString('id-ID');
 }
 
+function renderBuyer(f = "") {
+  const container = document.getElementById("buyerList");
+  container.innerHTML = "";
+  const filtered = BARANG.filter(b => b.nama.toLowerCase().includes(f.toLowerCase()));
+  if (filtered.length === 0) {
+    container.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:50px; color:gray">Barang tidak ditemukan...</div>`;
+    return;
+  }
+  filtered.forEach(b => {
+    container.innerHTML += `
+      <div class="item-produk" onclick="openDetail('${b.id}')">
+        <div class="img-box">${b.foto ? `<img src="${b.foto}" loading="lazy">` : '📦'}</div>
+        <b>${b.nama}</b>
+        <div class="price">Rp ${b.harga.toLocaleString('id-ID')}</div>
+        <div class="stok-tag">Stok: ${b.stok} ${b.satuan}</div>
+      </div>`;
+  });
+}
+
+function renderAdmin() {
+  const container = document.getElementById("adminList");
+  container.innerHTML = "";
+  BARANG.forEach(b => {
+    container.innerHTML += `
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding:12px 0">
+        <div><b>${b.nama}</b><br><small>Rp ${b.harga.toLocaleString('id-ID')} | Stok: ${b.stok}</small></div>
+        <button class="danger" style="width:auto; padding:5px 12px; font-size:12px" onclick="if(confirm('Hapus?')) db.collection('barang').doc('${b.id}').delete()">Hapus</button>
+      </div>`;
+  });
+}
+
 function checkout() {
-  if (Object.keys(CART).length === 0) return alert("Pilih barang dulu!");
+  if (Object.keys(CART).length === 0) return alert("Keranjang kosong!");
   let msg = "*PESANAN KIOS BERSAMA*%0A---------------------------%0A";
   for (let id in CART) {
     const b = BARANG.find(x => x.id === id);
@@ -310,16 +351,10 @@ function simpan() {
   const n = document.getElementById("nama"), h = document.getElementById("harga"),
         s = document.getElementById("stok"), sat = document.getElementById("satuan"),
         nt = document.getElementById("notes"), f = document.getElementById("fotoUrl");
-  
   if (!n.value || !h.value || !s.value) return alert("Lengkapi data!");
-  
   db.collection("barang").add({
-    nama: n.value.trim(), 
-    harga: Number(h.value), // Input type number sudah otomatis bersih
-    stok: Number(s.value), 
-    satuan: sat.value || "pcs", 
-    notes: nt.value, 
-    foto: f.value
+    nama: n.value.trim(), harga: Number(h.value), stok: Number(s.value), 
+    satuan: sat.value || "pcs", notes: nt.value, foto: f.value
   }).then(() => {
     n.value = h.value = s.value = nt.value = f.value = "";
     alert("Berhasil!");
@@ -332,21 +367,21 @@ function asisten(mode) {
   if (mode === 'daftar') out.innerHTML = BARANG.map(b => `• ${b.nama} (${b.stok})`).join("<br>");
   if (mode === 'menipis') {
     const low = BARANG.filter(b => b.stok <= 5);
-    out.innerHTML = low.length ? low.map(b => `⚠️ ${b.nama} sisa ${b.stok}`).join("<br>") : "✅ Stok aman semua";
+    out.innerHTML = low.length ? low.map(b => `⚠️ ${b.nama} sisa ${b.stok}`).join("<br>") : "✅ Stok aman";
   }
-  if (mode === 'total') out.innerText = `Total Jenis: ${BARANG.length}`;
+  if (mode === 'total') out.innerText = `Total: ${BARANG.length} jenis.`;
   if (mode === 'tanya') {
     const q = document.getElementById("aiInput").value.toLowerCase();
     const b = BARANG.find(x => q.includes(x.nama.toLowerCase()));
-    out.innerText = b ? `🤖 ${b.nama} ada ${b.stok} ${b.satuan}.` : "🤖 Barang tidak ada.";
+    out.innerText = b ? `🤖 ${b.nama} ada ${b.stok} ${b.satuan}.` : "🤖 Tidak ditemukan.";
   }
 }
 
 function getSmartDesc(n) {
   n = n.toLowerCase();
-  if (n.includes("mie")) return "Mie instan pilihan, cocok untuk stok di rumah.";
-  if (n.includes("beras")) return "Beras pulen kualitas terbaik, bersih dan sehat.";
-  return "Produk berkualitas untuk memenuhi kebutuhan harian Anda.";
+  if (n.includes("mie")) return "Mie instan lezat, praktis untuk stok di rumah.";
+  if (n.includes("beras")) return "Beras pulen kualitas premium, bersih dan sehat.";
+  return "Produk pilihan terbaik untuk kebutuhan harian keluarga Anda.";
 }
 
 function filterBarang() { renderBuyer(document.getElementById("searchInput").value); }
