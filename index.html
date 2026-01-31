@@ -3,217 +3,198 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kios Bersama - Pro Version</title>
+    <title>Kios Bersama - Enterprise Stable</title>
     
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
     <style>
-        /* =========================================
-           1. CSS VARIABLES & RESET
-           ========================================= */
+        /* ==========================================================================
+           1. CORE STYLING (THEME: KIOS BERSAMA)
+           ========================================================================== 
+        */
         :root {
-            --primary: #00aa5b;
-            --primary-dark: #00894a;
-            --bg-body: #f0f3f7;
+            --green-primary: #00aa5b;
+            --green-hover: #00894a;
+            --bg-light: #f4f7f6;
             --white: #ffffff;
-            --text-main: #2e3137;
-            --text-muted: #6d7588;
-            --border-color: #e5e7eb;
-            --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
-            --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
-            --radius-lg: 16px;
-            --radius-md: 12px;
+            --text-dark: #2e3137;
+            --text-gray: #6d7588;
+            --border: #e5e7eb;
+            --radius-custom: 18px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         * {
             box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
+            font-family: 'Inter', -apple-system, sans-serif;
         }
 
         body {
             margin: 0;
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-body);
-            color: var(--text-main);
-            line-height: 1.5;
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            overflow-x: hidden;
         }
 
-        /* =========================================
-           2. HEADER & NAVIGATION
-           ========================================= */
+        /* ==========================================================================
+           2. NAVIGATION & SEARCH
+           ========================================================================== 
+        */
         header {
             background: var(--white);
-            padding: 12px 20px;
+            padding: 15px 30px;
             position: sticky;
             top: 0;
             z-index: 1000;
-            box-shadow: var(--shadow-sm);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 20px;
         }
 
-        .brand {
+        .logo-box {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
             cursor: pointer;
+            transition: var(--transition);
         }
 
-        .brand-logo {
-            width: 35px;
-            height: 35px;
-            background: var(--primary);
-            border-radius: 8px;
+        .logo-box:hover { opacity: 0.8; }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--green-primary);
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            font-weight: bold;
-            font-size: 20px;
-        }
-
-        .brand-name {
+            font-weight: 900;
             font-size: 22px;
-            font-weight: 800;
-            color: var(--primary);
-            letter-spacing: -0.5px;
         }
 
-        .search-container {
+        .logo-text {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--green-primary);
+            text-transform: uppercase;
+            letter-spacing: -1px;
+        }
+
+        .search-area {
             flex: 1;
-            max-width: 600px;
+            max-width: 500px;
+            margin: 0 20px;
             position: relative;
         }
 
-        .search-input {
+        .search-bar {
             width: 100%;
-            padding: 12px 15px 12px 45px;
-            border-radius: var(--radius-md);
-            border: 1px solid var(--border-color);
-            background: #f3f4f6;
+            padding: 12px 20px 12px 45px;
+            border-radius: 12px;
+            border: 1.5px solid var(--border);
+            background: #f9f9f9;
             font-size: 15px;
             outline: none;
-            transition: all 0.3s ease;
+            transition: var(--transition);
         }
 
-        .search-input:focus {
-            background: var(--white);
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(0, 170, 91, 0.1);
+        .search-bar:focus {
+            border-color: var(--green-primary);
+            background: white;
+            box-shadow: 0 0 0 4px rgba(0, 170, 91, 0.1);
         }
 
-        .search-icon {
+        .search-icon-fixed {
             position: absolute;
             left: 15px;
             top: 50%;
             transform: translateY(-50%);
-            color: var(--text-muted);
+            font-size: 18px;
+            color: var(--text-gray);
         }
 
-        /* =========================================
-           3. MAIN LAYOUT
-           ========================================= */
-        .wrapper {
-            max-width: 1300px;
-            margin: 20px auto;
+        /* ==========================================================================
+           3. LAYOUT STRUCTURE
+           ========================================================================== 
+        */
+        .main-container {
+            max-width: 1350px;
+            margin: 30px auto;
             padding: 0 20px;
-            display: grid;
-            grid-template-columns: 1fr 320px;
-            gap: 25px;
-        }
-
-        @media (max-width: 1024px) {
-            .wrapper {
-                grid-template-columns: 1fr;
-            }
-            .sidebar {
-                position: static !important;
-            }
-        }
-
-        /* =========================================
-           4. TABS SYSTEM
-           ========================================= */
-        .tabs-nav {
             display: flex;
-            gap: 10px;
-            margin-bottom: 25px;
-            background: #e5e7eb;
-            padding: 5px;
-            border-radius: var(--radius-md);
-            width: fit-content;
+            gap: 30px;
         }
 
-        .tab-btn {
-            padding: 10px 24px;
-            border: none;
-            border-radius: 10px;
-            background: transparent;
-            font-weight: 700;
-            color: var(--text-muted);
-            cursor: pointer;
-            transition: 0.2s;
+        .content-wrap { flex: 3; }
+        .side-wrap { flex: 1.2; position: sticky; top: 100px; height: fit-content; }
+
+        @media (max-width: 992px) {
+            .main-container { flex-direction: column; }
+            .side-wrap { position: static; width: 100%; }
         }
 
-        .tab-btn.active {
-            background: var(--white);
-            color: var(--primary);
-            box-shadow: var(--shadow-sm);
-        }
-
-        /* =========================================
-           5. PRODUCT GRID
-           ========================================= */
-        .product-grid {
+        /* ==========================================================================
+           4. PRODUCT COMPONENT (FIX BLINK BUG)
+           ========================================================================== 
+        */
+        .grid-system {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
             gap: 20px;
         }
 
         .product-card {
             background: var(--white);
-            border-radius: var(--radius-lg);
-            padding: 12px;
-            border: 1px solid var(--border-color);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border-radius: var(--radius-custom);
+            padding: 15px;
+            border: 1px solid var(--border);
+            transition: var(--transition);
             cursor: pointer;
+            position: relative;
+            overflow: hidden;
             display: flex;
             flex-direction: column;
-            position: relative;
+            /* Fix blink: ensure the container size is stable */
+            min-height: 320px;
         }
 
         .product-card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-md);
-            border-color: var(--primary);
+            transform: translateY(-8px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+            border-color: var(--green-primary);
         }
 
-        .img-container {
+        /* Container for image to prevent layout shift */
+        .image-frame {
             width: 100%;
             aspect-ratio: 1/1;
-            background: #f9fafb;
-            border-radius: var(--radius-md);
+            background: #f0f2f5;
+            border-radius: 12px;
             margin-bottom: 12px;
             overflow: hidden;
             display: flex;
             align-items: center;
             justify-content: center;
+            position: relative;
         }
 
-        .img-container img {
+        /* Fix Blink Bug: use opacity and prevent reloading flashes */
+        .image-frame img {
             width: 100%;
             height: 100%;
             object-fit: cover;
+            transition: opacity 0.3s ease;
         }
 
-        .product-info b {
-            display: block;
-            font-size: 15px;
-            color: var(--text-main);
-            margin-bottom: 4px;
+        .p-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 6px;
             height: 40px;
             overflow: hidden;
             display: -webkit-box;
@@ -221,359 +202,305 @@
             -webkit-box-orient: vertical;
         }
 
-        .product-price {
-            font-size: 18px;
-            font-weight: 800;
-            color: var(--primary);
+        .p-price {
+            font-size: 20px;
+            font-weight: 900;
+            color: var(--green-primary);
+            margin-top: auto;
         }
 
-        .product-stock {
+        .p-meta {
             font-size: 12px;
-            color: var(--text-muted);
-            margin-top: 8px;
-            display: flex;
-            justify-content: space-between;
+            color: var(--text-gray);
+            margin-top: 5px;
+            background: #f1f3f5;
+            padding: 4px 10px;
+            border-radius: 20px;
+            width: fit-content;
         }
 
-        /* =========================================
-           6. SIDEBAR & CART
-           ========================================= */
-        .sidebar {
-            position: sticky;
-            top: 90px;
-            height: fit-content;
-        }
-
-        .cart-card {
+        /* ==========================================================================
+           5. SIDEBAR CART
+           ========================================================================== 
+        */
+        .cart-widget {
             background: var(--white);
-            border-radius: var(--radius-lg);
-            border: 1px solid var(--border-color);
-            padding: 20px;
-            box-shadow: var(--shadow-sm);
+            border-radius: var(--radius-custom);
+            padding: 25px;
+            border: 1px solid var(--border);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.03);
         }
 
-        .cart-header {
+        .cart-title {
+            font-size: 22px;
+            font-weight: 800;
+            margin-bottom: 20px;
             display: flex;
             align-items: center;
             gap: 10px;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #f3f4f6;
         }
 
-        .cart-items {
-            max-height: 400px;
+        .cart-scroll {
+            max-height: 450px;
             overflow-y: auto;
             margin-bottom: 20px;
+            padding-right: 5px;
         }
 
-        .cart-item {
+        /* Custom Scrollbar */
+        .cart-scroll::-webkit-scrollbar { width: 4px; }
+        .cart-scroll::-webkit-scrollbar-thumb { background: #ddd; border-radius: 10px; }
+
+        .item-list {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 12px;
-            font-size: 14px;
+            padding: 12px 0;
+            border-bottom: 1px dashed #eee;
         }
 
-        .cart-item-info {
-            flex: 1;
-        }
-
-        .cart-item-price {
-            font-weight: bold;
-        }
-
-        .cart-empty {
-            text-align: center;
-            padding: 30px 0;
-            color: var(--text-muted);
-        }
-
-        .cart-total {
-            background: #f9fafb;
-            padding: 15px;
-            border-radius: var(--radius-md);
+        .total-section {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 15px;
             margin-bottom: 20px;
         }
 
-        .total-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .total-label {
-            font-size: 12px;
-            font-weight: bold;
-            color: var(--text-muted);
-            text-transform: uppercase;
-        }
-
-        .total-amount {
-            font-size: 24px;
-            font-weight: 900;
-            color: var(--primary);
-        }
-
-        /* =========================================
-           7. BUTTONS
-           ========================================= */
-        .btn {
-            display: block;
+        .btn-checkout {
+            background: var(--green-primary);
+            color: white;
             width: 100%;
-            padding: 14px;
+            padding: 16px;
             border: none;
-            border-radius: var(--radius-md);
+            border-radius: 14px;
             font-size: 16px;
-            font-weight: bold;
+            font-weight: 800;
             cursor: pointer;
-            transition: 0.2s;
-            text-align: center;
-            text-decoration: none;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
         }
 
-        .btn-primary {
-            background: var(--primary);
-            color: var(--white);
-        }
+        .btn-checkout:hover { background: var(--green-hover); transform: scale(1.02); }
 
-        .btn-primary:hover {
-            background: var(--primary-dark);
-        }
-
-        .btn-outline {
-            background: transparent;
-            border: 2px solid var(--primary);
-            color: var(--primary);
-            margin-top: 10px;
-        }
-
-        /* =========================================
-           8. MODAL SYSTEM
-           ========================================= */
-        .modal-backdrop {
+        /* ==========================================================================
+           6. MODAL & COUNTER
+           ========================================================================== 
+        */
+        .overlay {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.6);
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(8px);
             display: none;
             justify-content: center;
             align-items: center;
             z-index: 2000;
-            backdrop-filter: blur(4px);
         }
 
-        .modal-content {
-            background: var(--white);
+        .modal-box {
+            background: white;
             width: 90%;
-            max-width: 450px;
-            border-radius: 24px;
-            padding: 30px;
+            max-width: 480px;
+            border-radius: 28px;
+            padding: 35px;
             position: relative;
-            animation: modalSlide 0.3s ease-out;
+            animation: slideUp 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
         }
 
-        @keyframes modalSlide {
-            from { transform: translateY(20px); opacity: 0; }
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
         }
 
-        .qty-control {
+        .count-wrap {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 20px;
-            margin: 25px 0;
+            gap: 25px;
+            margin: 30px 0;
         }
 
-        .qty-btn {
-            width: 45px;
-            height: 45px;
+        .ctrl-btn {
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
-            border: 2px solid var(--primary);
+            border: 2px solid var(--green-primary);
             background: white;
-            color: var(--primary);
-            font-size: 24px;
+            color: var(--green-primary);
+            font-size: 26px;
             font-weight: bold;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            transition: var(--transition);
         }
 
-        #displayQty {
-            font-size: 28px;
-            font-weight: 800;
-            min-width: 50px;
-            text-align: center;
+        .ctrl-btn:hover { background: var(--green-primary); color: white; }
+
+        #qtyNum { font-size: 32px; font-weight: 900; min-width: 60px; text-align: center; }
+
+        /* ==========================================================================
+           7. ADMIN PANEL & EDIT MODE
+           ========================================================================== 
+        */
+        .admin-box {
+            background: white;
+            padding: 30px;
+            border-radius: 24px;
+            border: 1.5px solid var(--border);
+            margin-bottom: 30px;
         }
 
-        /* =========================================
-           9. ADMIN PANEL
-           ========================================= */
-        .admin-section {
-            background: var(--white);
-            padding: 25px;
-            border-radius: var(--radius-lg);
-            border: 1px solid var(--border-color);
-            margin-bottom: 25px;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        .form-group label {
-            display: block;
-            font-size: 14px;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-
-        .form-control {
-            width: 100%;
-            padding: 10px;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-            outline: none;
-        }
-
-        .admin-list-item {
-            display: flex;
-            align-items: center;
-            padding: 15px;
-            background: var(--white);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
-            margin-bottom: 10px;
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
             gap: 15px;
         }
 
-        .admin-list-img {
-            width: 50px;
-            height: 50px;
-            border-radius: 8px;
-            object-fit: cover;
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; font-weight: bold; margin-bottom: 6px; font-size: 14px; }
+        .input-style {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            outline: none;
+        }
+
+        .inventory-item {
+            display: flex;
+            align-items: center;
+            background: white;
+            padding: 15px;
+            border-radius: 16px;
+            border: 1px solid #eee;
+            margin-bottom: 12px;
+            gap: 15px;
+        }
+
+        /* Status Indicator */
+        .badge-total {
+            background: var(--green-primary);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 10px;
+            font-weight: bold;
         }
 
         .hidden { display: none !important; }
-
     </style>
 </head>
 <body>
 
     <header>
-        <div class="brand" onclick="location.reload()">
-            <div class="brand-logo">K</div>
-            <div class="brand-name">Kios Bersama</div>
+        <div class="logo-box" onclick="location.reload()">
+            <div class="logo-icon">K</div>
+            <div class="logo-text">Kios Bersama</div>
         </div>
         
-        <div class="search-container">
-            <span class="search-icon">🔍</span>
-            <input type="text" id="searchInput" class="search-input" placeholder="Cari di antara 300+ produk..." onkeyup="renderAll()">
+        <div class="search-area">
+            <span class="search-icon-fixed">🔍</span>
+            <input type="text" id="mainSearch" class="search-bar" placeholder="Cari di antara ratusan produk..." onkeyup="refreshUI()">
         </div>
     </header>
 
-    <div class="wrapper">
-        <main>
-            <div class="tabs-nav">
-                <button id="tabB" class="tab-btn active" onclick="switchTab('B')">🛒 Belanja</button>
-                <button id="tabA" class="tab-btn" onclick="switchTab('A')">🔐 Panel Admin</button>
+    <div class="main-container">
+        <div class="content-wrap">
+            <div style="margin-bottom: 25px; display: flex; gap: 10px;">
+                <button id="btnShop" onclick="changeMode('B')" style="padding: 12px 25px; border-radius: 12px; border: none; background: var(--green-primary); color: white; font-weight: bold; cursor: pointer;">🛍️ Belanja</button>
+                <button id="btnAdmin" onclick="changeMode('A')" style="padding: 12px 25px; border-radius: 12px; border: 1.5px solid var(--border); background: white; font-weight: bold; cursor: pointer;">🔐 Admin</button>
             </div>
 
-            <div id="viewB">
-                <div class="product-grid" id="buyerGrid">
+            <div id="shopView">
+                <div class="grid-system" id="productGrid">
                     </div>
             </div>
 
-            <div id="viewA" class="hidden">
-                <div class="admin-section">
-                    <h3 style="margin-top:0">Tambah Produk Baru</h3>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                        <div class="form-group" style="grid-column: span 2;">
-                            <label>Nama Barang</label>
-                            <input type="text" id="addNama" class="form-control" placeholder="Contoh: Tepung Tapioka">
+            <div id="adminView" class="hidden">
+                <div class="admin-box">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h2 style="margin:0">Kelola Inventaris</h2>
+                        <div id="statCount" class="badge-total">Loading...</div>
+                    </div>
+                    
+                    <div class="form-grid">
+                        <div class="input-group" style="grid-column: span 2;">
+                            <label>Nama Barang (Gunakan nama yang sama untuk Update Foto/Stok)</label>
+                            <input type="text" id="inName" class="input-style" placeholder="Contoh: Tepung Tapioka">
                         </div>
-                        <div class="form-group">
+                        <div class="input-group">
                             <label>Harga (Rp)</label>
-                            <input type="number" id="addHarga" class="form-control" placeholder="7000">
+                            <input type="number" id="inPrice" class="input-style" placeholder="Contoh: 7000">
                         </div>
-                        <div class="form-group">
+                        <div class="input-group">
                             <label>Stok</label>
-                            <input type="number" id="addStok" class="form-control" placeholder="12">
+                            <input type="number" id="inStock" class="input-style" placeholder="Contoh: 12">
                         </div>
-                        <div class="form-group">
+                        <div class="input-group">
                             <label>Satuan</label>
-                            <input type="text" id="addSatuan" class="form-control" placeholder="Pack / Kg / Botol">
+                            <input type="text" id="inUnit" class="input-style" placeholder="Pack / Kg / Pcs">
                         </div>
-                        <div class="form-group">
-                            <label>Link Foto</label>
-                            <input type="text" id="addFoto" class="form-control" placeholder="https://...">
+                        <div class="input-group">
+                            <label>Link URL Foto</label>
+                            <input type="text" id="inPhoto" class="input-style" placeholder="Paste link image di sini">
                         </div>
                     </div>
-                    <button class="btn btn-primary" onclick="handleSave()">Simpan ke Firebase</button>
+                    <button class="btn-checkout" onclick="dbSave()" style="margin-top: 10px;">Simpan / Update Barang</button>
                 </div>
 
-                <div id="adminInventory">
+                <div id="adminList">
                     </div>
             </div>
-        </main>
+        </div>
 
-        <aside class="sidebar">
-            <div class="cart-card">
-                <div class="cart-header">
-                    <span style="font-size: 20px;">🛒</span>
-                    <h3 style="margin:0">Keranjang</h3>
+        <div class="side-wrap">
+            <div class="cart-widget">
+                <div class="cart-title">🛒 Keranjang</div>
+                <div id="cartBody" class="cart-scroll">
+                    <div style="text-align: center; color: #888; padding: 20px;">Keranjang kosong.</div>
                 </div>
                 
-                <div id="cartItems" class="cart-items">
-                    <div class="cart-empty">Keranjang masih kosong</div>
+                <div class="total-section">
+                    <div style="color: var(--text-gray); font-size: 13px; font-weight: bold;">TOTAL ESTIMASI</div>
+                    <div id="grandTotal" style="font-size: 30px; font-weight: 900; color: var(--green-primary);">Rp 0</div>
                 </div>
 
-                <div class="cart-total">
-                    <div class="total-row">
-                        <span class="total-label">Total Pembayaran</span>
-                    </div>
-                    <div id="totalDisplay" class="total-amount">Rp 0</div>
-                </div>
-
-                <button class="btn btn-primary" onclick="checkoutWA()">
+                <button class="btn-checkout" onclick="sendWA()">
                     Pesan via WhatsApp
                 </button>
             </div>
-        </aside>
+        </div>
     </div>
 
-    <div id="productModal" class="modal-backdrop" onclick="closeModal()">
-        <div class="modal-content" onclick="event.stopPropagation()">
-            <div id="modalImg" class="img-container" style="height: 200px; margin-bottom: 20px;"></div>
-            <h2 id="modalTitle" style="margin: 0 0 5px 0;"></h2>
-            <div id="modalPrice" class="product-price" style="font-size: 24px; margin-bottom: 10px;"></div>
-            <div id="modalStock" style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px;"></div>
+    <div class="overlay" id="modalOverlay" onclick="closePop()">
+        <div class="modal-box" onclick="event.stopPropagation()">
+            <div id="popImgFrame" class="image-frame" style="height: 220px; margin-bottom: 20px;"></div>
+            <h2 id="popName" style="margin: 0;"></h2>
+            <div id="popPrice" style="font-size: 26px; font-weight: 900; color: var(--green-primary); margin: 10px 0;"></div>
+            <div id="popStock" style="color: var(--text-gray); font-size: 14px; margin-bottom: 20px;"></div>
 
             <div style="border-top: 1px solid #eee; padding-top: 20px;">
-                <label style="font-weight: bold; font-size: 14px; color: var(--text-muted);">JUMLAH PESANAN</label>
-                <div class="qty-control">
-                    <button class="qty-btn" onclick="updateQty(-1)">−</button>
-                    <div id="displayQty">1</div>
-                    <button class="qty-btn" onclick="updateQty(1)">+</button>
+                <div style="text-align: center; font-weight: bold; color: var(--text-gray); font-size: 12px;">PENGATURAN JUMLAH</div>
+                <div class="count-wrap">
+                    <button class="ctrl-btn" onclick="adjQty(-1)">−</button>
+                    <div id="qtyNum">1</div>
+                    <button class="ctrl-btn" onclick="adjQty(1)">+</button>
                 </div>
             </div>
 
-            <div class="total-row" style="margin: 20px 0; padding: 15px; background: #f8fafc; border-radius: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 0; padding: 15px; background: #f1f8f5; border-radius: 12px;">
                 <span style="font-weight: bold;">Subtotal:</span>
-                <span id="modalSubtotal" style="font-weight: 900; font-size: 20px; color: var(--primary);">Rp 0</span>
+                <b id="popSub" style="font-size: 22px; color: var(--green-primary);">Rp 0</b>
             </div>
 
-            <button class="btn btn-primary" onclick="addToCart()">+ Tambahkan ke Keranjang</button>
-            <button class="btn btn-outline" onclick="buyNow()">Beli Langsung</button>
+            <button class="btn-checkout" onclick="commitCart()">Masukkan Keranjang</button>
+            <button onclick="instantBuy()" style="width: 100%; margin-top: 10px; background: none; border: 2px solid var(--green-primary); color: var(--green-primary); padding: 12px; border-radius: 12px; font-weight: bold; cursor: pointer;">Beli Langsung</button>
         </div>
     </div>
 
     <script>
-        // 1. DATABASE CONFIG
+        // 1. CONFIGURATION
         const firebaseConfig = {
             apiKey: "AIzaSyBCpRbMAIyfJzpzi5iC4xljFt_gyXaJ5Yw",
             authDomain: "kios-30.firebaseapp.com",
@@ -582,228 +509,249 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // 2. STATE MANAGEMENT
-        let PRODUCTS = [];
-        let CART = {};
-        let selectedId = null;
-        let currentQty = 1;
+        // 2. GLOBAL STATE
+        let MASTER_DATA = [];
+        let SHOPPING_CART = {};
+        let activeId = null;
+        let activeQty = 1;
 
-        // 3. FETCH DATA (REALTIME)
+        // 3. DATABASE LISTENER (REALTIME)
         db.collection("barang").onSnapshot(snapshot => {
-            PRODUCTS = [];
+            MASTER_DATA = [];
             snapshot.forEach(doc => {
-                const data = doc.data();
-                // Tetap menggunakan field murni dari database kamu
-                if (data.nama) {
-                    PRODUCTS.push({
+                const d = doc.data();
+                if (d.nama) {
+                    MASTER_DATA.push({
                         id: doc.id,
-                        nama: data.nama,
-                        harga: parseInt(data.harga) || 0,
-                        stok: parseFloat(data.stok) || 0,
-                        satuan: data.satuan || "pcs",
-                        foto: data.foto || ""
+                        nama: d.nama,
+                        harga: parseInt(d.harga) || 0,
+                        stok: parseFloat(d.stok) || 0,
+                        satuan: d.satuan || "pcs",
+                        foto: d.foto || ""
                     });
                 }
             });
-            renderAll();
+            document.getElementById('statCount').innerText = `Total: ${MASTER_DATA.length} Produk`;
+            refreshUI();
         });
 
-        // 4. RENDERING FUNCTIONS
-        function renderAll() {
-            const query = document.getElementById('searchInput').value.toLowerCase();
-            const bGrid = document.getElementById('buyerGrid');
-            const aList = document.getElementById('adminInventory');
+        // 4. RENDERING ENGINE (WITH BLINK PROTECTION)
+        function refreshUI() {
+            const grid = document.getElementById('productGrid');
+            const list = document.getElementById('adminList');
+            const search = document.getElementById('mainSearch').value.toLowerCase();
             
-            bGrid.innerHTML = '';
-            aList.innerHTML = '<h3>Daftar Inventaris</h3>';
+            // Simpan posisi scroll sebelum refresh
+            const scrollPos = window.scrollY;
 
-            // Urutkan alfabetis
-            const filtered = PRODUCTS.sort((a, b) => a.nama.localeCompare(b.nama));
+            grid.innerHTML = '';
+            list.innerHTML = '';
 
-            filtered.forEach(p => {
-                if (p.nama.toLowerCase().includes(query)) {
-                    // Render Buyer Card
-                    bGrid.innerHTML += `
-                        <div class="product-card" onclick="openModal('${p.id}')">
-                            <div class="img-container">
-                                <img src="${p.foto || 'https://via.placeholder.com/150'}" onerror="this.src='https://via.placeholder.com/150'">
+            // Sort alphabetical
+            const sorted = MASTER_DATA.sort((a, b) => a.nama.localeCompare(b.nama));
+
+            sorted.forEach(item => {
+                if (item.nama.toLowerCase().includes(search)) {
+                    // BUYER GRID
+                    grid.innerHTML += `
+                        <div class="product-card" onclick="openPop('${item.id}')">
+                            <div class="image-frame">
+                                <img src="${item.foto || 'https://via.placeholder.com/200?text=No+Image'}" 
+                                     loading="lazy"
+                                     onload="this.style.opacity=1" 
+                                     style="opacity:0">
                             </div>
-                            <div class="product-info">
-                                <b>${p.nama}</b>
-                                <div class="product-price">Rp ${p.harga.toLocaleString('id-ID')}</div>
-                                <div class="product-stock">
-                                    <span>Stok: ${p.stok}</span>
-                                    <span>${p.satuan}</span>
-                                </div>
-                            </div>
+                            <b class="p-title">${item.nama}</b>
+                            <div class="p-price">Rp ${item.harga.toLocaleString('id-ID')}</div>
+                            <div class="p-meta">Stok: ${item.stok} ${item.satuan}</div>
                         </div>
                     `;
 
-                    // Render Admin Row
-                    aList.innerHTML += `
-                        <div class="admin-list-item">
-                            <img src="${p.foto}" class="admin-list-img" onerror="this.src='https://via.placeholder.com/50'">
+                    // ADMIN LIST
+                    list.innerHTML += `
+                        <div class="inventory-item">
+                            <img src="${item.foto}" style="width:50px; height:50px; border-radius:8px; object-fit:cover" onerror="this.src='https://via.placeholder.com/50'">
                             <div style="flex:1">
-                                <b>${p.nama}</b><br>
-                                <small>Rp ${p.harga.toLocaleString()} | Stok: ${p.stok}</small>
+                                <b style="font-size:14px">${item.nama}</b><br>
+                                <small>Rp ${item.harga.toLocaleString()} | ${item.stok} ${item.satuan}</small>
                             </div>
-                            <button onclick="handleDelete('${p.id}')" style="background:#fee2e2; color:#ef4444; border:none; padding:8px 12px; border-radius:8px; font-weight:bold; cursor:pointer">Hapus</button>
+                            <button onclick="dbDelete('${item.id}')" style="background:none; border:none; color:#ff4757; font-weight:bold; cursor:pointer">Hapus</button>
                         </div>
                     `;
                 }
             });
         }
 
-        // 5. MODAL LOGIC
-        function openModal(id) {
-            const p = PRODUCTS.find(x => x.id === id);
-            selectedId = id;
-            currentQty = 1;
+        // 5. MODAL INTERACTION
+        function openPop(id) {
+            const p = MASTER_DATA.find(x => x.id === id);
+            activeId = id;
+            activeQty = 1;
+
+            document.getElementById('popName').innerText = p.nama;
+            document.getElementById('popPrice').innerText = 'Rp ' + p.harga.toLocaleString('id-ID');
+            document.getElementById('popStock').innerText = `Tersedia: ${p.stok} ${p.satuan}`;
+            document.getElementById('popImgFrame').innerHTML = `<img src="${p.foto || 'https://via.placeholder.com/220'}" style="width:100%; height:100%; object-fit:cover">`;
+            document.getElementById('qtyNum').innerText = activeQty;
             
-            document.getElementById('modalTitle').innerText = p.nama;
-            document.getElementById('modalPrice').innerText = 'Rp ' + p.harga.toLocaleString('id-ID');
-            document.getElementById('modalStock').innerText = `Tersedia: ${p.stok} ${p.satuan}`;
-            document.getElementById('modalImg').innerHTML = `<img src="${p.foto}" onerror="this.src='https://via.placeholder.com/150'">`;
-            document.getElementById('displayQty').innerText = currentQty;
-            
-            updateSubtotal();
-            document.getElementById('productModal').style.display = 'flex';
+            updateModalSub();
+            document.getElementById('modalOverlay').style.display = 'flex';
         }
 
-        function updateQty(val) {
-            const p = PRODUCTS.find(x => x.id === selectedId);
-            const next = currentQty + val;
-            if (next >= 1 && next <= p.stok) {
-                currentQty = next;
-                document.getElementById('displayQty').innerText = currentQty;
-                updateSubtotal();
+        function adjQty(val) {
+            const p = MASTER_DATA.find(x => x.id === activeId);
+            const target = activeQty + val;
+            if (target >= 1 && target <= p.stok) {
+                activeQty = target;
+                document.getElementById('qtyNum').innerText = activeQty;
+                updateModalSub();
             }
         }
 
-        function updateSubtotal() {
-            const p = PRODUCTS.find(x => x.id === selectedId);
-            const total = p.harga * currentQty;
-            document.getElementById('modalSubtotal').innerText = 'Rp ' + total.toLocaleString('id-ID');
+        function updateModalSub() {
+            const p = MASTER_DATA.find(x => x.id === activeId);
+            const sub = p.harga * activeQty;
+            document.getElementById('popSub').innerText = 'Rp ' + sub.toLocaleString('id-ID');
         }
 
-        // 6. CART LOGIC
-        function addToCart() {
-            CART[selectedId] = (CART[selectedId] || 0) + currentQty;
-            renderCart();
-            closeModal();
+        // 6. CART MANAGEMENT
+        function commitCart() {
+            SHOPPING_CART[activeId] = (SHOPPING_CART[activeId] || 0) + activeQty;
+            renderCartUI();
+            closePop();
         }
 
-        function renderCart() {
-            const container = document.getElementById('cartItems');
-            const totalDisplay = document.getElementById('totalDisplay');
-            let grandTotal = 0;
+        function renderCartUI() {
+            const body = document.getElementById('cartBody');
+            const totalLabel = document.getElementById('grandTotal');
+            let grand = 0;
             
-            container.innerHTML = '';
-            
-            const keys = Object.keys(CART);
+            body.innerHTML = '';
+            const keys = Object.keys(SHOPPING_CART);
+
             if (keys.length === 0) {
-                container.innerHTML = '<div class="cart-empty">Keranjang masih kosong</div>';
-                totalDisplay.innerText = 'Rp 0';
+                body.innerHTML = '<div style="text-align: center; color: #888; padding: 20px;">Keranjang kosong.</div>';
+                totalLabel.innerText = 'Rp 0';
                 return;
             }
 
             keys.forEach(id => {
-                const p = PRODUCTS.find(x => x.id === id);
+                const p = MASTER_DATA.find(x => x.id === id);
                 if (!p) return;
+                const sub = p.harga * SHOPPING_CART[id];
+                grand += sub;
                 
-                const sub = p.harga * CART[id];
-                grandTotal += sub;
-                
-                container.innerHTML += `
-                    <div class="cart-item">
-                        <div class="cart-item-info">
-                            <b>${p.nama}</b><br>
-                            <small>${CART[id]} x Rp ${p.harga.toLocaleString()}</small>
+                body.innerHTML += `
+                    <div class="item-list">
+                        <div style="flex:1">
+                            <b style="font-size:14px">${p.nama}</b><br>
+                            <small>${SHOPPING_CART[id]} x ${p.harga.toLocaleString()}</small>
                         </div>
-                        <div class="cart-item-price">Rp ${sub.toLocaleString()}</div>
-                        <button onclick="removeItem('${id}')" style="background:none; border:none; color:red; margin-left:10px; cursor:pointer">×</button>
+                        <div style="font-weight:bold; margin-right:10px">Rp ${sub.toLocaleString()}</div>
+                        <button onclick="removeFromCart('${id}')" style="background:none; border:none; color:red; cursor:pointer">×</button>
                     </div>
                 `;
             });
 
-            totalDisplay.innerText = 'Rp ' + grandTotal.toLocaleString('id-ID');
+            totalLabel.innerText = 'Rp ' + grand.toLocaleString('id-ID');
         }
 
-        function removeItem(id) {
-            delete CART[id];
-            renderCart();
+        function removeFromCart(id) {
+            delete SHOPPING_CART[id];
+            renderCartUI();
         }
 
-        // 7. CHECKOUT
-        function checkoutWA() {
-            if (Object.keys(CART).length === 0) return alert('Keranjang kosong!');
+        // 7. EXTERNAL ACTIONS (WA)
+        function sendWA() {
+            const keys = Object.keys(SHOPPING_CART);
+            if (keys.length === 0) return alert('Keranjang masih kosong!');
             
-            let text = "Halo Kios Bersama, saya ingin memesan:\n\n";
-            let grandTotal = 0;
+            let msg = "Halo Kios Bersama, saya ingin memesan:\n\n";
+            let grand = 0;
             
-            Object.keys(CART).forEach(id => {
-                const p = PRODUCTS.find(x => x.id === id);
-                const sub = p.harga * CART[id];
-                grandTotal += sub;
-                text += `• ${p.nama} (${CART[id]} ${p.satuan}) - Rp ${sub.toLocaleString()}\n`;
+            keys.forEach(id => {
+                const p = MASTER_DATA.find(x => x.id === id);
+                const sub = p.harga * SHOPPING_CART[id];
+                grand += sub;
+                msg += `- ${p.nama} (${SHOPPING_CART[id]} ${p.satuan}) = Rp ${sub.toLocaleString()}\n`;
             });
             
-            text += `\n*TOTAL: Rp ${grandTotal.toLocaleString()}*`;
-            window.open(`https://wa.me/62811897005?text=${encodeURIComponent(text)}`);
+            msg += `\n*TOTAL PESANAN: Rp ${grand.toLocaleString()}*`;
+            window.open(`https://wa.me/62811897005?text=${encodeURIComponent(msg)}`);
         }
 
-        function buyNow() {
-            const p = PRODUCTS.find(x => x.id === selectedId);
-            const sub = p.harga * currentQty;
-            const text = `Halo Kios Bersama, saya ingin beli langsung:\n• *${p.nama}* (${currentQty} ${p.satuan})\n*Total: Rp ${sub.toLocaleString()}*`;
-            window.open(`https://wa.me/62811897005?text=${encodeURIComponent(text)}`);
+        function instantBuy() {
+            const p = MASTER_DATA.find(x => x.id === activeId);
+            const sub = p.harga * activeQty;
+            const msg = `Halo Kios Bersama, saya ingin beli langsung:\n- *${p.nama}* (${activeQty} ${p.satuan})\n*Total: Rp ${sub.toLocaleString()}*`;
+            window.open(`https://wa.me/62811897005?text=${encodeURIComponent(msg)}`);
         }
 
-        // 8. ADMIN ACTIONS
-        function handleSave() {
-            const n = document.getElementById('addNama').value;
-            const h = document.getElementById('addHarga').value;
-            const s = document.getElementById('addStok').value;
-            const sat = document.getElementById('addSatuan').value;
-            const f = document.getElementById('addFoto').value;
+        // 8. ADMIN LOGIC (SAVE & UPDATE LOGIC)
+        async function dbSave() {
+            const n = document.getElementById('inName').value.trim();
+            const h = parseInt(document.getElementById('inPrice').value);
+            const s = parseFloat(document.getElementById('inStock').value);
+            const sat = document.getElementById('inUnit').value;
+            const f = document.getElementById('inPhoto').value.trim();
 
-            if (!n || !h) return alert('Nama dan Harga wajib diisi!');
+            if (!n || !h) return alert('Nama dan Harga harus diisi!');
 
-            db.collection("barang").add({
-                nama: n,
-                harga: parseInt(h),
-                stok: parseFloat(s) || 0,
-                satuan: sat || "pcs",
-                foto: f || ""
-            }).then(() => {
-                alert('Produk berhasil disimpan!');
-                document.querySelectorAll('.form-control').forEach(i => i.value = '');
-            });
+            // Logic: Cek apakah barang dengan nama ini sudah ada?
+            const existing = MASTER_DATA.find(x => x.nama.toLowerCase() === n.toLowerCase());
+
+            if (existing) {
+                // UPDATE barang yang sudah ada
+                if (confirm(`Barang "${n}" sudah ada. Update data/foto?`)) {
+                    await db.collection("barang").doc(existing.id).update({
+                        harga: h,
+                        stok: s,
+                        satuan: sat,
+                        foto: f || existing.foto // Gunakan foto baru jika diisi
+                    });
+                    alert('Barang Berhasil Diupdate!');
+                }
+            } else {
+                // TAMBAH barang baru
+                await db.collection("barang").add({
+                    nama: n,
+                    harga: h,
+                    stok: s,
+                    satuan: sat,
+                    foto: f
+                });
+                alert('Barang Berhasil Ditambahkan!');
+            }
+            
+            // Reset Form
+            document.querySelectorAll('.input-style').forEach(i => i.value = '');
         }
 
-        function handleDelete(id) {
-            if (confirm('Yakin ingin menghapus produk ini?')) {
+        function dbDelete(id) {
+            if (confirm('Hapus barang ini dari database?')) {
                 db.collection("barang").doc(id).delete();
             }
         }
 
-        // 9. UTILS
-        function closeModal() { document.getElementById('productModal').style.display = 'none'; }
-        
-        function switchTab(v) {
-            document.getElementById('viewB').classList.toggle('hidden', v !== 'B');
-            document.getElementById('viewA').classList.toggle('hidden', v !== 'A');
-            document.getElementById('tabB').classList.toggle('active', v === 'B');
-            document.getElementById('tabA').classList.toggle('active', v === 'A');
+        // 9. UI UTILS
+        function closePop() { document.getElementById('modalOverlay').style.display = 'none'; }
+
+        function changeMode(m) {
+            document.getElementById('shopView').className = (m === 'B' ? '' : 'hidden');
+            document.getElementById('adminView').className = (m === 'A' ? '' : 'hidden');
+            document.getElementById('btnShop').style.background = (m === 'B' ? 'var(--green-primary)' : 'white');
+            document.getElementById('btnShop').style.color = (m === 'B' ? 'white' : 'var(--text-dark)');
+            document.getElementById('btnAdmin').style.background = (m === 'A' ? 'var(--green-primary)' : 'white');
+            document.getElementById('btnAdmin').style.color = (m === 'A' ? 'white' : 'var(--text-dark)');
             
-            if (v === 'A') {
-                const pass = prompt("Masukkan Password Admin:");
-                if (pass !== "kios123") {
-                    alert("Password Salah!");
-                    switchTab('B');
-                }
+            if (m === 'A') {
+                const p = prompt("Masukkan PIN Admin:");
+                if (p !== "1234") changeMode('B');
             }
         }
+
+        // Fix image blink on window focus
+        window.addEventListener('focus', () => refreshUI());
     </script>
 </body>
 </html>
